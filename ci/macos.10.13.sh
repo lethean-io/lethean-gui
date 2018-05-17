@@ -35,7 +35,7 @@ if [ "$1" = "prep" ]; then
 	installDependencyIfNeeded pkgconfig
 	# - gui specific
 	installDependencyIfNeeded qt5
-
+	# TODO: brew link --force --overwrite qt5
 	exit 0
 
 fi
