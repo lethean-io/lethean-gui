@@ -59,8 +59,13 @@ echo "CI: Creating release archive..."
 RELEASE_NAME="intensecoin-gui-linux-64bit-$BUILD_VERSION"
 cd build/release/bin/
 mkdir $RELEASE_NAME
-ls -alR
-#cp XYZ $RELEASE_NAME/
+cp intensecoind $RELEASE_NAME/
+cp intensecoin-wallet-gui $RELEASE_NAME/
+cp -R qml $RELEASE_NAME/
+cp -R libs $RELEASE_NAME/
+cp -R plugins $RELEASE_NAME/
+cp -R translations $RELEASE_NAME/
+cp start-gui.sh $RELEASE_NAME/
 cp ../../../ci/package-artifacts/CHANGELOG.txt $RELEASE_NAME/
 cp ../../../ci/package-artifacts/README.txt $RELEASE_NAME/
 tar -cvjf $RELEASE_NAME.tar.bz2 $RELEASE_NAME
