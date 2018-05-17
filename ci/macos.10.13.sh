@@ -1,5 +1,5 @@
 set -x
-echo "CI: macOS 10.12"
+echo "CI: macOS 10.13"
 
 if [ "$1" = "prep" ]; then
 

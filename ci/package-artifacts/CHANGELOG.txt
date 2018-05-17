@@ -1,8 +1,14 @@
-v2.0.2 - 2018.05.xx
- - added start.sh and start.bat scripts to help start a reliable initial blockchain sync
- - added CHANGELOG and README to releases
+v2.0.2.1 - 2018.05.10
+ - added ability to open additional types of wallets created before version v2.0.0
+ - fixed issue with the connection_id field not being a valid string in the get_connections RPC command
+
+v2.0.2 - 2018.05.06
+ - added CHANGELOG
+ - added ability to open and use wallets created before version v2.0.0
+ - fixed numerous synchronization issues
  - fixed finding readline library on MinGW-w64
  - fixed compilation when using Boost 1.67
+ - fixed issue where daemon hangs when closing
 
 v2.0.1 - 2018.04.29
  - fixed chain processing when negative timestamp intervals are present
