@@ -35,7 +35,11 @@ elif [ -x "$(command -v uname)" ]; then
 	osArchitecture=`uname -m`
 	if [ "$osVersion" = "MSYS_NT-10.0" ] && [ "$osArchitecture" = "x86_64" ]; then
 		./ci/windows.10.x86_64.sh
+	elif [ "$osVersion" = "MINGW64_NT" ]; then
+		./ci/windows.10.x86_64.sh
 	elif [ "$osVersion" = "MSYS_NT-10.0" ] && [ "$osArchitecture" = "x86" ]; then
+		./ci/windows.10.x86.sh
+	elif [ "$osVersion" = "MINGW32_NT" ]; then
 		./ci/windows.10.x86.sh
 	else
 		echo "CI: builds not yet implemented for $osVersion $osArchitecture"
