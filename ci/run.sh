@@ -37,7 +37,7 @@ elif [ -x "$(command -v uname)" ]; then
 		./ci/windows.10.x86_64.sh
 	elif [ "$osVersion" = "MINGW64_NT" ]; then
 		./ci/windows.10.x86_64.sh
-	elif [ "$osVersion" = "MSYS_NT-10.0" ] && [ "$osArchitecture" = "x86" ]; then
+	elif [ "$osVersion" = "MSYS_NT-10.0-WOW" ] && [ "$osArchitecture" = "i686" ]; then
 		./ci/windows.10.x86.sh
 	elif [ "$osVersion" = "MINGW32_NT" ]; then
 		./ci/windows.10.x86.sh
