@@ -195,7 +195,7 @@ win32 {
         -lboost_regex-mt \
         -lboost_chrono-mt \
         -lboost_program_options-mt \
-        -lreadline \
+        -ltermcap -lreadline \
         -lssl \
         -lcrypto \
         -Wl,-Bdynamic \
