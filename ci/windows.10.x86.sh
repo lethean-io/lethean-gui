@@ -20,6 +20,7 @@ cd ..
 echo "CI: Creating release archive..."
 RELEASE_NAME="intensecoin-gui-win-32bit-$BUILD_VERSION"
 cd build/release/bin/
+ls -alR
 mkdir $RELEASE_NAME
 #?? cp intensecoind.exe $RELEASE_NAME/
 cp intensecoin-wallet-gui.exe $RELEASE_NAME/
