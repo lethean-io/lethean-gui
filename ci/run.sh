@@ -31,13 +31,13 @@ elif [ -x "$(command -v lsb_release)" ]; then
 		echo "CI: builds not yet implemented for Ubuntu version $ubuntuVersion $ubuntuArchitecture"
 	fi
 elif [ -x "$(command -v uname)" ]; then
-	osVersion=`uname -s`
+	osVersion=`expr substr $(uname -s) 1 10`
 	osArchitecture=`uname -m`
-	if [ "$osVersion" = "MSYS_NT-10.0" ] && [ "$osArchitecture" = "x86_64" ]; then
+	if [ "$osVersion" = "MSYS_NT-10" ] && [ "$osArchitecture" = "x86_64" ]; then
 		./ci/windows.10.x86_64.sh
 	elif [ "$osVersion" = "MINGW64_NT" ]; then
 		./ci/windows.10.x86_64.sh
-	elif [ "$osVersion" = "MSYS_NT-10.0-WOW" ] && [ "$osArchitecture" = "i686" ]; then
+	elif [ "$osVersion" = "MSYS_NT-10" ] && [ "$osArchitecture" = "i686" ]; then
 		./ci/windows.10.x86.sh
 	elif [ "$osVersion" = "MINGW32_NT" ]; then
 		./ci/windows.10.x86.sh
