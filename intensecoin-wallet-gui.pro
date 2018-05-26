@@ -411,9 +411,9 @@ DISTFILES += \
     notes.txt \
     intense/src/wallet/CMakeLists.txt \
     components/MobileHeader.qml \
-    pages/intense.qml \
+    pages/Intense.qml \
     pages/IntenseDashboard.qml \
-    IntenseConfig.js
+    IntenseConfig.js \
     components/MobileHeader.qml
 
 
