@@ -410,6 +410,10 @@ OTHER_FILES += \
 DISTFILES += \
     notes.txt \
     intense/src/wallet/CMakeLists.txt \
+    components/MobileHeader.qml \
+    pages/Intense.qml \
+    pages/IntenseDashboard.qml \
+    IntenseConfig.js \
     components/MobileHeader.qml
 
 
