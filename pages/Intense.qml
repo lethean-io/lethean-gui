@@ -94,7 +94,7 @@ Rectangle {
 
     function getBackgroundColor(){
 
-        console.log(backgroundColor + " my id color")
+        //console.log(backgroundColor + " my id color")
         if(backgroundColor == true){
             backgroundColor = false
             return "#f0f0f0"
@@ -214,7 +214,7 @@ Rectangle {
             if (xmlhttpPost.readyState == 4 && xmlhttpPost.status == 200) {
                 var feed = JSON.parse(xmlhttpPost.responseText)
                 var host = applicationDirectory;
-                console.log(obj.certArray[0].certContent);
+                //console.log(obj.certArray[0].certContent);
 
                 var endpoint = ''
                 var port = ''
@@ -487,7 +487,7 @@ Rectangle {
     }
 
     function getJson(speed, speedType, price, tp, favorite) {
-        console.log("Getting SDP Services");
+        //console.log("Getting SDP Services");
 
         // show loading information while we retrieve services
         loading.visible = true;
@@ -515,7 +515,7 @@ Rectangle {
             loading.visible = false;
 
             if (xmlhttp.status == 200) {
-                console.log("SDP Services correctly received");
+                //console.log("SDP Services correctly received");
                 getJsonFail.visible = false;
 
                 // once we auto load the services, disable auto load mode
@@ -526,7 +526,7 @@ Rectangle {
 
                 // validate if SDP version matches wallet
                 if (arr.protocolVersion == null || arr.protocolVersion != Config.SDPVersion) {
-                    console.log("Wallet is not updated to use latest SDP " + arr.protocolVersion);
+                    //console.log("Wallet is not updated to use latest SDP " + arr.protocolVersion);
 
                     getJsonFail.text = "<p><b>Wallet Update Required</b></p>";
                     getJsonFail.text += "Your wallet is outdated.<br>";
@@ -543,7 +543,7 @@ Rectangle {
                 // Get the raw header string
                 var headers = xmlhttp.getAllResponseHeaders();
 
-                console.log(headers + " my headers")
+                //console.log(headers + " my headers")
 
                 // Convert the header string into an array
                 // of individual headers
@@ -558,7 +558,7 @@ Rectangle {
                   headerMap[header] = value;
                 });
 
-                console.log(arrHeaders[5] + " my arr")
+                //console.log(arrHeaders[5] + " my arr")
                 /*
                 var publicKey = Config.ENCRYPTION_PUBLIC_KEY;
                 var encryptionContext = new EdDSA('ed25519');
@@ -596,8 +596,8 @@ Rectangle {
                 xmlGEOhttp.send();
             }
             else { // sdp services retrieval failed, notify user and try again later
-                console.log("SDP services retrieval failed");
-                console.log(xmlhttp);
+                //console.log("SDP services retrieval failed");
+                //console.log(xmlhttp);
                 getJsonFail.visible = true;
                 getJsonFail.text = "There was an error trying to retrieve available services.<br>";
                 getJsonFail.text += "Please click the 'Filter' button to retry.<br><br>";
@@ -605,10 +605,10 @@ Rectangle {
                 getJsonFail.text += "Code: " + xmlhttp.status + "<br>";
                 getJsonFail.text += "Message: " + xmlhttp.responseText;
 
-                console.log("SDP Auto load mode " + autoLoadMode);
+                //console.log("SDP Auto load mode " + autoLoadMode);
                 // this will be true if we are autoloading services after startup of the app
                 if (autoLoadMode == true) {
-                    console.log("SDP Auto load timeout for services retrieval");
+                    //console.log("SDP Auto load timeout for services retrieval");
                     getJson();
                     /*
                     setTimeout(
@@ -836,7 +836,7 @@ Rectangle {
           releasedColor: "#6C8896"
           pressedColor: "#A7B8C0"
           onClicked:  {
-              console.log("Getting SDP Services after clicking on button");
+              //console.log("Getting SDP Services after clicking on button");
               getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
           }
       }
@@ -1053,7 +1053,7 @@ Rectangle {
                 id: listModel
 
                 Component.onCompleted: {
-                    console.log("Getting SDP Services after List initialized");
+                    //console.log("Getting SDP Services after List initialized");
                     autoLoadMode = true;
                     getJson()
 
