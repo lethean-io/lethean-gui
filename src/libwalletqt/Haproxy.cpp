@@ -405,7 +405,7 @@ HttpResponse proxyRequest(std::string proxyHost, std::string proxyPort, std::str
 
 
 // returns true if proxy is online and accepting connections, false otherwise
-bool Haproxy::verifyHaproxy(const QString &host, const QString &port, const QString &provider)
+QString Haproxy::verifyHaproxy(const QString &host, const QString &port, const QString &provider)
 {
     // TODO - this needs to be updated when new dispatcher is available
     std::string endpoint = std::string("http://_remote_/status");
@@ -428,10 +428,15 @@ bool Haproxy::verifyHaproxy(const QString &host, const QString &port, const QStr
         std::cout << "ITNS Header found: " << response.getHeaders()["X-ITNS-Status"] << std::endl;
     }
     else {
+        // return OK with the proxy works
         std::cout << "ITNS Header found: 200";
-        return true;
+        return "OK";
     }
 
+    // return Connection error to stop proxy
+    if(response.getHeaders()["X-ITNS-Status"] == "CONNECTION_ERROR"){
+        return "CONNECTION_ERROR";
+    }
 
-    return false;
+    return "false";
 }

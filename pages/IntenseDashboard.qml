@@ -725,11 +725,18 @@ Rectangle {
             var proxyConnected = callhaproxy.verifyHaproxy(Config.haproxyIp, Config.haproxyPort, obj.provider);
 
             //console.log("====== " + proxyConnected + " ================= Proxy Connection Status ==================")
-            if (proxyConnected === true) {
+            if (proxyConnected === "OK") {
                 waitHaproxyPopup.close();
                 proxyStats = 1;
                 showTime = true;
                 waitHaproxy = 1;
+            // check the connection status and stop haproxy
+            }else if(proxyConnected == "CONNECTION_ERROR"){
+                callhaproxy.killHAproxy()
+                waitHaproxyPopup.title = "Unavailable Service";
+                waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
+                waitHaproxyPopup.open();
+                timeonlineTextLine.text = "Unavailable Service"
             }
         }
 
