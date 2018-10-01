@@ -16,7 +16,7 @@ public:
     Q_INVOKABLE void killHAproxy();
 
     // returns true if proxy is online and accepting connections, false otherwise
-    Q_INVOKABLE bool verifyHaproxy(const QString &host, const QString &ip, const QString &provider);
+    Q_INVOKABLE QString verifyHaproxy(const QString &host, const QString &ip, const QString &provider);
 
 
 private:

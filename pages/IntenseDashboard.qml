@@ -140,7 +140,7 @@ Rectangle {
 
 
     function setPayment(){
-        console.log("Transfer: paymentClicked")
+        //console.log("Transfer: paymentClicked")
         if(firstPayment == 1){
             var value = parseFloat(cost)
             //appWindow.persistentSettings.haproxyTimeLeft = firstPrePaidMinutes*60;
@@ -153,8 +153,8 @@ Rectangle {
         var amountxmr = walletManager.amountFromString(value.toFixed(8));
 
         // validate amount;
-        console.log("integer amount: ", amountxmr);
-        console.log("integer unlocked",currentWallet.unlockedBalance)
+        //console.log("integer amount: ", amountxmr);
+        //console.log("integer unlocked",currentWallet.unlockedBalance)
         if (amountxmr <= 0) {
             hideProcessingSplash()
             flag = 0
@@ -205,7 +205,7 @@ Rectangle {
             }
 
             firstPayment = 0
-            console.log(appWindow.persistentSettings.haproxyTimeLeft + " MY HaproxyTime END")
+            //console.log(appWindow.persistentSettings.haproxyTimeLeft + " MY HaproxyTime END")
 
             appWindow.persistentSettings.objTimeLeft = obj;
             appWindow.persistentSettings.idServiceTimeLeft = idService
@@ -230,7 +230,7 @@ Rectangle {
             if (callProxy == 1) {
                 callProxy = 0
                 var host = applicationDirectory;
-                console.log(obj.certArray[0].certContent);
+                //console.log(obj.certArray[0].certContent);
 
                 var endpoint = ''
                 var port = ''
@@ -254,8 +254,8 @@ Rectangle {
                 changeStatus()
             }
 
-            console.log(hexConfig.toString())
-            console.log(value.toString())
+            //console.log(hexConfig.toString())
+            //console.log(value.toString())
             paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment")
 
 
@@ -364,13 +364,13 @@ Rectangle {
         }
 
     function getGeoLocation(){
-        console.log(obj.proxy[0].endpoint)
+        //console.log(obj.proxy[0].endpoint)
         var url = "http://ip-api.com/json/"+obj.proxy[0].endpoint;
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange=function() {
             if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
                 var location = JSON.parse(xmlhttp.responseText);
-                console.log(location.city + " - " + location.country)
+                //console.log(location.city + " - " + location.country)
                 serverCountryTextLine.text = location.city + " - " + location.country
             }
         }
@@ -415,7 +415,7 @@ Rectangle {
                 transferredTextLine.font.bold = true
                 callhaproxy.haproxyCert(host, certArray);
                 if (Qt.platform.os === "linux") {
-                    console.log("call linux haproxy")
+                    //console.log("call linux haproxy")
                     callhaproxy.haproxy(host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice(0,-4), "", hexC(obj.id).toString(), obj.provider, obj.providerName, obj.name)
                 }
 
@@ -585,7 +585,7 @@ Rectangle {
             if (xmlhttpPost.readyState == 4 && xmlhttpPost.status == 200) {
                 var feed = JSON.parse(xmlhttpPost.responseText)
                 var host = applicationDirectory;
-                console.log(obj.certArray[0].certContent);
+                //console.log(obj.certArray[0].certContent);
 
                 var endpoint = ''
                 var port = ''
@@ -708,7 +708,7 @@ Rectangle {
             getITNS();
 
         }else if(appWindow.persistentSettings.haproxyTimeLeft < data && autoRenew == false && firstPayment == 0){
-            console.log("stop after the time")
+            //console.log("stop after the time")
             flag = 0
             changeStatus()
             callhaproxy.killHAproxy();
@@ -724,12 +724,19 @@ Rectangle {
             // check if proxy is connected. if it is, this method returns true
             var proxyConnected = callhaproxy.verifyHaproxy(Config.haproxyIp, Config.haproxyPort, obj.provider);
 
-            console.log("====== " + proxyConnected + " ================= Proxy Connection Status ==================")
-            if (proxyConnected === true) {
+            //console.log("====== " + proxyConnected + " ================= Proxy Connection Status ==================")
+            if (proxyConnected === "OK") {
                 waitHaproxyPopup.close();
                 proxyStats = 1;
                 showTime = true;
                 waitHaproxy = 1;
+            // check the connection status and stop haproxy
+            }else if(proxyConnected == "CONNECTION_ERROR"){
+                callhaproxy.killHAproxy()
+                waitHaproxyPopup.title = "Unavailable Service";
+                waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
+                waitHaproxyPopup.open();
+                timeonlineTextLine.text = "Unavailable Service"
             }
         }
 
@@ -1985,19 +1992,19 @@ Rectangle {
 
 
     function onPageCompleted() {
-        console.log("Dashboard page completed");
-        console.log(appWindow.persistentSettings.haproxyTimeLeft + " time left")
+        //console.log("Dashboard page completed");
+        //console.log(appWindow.persistentSettings.haproxyTimeLeft + " time left")
 
-        console.log(providerName + "providerName")
-        console.log(obj + " my obj")
+        //console.log(providerName + "providerName")
+        //console.log(obj + " my obj")
         var data = new Date();
-        console.log(data + " time now")
+        //console.log(data + " time now")
         if (providerName != "" || appWindow.persistentSettings.haproxyTimeLeft > data){
             getColor(rank, rankRectangle)
             getMyFeedJson()
             changeStatus()
             if (typeof (obj) == 'undefined') {
-                console.log('obj = 0 --------');
+                //console.log('obj = 0 --------');
                 obj = appWindow.persistentSettings.objTimeLeft;
                 //firstPrePaidMinutes = appWindow.persistentSettings.haproxyTimeLeft;
                 idService = appWindow.persistentSettings.idServiceTimeLeft;
@@ -2026,7 +2033,7 @@ Rectangle {
                 getColor(appWindow.persistentSettings.myRankTextTimeLeft, myRankRectangle)
                 changeStatus();
                 var host = applicationDirectory;
-                console.log(obj.certArray[0].certContent);
+                //console.log(obj.certArray[0].certContent);
 
                 var endpoint = ''
                 var port = ''
