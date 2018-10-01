@@ -92,28 +92,6 @@ Rectangle {
 
     }
 
-    function getBackgroundColor(){
-
-        console.log(backgroundColor + " my id color")
-        if(backgroundColor == true){
-            backgroundColor = false
-            return "#f0f0f0"
-        }else{
-            backgroundColor = true;
-            return "#fafafa"
-        }
-
-        /*
-        if(color == "#ffffff"){
-            return "#000000"
-            //return "#f0f0f0"
-        } else {
-            return "#ffffff"
-            //return "#fafafa"
-        }
-        */
-    }
-
     function decode64(input) {
         var keyStr = "ABCDEFGHIJKLMNOP" +
                        "QRSTUVWXYZabcdef" +
@@ -678,22 +656,6 @@ Rectangle {
 
     }
 
-    function getBalance(id) {
-        // check the unlocked balance to lock the connect button.
-        // unlockedbalance == true because its have to run only once
-        if(appWindow.currentWallet.unlockedBalance < 1) {
-            timerUnlockedBalance.start();
-            id.enabled = false
-            unlockedBalance = false
-        }
-        else if(appWindow.currentWallet.unlockedBalance > 1){
-            timerUnlockedBalance.stop();
-            id.enabled = true
-            unlockedBalance = true
-
-        }
-    }
-
     QtObject {
         id: d
         property bool initialized: false
@@ -907,7 +869,15 @@ Rectangle {
                 delegate: Rectangle {
                     width: listView.width
                     height: listView.height / 6.8
-                    color: getBackgroundColor()
+                    Component.onCompleted:{
+                        if(backgroundColor == true){
+                            backgroundColor = false;
+                            this.color = "#f0f0f0";
+                        }else{
+                            backgroundColor = true;
+                            this.color = "#fafafa";
+                        }
+                    }
 
                     Text {
                         text: listdata
@@ -1013,7 +983,20 @@ Rectangle {
                             shadowPressedColor: "#666e71"
                             releasedColor: "#6C8896"
                             pressedColor: "#A7B8C0"
-                            enabled: getBalance(this);
+                            Component.onCompleted:{
+                                // check the unlocked balance to lock the connect button.
+                                // unlockedbalance == true because its have to run only once
+                                if(walletManager.displayAmount(currentWallet.unlockedBalance) < 1) {
+                                    timerUnlockedBalance.start();
+                                    unlockedBalance = false
+                                    this.enabled = false
+                                }
+                                else{
+                                    timerUnlockedBalance.stop();
+                                    unlockedBalance = true
+                                    this.enabled = true
+                                }
+                            }
 
                             onClicked:{
                                 connectPopup.title = "Connection Confirmation";
