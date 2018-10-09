@@ -1028,6 +1028,7 @@ ApplicationWindow {
         property string typeTimeLeft
         property string costTimeLeft
         property int firstPrePaidMinutesTimeLeft
+        property int subsequentVerificationsNeededLeft
         property string subsequentPrePaidMinutesTimeLeft
         property string speedTimeLeft
         property var feedbackTimeLeft
