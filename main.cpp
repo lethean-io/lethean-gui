@@ -52,9 +52,6 @@
 #include "wallet/wallet2_api.h"
 #include "MainApp.h"
 #include "Haproxy.h"
-#include "ge.h"
-#include "sc.h"
-#include "fe.h"
 
 // IOS exclusions
 #ifndef Q_OS_IOS
