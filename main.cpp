@@ -186,6 +186,8 @@ int main(int argc, char *argv[])
 #ifdef Q_OS_WIN
     isWindows = true;
     QStringList moneroAccountsRootDir = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+    // do not use OpenGL as default backend as it was causing crashes on some Windows 10 machines
+    qputenv("QT_QUICK_BACKEND", "software");
 #elif defined(Q_OS_IOS)
     isIOS = true;
     QStringList moneroAccountsRootDir = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
