@@ -122,11 +122,13 @@ Rectangle {
         if(((appWindow.persistentSettings.haproxyTimeLeft.getTime()-appWindow.persistentSettings.haproxyStart.getTime())/1000).toFixed(0) <= Config.payTimer + (Config.subsequentVerificationsNeeded * subsequentVerificationsNeeded)){
             console.log("my verification is lower than start");
             if(firstPayment == 1){
+                //getITNS()
                 var value = parseFloat(cost) + (parseFloat(cost)/firstPrePaidMinutes*subsequentPrePaidMinutes)
                 //appWindow.persistentSettings.haproxyTimeLeft = new Date(appWindow.persistentSettings.haproxyTimeLeft.getTime() + subsequentPrePaidMinutes*60000)
             }else{
                 var value = (parseFloat(cost)/firstPrePaidMinutes*subsequentPrePaidMinutes) + (parseFloat(cost)/firstPrePaidMinutes*subsequentPrePaidMinutes)
             }
+            //getITNS()
             appWindow.persistentSettings.haproxyTimeLeft = new Date(appWindow.persistentSettings.haproxyTimeLeft.getTime() + subsequentPrePaidMinutes*60000)
 
         }
@@ -197,6 +199,7 @@ Rectangle {
             // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
             if(dashboardPayment != 0){
                 firstPayment = 0
+
                 paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment")
             }
         }
@@ -663,7 +666,7 @@ Rectangle {
         var data = new Date();
 
         // make payment when the date is equal (date end - config payment - config subsequentVerificationsNeeded)
-        if(((data.getTime() - appWindow.persistentSettings.haproxyStart.getTime())/1000).toFixed(0) >=  ((appWindow.persistentSettings.haproxyTimeLeft.getTime()-appWindow.persistentSettings.haproxyStart.getTime())/1000).toFixed(0) - Config.payTimer - (Config.subsequentVerificationsNeeded * subsequentVerificationsNeeded) && autoRenew == true && firstPayment == 0){
+        if(((data.getTime() - appWindow.persistentSettings.haproxyStart.getTime())/1000).toFixed(0) >=  ((appWindow.persistentSettings.haproxyTimeLeft.getTime()-appWindow.persistentSettings.haproxyStart.getTime())/1000).toFixed(0) - (Config.payTimer + (Config.subsequentVerificationsNeeded * subsequentVerificationsNeeded)) && autoRenew == true && firstPayment == 0){
             dashboardPayment = 1;
             setPayment();
             getITNS();
