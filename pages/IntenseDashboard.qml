@@ -51,49 +51,49 @@ Rectangle {
     // keep track haproxy verify 10 before payment and 300 after payment
     property int verification: 10
 
-    function getITNS(){
-        itnsStart = itnsStart + (parseFloat(cost)/firstPrePaidMinutes*subsequentPrePaidMinutes)
-        appWindow.persistentSettings.paidTextLineTimeLeft = itnsStart.toFixed(8) + " "+Config.coinName;
-        paidTextLine.text = itnsStart.toFixed(8) + " "+Config.coinName
+    function getITNS() {
+        itnsStart = itnsStart + ( parseFloat(cost) / firstPrePaidMinutes * subsequentPrePaidMinutes );
+        appWindow.persistentSettings.paidTextLineTimeLeft = itnsStart.toFixed(8) + " " + Config.coinName;
+        paidTextLine.text = itnsStart.toFixed(8) + " " + Config.coinName;
     }
 
-    function hex2bin(hex){
+    function hex2bin( hex ) {
         var hexbin = ""
-        for (var i = 0; i < hex.length; i++){
-            var bin = ("0000"+ parseInt(hex[i], 16).toString(2)).substr(-4)
+        for ( var i = 0; i < hex.length; i++ ) {
+            var bin = ( "0000" + parseInt( hex[i], 16 ).toString( 2 ) ).substr( -4 )
             hexbin = hexbin + bin
-            if(i == hex.length-1){
+            if ( i == hex.length-1 ) {
                 return hexbin
             }
         }
     }
 
-    function hexC(hex){
-        var min = Math.ceil(10000000000000);
-        var max = Math.floor(99999999999999);
-        hex = hex + (Math.floor(Math.random() * (max - min + 1)) + min)
+    function hexC( hex ) {
+        var min = Math.ceil( 10000000000000 );
+        var max = Math.floor( 99999999999999 );
+        hex = hex + ( Math.floor( Math.random() * ( max - min + 1 ) ) + min )
         hexConfig = hex
         appWindow.persistentSettings.hexId = hex.toString()
         return hexConfig
     }
 
 
-    function setPayment(){
-        if(firstPayment == 1){
-            var value = parseFloat(cost)
-        }else{
-            var value = parseFloat(cost)/firstPrePaidMinutes*subsequentPrePaidMinutes
-            //var value = (parseFloat(cost)*subsequentPrePaidMinutes)
+    function setPayment() {
+        // get the cost value
+        if ( firstPayment == 1 ) {
+            var value = parseFloat( cost )
+        } else {
+            var value = parseFloat( cost ) / firstPrePaidMinutes * subsequentPrePaidMinutes
         }
 
 
         var data = new Date()
         // set first payment or subsequentPrePaidMinutes
-        if(firstPayment == 1){
-            appWindow.persistentSettings.haproxyTimeLeft = new Date(data.getTime() + firstPrePaidMinutes*60000)
+        if ( firstPayment == 1 ) {
+            appWindow.persistentSettings.haproxyTimeLeft = new Date( data.getTime() + firstPrePaidMinutes * 60000 )
             appWindow.persistentSettings.haproxyStart = new Date()
-        }else{
-            appWindow.persistentSettings.haproxyTimeLeft = new Date(appWindow.persistentSettings.haproxyTimeLeft.getTime() + subsequentPrePaidMinutes*60000)
+        } else {
+            appWindow.persistentSettings.haproxyTimeLeft = new Date( appWindow.persistentSettings.haproxyTimeLeft.getTime() + subsequentPrePaidMinutes * 60000 )
         }
 
         appWindow.persistentSettings.objTimeLeft = obj;
@@ -118,88 +118,81 @@ Rectangle {
         appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment
         appWindow.persistentSettings.haproxyAutoRenew = autoRenew
 
-        console.log(((appWindow.persistentSettings.haproxyTimeLeft.getTime()-appWindow.persistentSettings.haproxyStart.getTime())/1000).toFixed(0))
-        console.log(Config.payTimer + (Config.subsequentVerificationsNeeded * subsequentVerificationsNeeded))
-
-        if(((appWindow.persistentSettings.haproxyTimeLeft.getTime()-appWindow.persistentSettings.haproxyStart.getTime())/1000).toFixed(0) <= Config.payTimer + (Config.subsequentVerificationsNeeded * subsequentVerificationsNeeded)){
-            console.log("my verification is lower than start");
-            if(firstPayment == 1){
-                var value = parseFloat(cost) + (parseFloat(cost)/firstPrePaidMinutes*subsequentPrePaidMinutes)
-                //appWindow.persistentSettings.haproxyTimeLeft = new Date(appWindow.persistentSettings.haproxyTimeLeft.getTime() + subsequentPrePaidMinutes*60000)
-            }else{
-                var value = (parseFloat(cost)/firstPrePaidMinutes*subsequentPrePaidMinutes) + (parseFloat(cost)/firstPrePaidMinutes*subsequentPrePaidMinutes)
+        // make more than one payment if necessary
+        if ( ( ( appWindow.persistentSettings.haproxyTimeLeft.getTime() - appWindow.persistentSettings.haproxyStart.getTime() ) / 1000 ).toFixed( 0 ) <= Config.payTimer + ( Config.subsequentVerificationsNeeded * subsequentVerificationsNeeded ) ) {
+            if ( firstPayment == 1 ) {
+                var value = parseFloat( cost ) + ( parseFloat( cost ) / firstPrePaidMinutes*subsequentPrePaidMinutes )
+            } else {
+                var value = ( parseFloat( cost ) / firstPrePaidMinutes * subsequentPrePaidMinutes ) + ( parseFloat( cost ) / firstPrePaidMinutes * subsequentPrePaidMinutes )
             }
-            appWindow.persistentSettings.haproxyTimeLeft = new Date(appWindow.persistentSettings.haproxyTimeLeft.getTime() + subsequentPrePaidMinutes*60000)
+            appWindow.persistentSettings.haproxyTimeLeft = new Date( appWindow.persistentSettings.haproxyTimeLeft.getTime() + subsequentPrePaidMinutes * 60000 )
 
         }
 
         var priority = 2
         var privacy = 4
-        var amountxmr = walletManager.amountFromString(value.toFixed(8));
+        var amountxmr = walletManager.amountFromString( value.toFixed( 8 ) );
 
         // validate amount;
-        if (amountxmr <= 0) {
+        if ( amountxmr <= 0 ) {
             hideProcessingSplash()
             flag = 0
             changeStatus()
             callhaproxy.killHAproxy();
-            //delayTimer.stop();
-            informationPopup.title = qsTr("Error") + translationManager.emptyString;
-            informationPopup.text  = qsTr("Amount is wrong: expected number from %1 to %2")
-                    .arg(walletManager.displayAmount(0))
-                    .arg(walletManager.maximumAllowedAmountAsSting())
+            informationPopup.title = qsTr( "Error" ) + translationManager.emptyString;
+            informationPopup.text  = qsTr( "Amount is wrong: expected number from %1 to %2" )
+                    .arg( walletManager.displayAmount( 0 ) )
+                    .arg( walletManager.maximumAllowedAmountAsSting() )
                     + translationManager.emptyString
 
-            //informationPopup.icon  = StandardIcon.Critical
             informationPopup.onCloseCallback = null
             informationPopup.open()
             return;
-        } else if (amountxmr > currentWallet.unlockedBalance) {
+        } else if ( amountxmr > currentWallet.unlockedBalance ) {
             hideProcessingSplash()
             flag = 0
             changeStatus()
             callhaproxy.killHAproxy();
-            //delayTimer.stop();
-            informationPopup.title = qsTr("Error") + translationManager.emptyString;
-            informationPopup.text  = qsTr("Insufficient funds. Unlocked balance: %1")
-                    .arg(walletManager.displayAmount(currentWallet.unlockedBalance))
+            informationPopup.title = qsTr( "Error" ) + translationManager.emptyString;
+            informationPopup.text  = qsTr( "Insufficient funds. Unlocked balance: %1" )
+                    .arg( walletManager.displayAmount( currentWallet.unlockedBalance ) )
                     + translationManager.emptyString
 
-            //informationPopup.icon  = StandardIcon.Critical
             informationPopup.onCloseCallback = null
             informationPopup.open()
             return;
-        }else{
-            if (callProxy == 1) {
+        } else {
+            if ( callProxy == 1 ) {
                 callProxy = 0
                 var host = applicationDirectory;
-                //console.log(obj.certArray[0].certContent);
 
                 var endpoint = ''
                 var port = ''
-                if(obj.proxy.length > 0){
+                if ( obj.proxy.length > 0 ) {
                     endpoint = obj.proxy[0].endpoint
                     port = obj.proxy[0].port
-                }else{
+                } else {
                     endpoint = obj.vpn[0].endpoint
                     port = obj.vpn[0].port
                 }
 
-                var certArray = decode64(obj.certArray[0].certContent); // "4pyTIMOgIGxhIG1vZGU="
-                callhaproxy.haproxyCert(host, certArray);
+                var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
+                callhaproxy.haproxyCert( host, certArray );
 
                 // try to start proxy and show error if it does not start
-                var haproxyStarted = callhaproxy.haproxy(host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice(0,-4), 'haproxy', hexC(obj.id).toString(), obj.provider, obj.providerName, obj.name)
-                if (!haproxyStarted) {
+                var haproxyStarted = callhaproxy.haproxy( host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name )
+                if ( !haproxyStarted ) {
                     showProxyStartupError();
                 }
 
                 changeStatus()
             }
             // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
-            if(dashboardPayment != 0){
+            if ( dashboardPayment != 0 ) {
                 firstPayment = 0
+
                 paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment")
+
             }
         }
 
@@ -222,12 +215,12 @@ Rectangle {
         changeStatus();
     }
 
-    function postJsonFeedback(fbId){
-        var url = Config.url+Config.version+Config.feedback+Config.add
+    function postJsonFeedback( fbId ) {
+        var url = Config.url + Config.version + Config.feedback + Config.add
         var xmlhttpPost = new XMLHttpRequest();
         xmlhttpPost.onreadystatechange=function() {
-            if (xmlhttpPost.readyState == 4 && xmlhttpPost.status == 200) {
-                var feed = JSON.parse(xmlhttpPost.responseText)
+            if ( xmlhttpPost.readyState == 4 && xmlhttpPost.status == 200 ) {
+                var feed = JSON.parse( xmlhttpPost.responseText )
             }
         }
 
@@ -238,35 +231,35 @@ Rectangle {
         var arrRankText = [rText1, rText2, rText3, rText4, rText5]
         var arrQRank = [rankQ1, rankQ2, rankQ3, rankQ4, rankQ5]
         var arrQRankText = [rqText1, rqText2, rqText3, rqText4, rqText5]
-        for(i = 0; i < 5; i++){
-            if(arrRank[i].color == "#a7b8c0"){
-                sp = parseInt(arrRankText[i].text)
+        for( i = 0; i < 5; i++ ) {
+            if ( arrRank[i].color == "#a7b8c0" ) {
+                sp = parseInt( arrRankText[i].text )
             }
-            if(arrQRank[i].color == "#a7b8c0"){
-                st = parseInt(arrQRankText[i].text)
+            if ( arrQRank[i].color == "#a7b8c0" ) {
+                st = parseInt( arrQRankText[i].text )
             }
         }
 
         var data = {"id":fbId, "speed":sp, "stability":st}
-        data = JSON.stringify(data)
-        xmlhttpPost.open("POST", url, true);
-        xmlhttpPost.setRequestHeader("Content-type", "application/json");
-        xmlhttpPost.send(data);
+        data = JSON.stringify( data )
+        xmlhttpPost.open( "POST", url, true );
+        xmlhttpPost.setRequestHeader( "Content-type", "application/json" );
+        xmlhttpPost.send( data );
 
     }
 
-    function csvToArray( strData, strDelimiter ){
-            strDelimiter = (strDelimiter || ",");
+    function csvToArray( strData, strDelimiter  ) {
+            strDelimiter = ( strDelimiter || "," );
             var objPattern = new RegExp(
                 (
                     // Delimiters.
-                    "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+                    "( \\" + strDelimiter + "|\\r?\\n|\\r|^ )" +
 
                     // Quoted fields.
-                    "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+                    "( ?:\"( [^\"]*( ?:\"\"[^\"]* )* )\"|" +
 
                     // Standard fields.
-                    "([^\"\\" + strDelimiter + "\\r\\n]*))"
+                    "( [^\"\\" + strDelimiter + "\\r\\n]* ) )"
                 ),
                 "gi"
                 );
@@ -274,19 +267,19 @@ Rectangle {
             var arrData = [[]];
 
             var arrMatches = null;
-            while (arrMatches = objPattern.exec( strData )){
+            while ( arrMatches = objPattern.exec( strData ) ) {
 
                 var strMatchedDelimiter = arrMatches[ 1 ];
                 if (
                     strMatchedDelimiter.length &&
                     strMatchedDelimiter !== strDelimiter
-                    ){
+                     ) {
                     arrData.push( [] );
 
                 }
 
                 var strMatchedValue;
-                if (arrMatches[ 2 ]){
+                if ( arrMatches[ 2 ] ) {
                     strMatchedValue = arrMatches[ 2 ].replace(
                         new RegExp( "\"\"", "g" ),
                         "\""
@@ -301,60 +294,58 @@ Rectangle {
             return( arrData );
         }
 
-    function getGeoLocation(){
-        //console.log(obj.proxy[0].endpoint)
-        var url = "http://ip-api.com/json/"+obj.proxy[0].endpoint;
+    // get my location by provider IP
+    function getGeoLocation() {
+        var url = "http://ip-api.com/json/" +obj.proxy[0].endpoint;
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange=function() {
-            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                var location = JSON.parse(xmlhttp.responseText);
-                //console.log(location.city + " - " + location.country)
+            if ( xmlhttp.readyState == 4 && xmlhttp.status == 200 ) {
+                var location = JSON.parse( xmlhttp.responseText );
                 serverCountryTextLine.text = location.city + " - " + location.country
             }
         }
 
-        xmlhttp.open("GET", url, true);
-        xmlhttp.setRequestHeader("Access-Control-Allow-Origin","*")
+        xmlhttp.open( "GET", url, true );
+        xmlhttp.setRequestHeader( "Access-Control-Allow-Origin","*" )
         xmlhttp.send();
     }
 
-    function getHaproxyStats(obj) {
-        var url = "http://"+Config.haproxyIp+":8181/stats;csv"
+    function getHaproxyStats( obj ) {
+        var url = "http://" +Config.haproxyIp+":8181/stats;csv"
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange=function() {
-            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                var haproxyStats = csvToArray(xmlhttp.responseText)
-                haproxyStats = JSON.stringify(haproxyStats[1]);
-                haproxyStats = haproxyStats.split(',')
-                haproxyStats[8] = haproxyStats[8].replace('"', '')
-                haproxyStats[9] = haproxyStats[9].replace('"', '')
+            if ( xmlhttp.readyState == 4 && xmlhttp.status == 200 ) {
+                var haproxyStats = csvToArray( xmlhttp.responseText )
+                haproxyStats = JSON.stringify( haproxyStats[1] );
+                haproxyStats = haproxyStats.split( ',' )
+                haproxyStats[8] = haproxyStats[8].replace( '"', '' )
+                haproxyStats[9] = haproxyStats[9].replace( '"', '' )
                 transferredTextLine.color = "#000000"
                 transferredTextLine.font.bold = false
-                appWindow.persistentSettings.transferredTextLineTimeLeft = "Download: " + formatBytes(parseInt(haproxyStats[9])) + " / Upload: " + formatBytes(parseInt(haproxyStats[8]));
-                transferredTextLine.text = "Download: " + formatBytes(parseInt(haproxyStats[9])) + " / Upload: " + formatBytes(parseInt(haproxyStats[8]))
+                appWindow.persistentSettings.transferredTextLineTimeLeft = "Download: " + formatBytes( parseInt( haproxyStats[9] ) ) + " / Upload: " + formatBytes( parseInt( haproxyStats[8] ) );
+                transferredTextLine.text = "Download: " + formatBytes( parseInt( haproxyStats[9] ) ) + " / Upload: " + formatBytes( parseInt( haproxyStats[8] ) )
             }
-			else if(xmlhttp.readyState == 4) {
+            else if ( xmlhttp.readyState == 4 ) {
                 var host = applicationDirectory;
                 var endpoint = ''
                 var port = ''
-                if(obj.proxy.length > 0){
+                if ( obj.proxy.length > 0 ) {
                     endpoint = obj.proxy[0].endpoint
                     port = obj.proxy[0].port
-                }else{
+                } else {
                     endpoint = obj.vpn[0].endpoint
                     port = obj.vpn[0].port
                 }
 
-                var certArray = decode64(obj.certArray[0].certContent); // "4pyTIMOgIGxhIG1vZGU="
+                var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
 
                 flag = 0
                 transferredTextLine.text = "Proxy not running!"
                 transferredTextLine.color = "#FF4500"
                 transferredTextLine.font.bold = true
-                callhaproxy.haproxyCert(host, certArray);
-                if (Qt.platform.os === "linux") {
-                    //console.log("call linux haproxy")
-                    callhaproxy.haproxy(host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice(0,-4), "", hexC(obj.id).toString(), obj.provider, obj.providerName, obj.name)
+                callhaproxy.haproxyCert( host, certArray );
+                if ( Qt.platform.os === "linux" ) {
+                    callhaproxy.haproxy( host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), "", hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name )
                 }
 
                 changeStatus();
@@ -362,48 +353,47 @@ Rectangle {
             }
         }
 
-        xmlhttp.open("GET", url, true);
-        xmlhttp.setRequestHeader("Access-Control-Allow-Origin","*")
+        xmlhttp.open( "GET", url, true );
+        xmlhttp.setRequestHeader( "Access-Control-Allow-Origin","*" )
         xmlhttp.send();
     }
 
-    function getMyFeedJson(){
+    function getMyFeedJson() {
         var myRank = 0
-        var url = Config.url+Config.version+Config.feedback+Config.get+"/"+appWindow.currentWallet.address+"/"+idService
+        var url = Config.url + Config.version + Config.feedback + Config.get + "/" + appWindow.currentWallet.address + "/" + idService
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange=function() {
-            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                var mFeed = JSON.parse(xmlhttp.responseText)
-                for(var i = 0; i < mFeed.length; i++){
-                    if(mFeed[i].mStability == null){
+            if ( xmlhttp.readyState == 4 && xmlhttp.status == 200 ) {
+                var mFeed = JSON.parse( xmlhttp.responseText )
+                for( var i = 0; i < mFeed.length; i++ ) {
+                    if ( mFeed[i].mStability == null ) {
                         mFeed[i].mStability = 0
                     }
-                    if(mFeed[i].mSpeed == null){
+                    if ( mFeed[i].mSpeed == null ) {
                         mFeed[i].mSpeed = 0
                     }
-                    myRank = (mFeed[i].mStability + mFeed[i].mSpeed)/2
+                    myRank = ( mFeed[i].mStability + mFeed[i].mSpeed ) / 2
                 }
-                myRank = parseFloat(myRank).toFixed(1)
+                myRank = parseFloat( myRank ).toFixed( 1 )
                 appWindow.persistentSettings.myRankTextTimeLeft = myRank
-                //appWindow.persistentSettings.myRankRectangleTimeLeft = myRankRectangle
                 myRankText.text =  myRank
-                getColor(myRank, myRankRectangle)
+                getColor( myRank, myRankRectangle )
 
             }
         }
 
-        xmlhttp.open("GET", url, true);
-        xmlhttp.setRequestHeader("Access-Control-Allow-Origin","*")
+        xmlhttp.open( "GET", url, true );
+        xmlhttp.setRequestHeader( "Access-Control-Allow-Origin","*" )
         xmlhttp.send();
 
     }
 
     // update dashboard status depending on proxy connection status
-    function changeStatus(){
-        if (flag == 1) {
+    function changeStatus() {
+        if ( flag == 1 ) {
             subButton.visible = true
             powerOn.source = "../images/power_on.png"
-            if (type == "openvpn") {
+            if ( type == "openvpn" ) {
                 shield.source = "../images/shield_vpn_on.png"
             }
             else {
@@ -416,8 +406,8 @@ Rectangle {
             timerHaproxy.running = true
 
             startText.text = "Connected"
-            appWindow.persistentSettings.paidTextLineTimeLeft = itnsStart.toFixed(8) + " "+Config.coinName;
-            paidTextLine.text = itnsStart.toFixed(8) + " "+Config.coinName
+            appWindow.persistentSettings.paidTextLineTimeLeft = itnsStart.toFixed( 8 ) + " " +Config.coinName;
+            paidTextLine.text = itnsStart.toFixed( 8 ) + " " +Config.coinName
 
         }
         else {
@@ -429,25 +419,24 @@ Rectangle {
             timerHaproxy.stop()
             timerHaproxy.running = false
             bton = ""
-            if (startText.text != "Disconnected") {
+            if ( startText.text != "Disconnected" ) {
                 startText.text = "Reconnect"
             }
         }
 
     }
 
-    function buildTxConnectionString(data) {
+    function buildTxConnectionString( data ) {
         var trStart = '<tr><td width="145" style="padding-top:5px"><b>',
             trMiddle = '</b></td><td style="padding-left:10px;padding-top:5px;">',
             trEnd = "</td></tr>";
 
         return '<table border="0">'
-            //+ (data.id ? trStart + qsTr("ID: ") + trMiddle + data.id + trEnd : "")
-            + (data.providerName ? trStart + qsTr("Provider: ") + trMiddle + data.providerName  + trEnd : "")
-            + (data.name ? trStart + qsTr("Plan: ") + trMiddle + data.name + trEnd : "")
-            + (data.type ? trStart + qsTr("Type: ") + trMiddle + data.type  + trEnd : "")
-            + (data.cost ? trStart + qsTr("Price:") + trMiddle + data.cost+" "+Config.coinName+"/min" + trEnd : "")
-            + (data.firstPrePaidMinutes ? trStart + qsTr("First Pre Paid Minutes:") + trMiddle + data.firstPrePaidMinutes + trEnd : "")
+            + ( data.providerName ? trStart + qsTr( "Provider: " ) + trMiddle + data.providerName  + trEnd : "" )
+            + ( data.name ? trStart + qsTr( "Plan: " ) + trMiddle + data.name + trEnd : "" )
+            + ( data.type ? trStart + qsTr( "Type: " ) + trMiddle + data.type  + trEnd : "" )
+            + ( data.cost ? trStart + qsTr( "Price:" ) + trMiddle + data.cost+" " +Config.coinName+"/min" + trEnd : "" )
+            + ( data.firstPrePaidMinutes ? trStart + qsTr( "First Pre Paid Minutes:" ) + trMiddle + data.firstPrePaidMinutes + trEnd : "" )
             + "</table>"
             + translationManager.emptyString;
     }
@@ -458,17 +447,9 @@ Rectangle {
             + '<p>Enable and connect the Browser Extension in your browser to start using the Proxy!</p>'
             + '<p>More information can be found on our <a href="' + Config.knowledgeBaseURL + '">Knowledge Base</a></p>'
             + translationManager.emptyString;
-        /*
-        return '<table border="1" style="color: #31708f; background-color: #d9edf7; border-color: #bce8f1;">'
-            + '<tr><td>Browser Extension</td></tr>'
-            + '<tr><td>Enable and connect the Browser Extension in your browser to start using the Proxy!</td></tr>'
-            + '<tr><td>More information can be found on our <a href="' + Config.knowledgeBaseURL + '">Knowledge Base</a></td></tr>'
-            + '</table>'
-            + translationManager.emptyString;
-        */
     }
 
-    function decode64(input) {
+    function decode64( input ) {
         var keyStr = "ABCDEFGHIJKLMNOP" +
                        "QRSTUVWXYZabcdef" +
                        "ghijklmnopqrstuv" +
@@ -481,56 +462,55 @@ Rectangle {
 
          // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
          var base64test = /[^A-Za-z0-9\+\/\=]/g;
-         if (base64test.exec(input)) {
-            alert("There were invalid base64 characters in the input text.\n" +
+         if ( base64test.exec( input ) ) {
+            alert( "There were invalid base64 characters in the input text.\n" +
                   "Valid base64 characters are A-Z, a-z, 0-9, '+', '/',and '='\n" +
-                  "Expect errors in decoding.");
+                  "Expect errors in decoding." );
          }
-         input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+         input = input.replace( /[^A-Za-z0-9\+\/\=]/g, "" );
 
          do {
-            enc1 = keyStr.indexOf(input.charAt(i++));
-            enc2 = keyStr.indexOf(input.charAt(i++));
-            enc3 = keyStr.indexOf(input.charAt(i++));
-            enc4 = keyStr.indexOf(input.charAt(i++));
+            enc1 = keyStr.indexOf( input.charAt( i++ ) );
+            enc2 = keyStr.indexOf( input.charAt( i++ ) );
+            enc3 = keyStr.indexOf( input.charAt( i++ ) );
+            enc4 = keyStr.indexOf( input.charAt( i++ ) );
 
-            chr1 = (enc1 << 2) | (enc2 >> 4);
-            chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-            chr3 = ((enc3 & 3) << 6) | enc4;
+            chr1 = ( enc1 << 2 ) | ( enc2 >> 4 );
+            chr2 = ( ( enc2 & 15 ) << 4 ) | ( enc3 >> 2 );
+            chr3 = ( ( enc3 & 3 ) << 6 ) | enc4;
 
-            output = output + String.fromCharCode(chr1);
+            output = output + String.fromCharCode( chr1 );
 
-            if (enc3 != 64) {
-               output = output + String.fromCharCode(chr2);
+            if ( enc3 != 64 ) {
+               output = output + String.fromCharCode( chr2 );
             }
-            if (enc4 != 64) {
-               output = output + String.fromCharCode(chr3);
+            if ( enc4 != 64 ) {
+               output = output + String.fromCharCode( chr3 );
             }
 
             chr1 = chr2 = chr3 = "";
             enc1 = enc2 = enc3 = enc4 = "";
 
-         } while (i < input.length);
+         } while ( i < input.length );
 
-         return unescape(output);
+         return unescape( output );
       }
 
-    function createJsonFeedback(obj, rank){
+    function createJsonFeedback( obj, rank ) {
         subButton.visible = true;
         var url = Config.url+Config.version+Config.feedback+Config.setup
         var xmlhttpPost = new XMLHttpRequest();
         xmlhttpPost.onreadystatechange=function() {
-            if (xmlhttpPost.readyState == 4 && xmlhttpPost.status == 200) {
-                var feed = JSON.parse(xmlhttpPost.responseText)
+            if ( xmlhttpPost.readyState == 4 && xmlhttpPost.status == 200 ) {
+                var feed = JSON.parse( xmlhttpPost.responseText )
                 var host = applicationDirectory;
-                //console.log(obj.certArray[0].certContent);
 
                 var endpoint = ''
                 var port = ''
-                if(obj.proxy.length > 0){
+                if ( obj.proxy.length > 0 ) {
                     endpoint = obj.proxy[0].endpoint
                     port = obj.proxy[0].port
-                }else{
+                } else {
                     endpoint = obj.vpn[0].endpoint
                     port = obj.vpn[0].port
                 }
@@ -540,16 +520,16 @@ Rectangle {
                 intenseDashboardView.providerName = obj.providerName
                 intenseDashboardView.name = obj.name
                 intenseDashboardView.type = obj.type
-                intenseDashboardView.cost = parseFloat(obj.cost) * obj.firstPrePaidMinutes
+                intenseDashboardView.cost = parseFloat( obj.cost ) * obj.firstPrePaidMinutes
                 intenseDashboardView.rank = rank
-                intenseDashboardView.speed = formatBytes(obj.downloadSpeed)
+                intenseDashboardView.speed = formatBytes( obj.downloadSpeed )
                 intenseDashboardView.firstPrePaidMinutes = obj.firstPrePaidMinutes
                 intenseDashboardView.subsequentPrePaidMinutes = obj.subsequentPrePaidMinutes
                 intenseDashboardView.bton = "qrc:///images/power_off.png"
                 intenseDashboardView.flag = 1
                 intenseDashboardView.secs = 0
                 intenseDashboardView.obj = obj
-                intenseDashboardView.itnsStart = parseFloat(obj.cost) * obj.firstPrePaidMinutes
+                intenseDashboardView.itnsStart = parseFloat( obj.cost ) * obj.firstPrePaidMinutes
                 intenseDashboardView.macHostFlag = 0
                 intenseDashboardView.hexConfig = hexConfig
                 intenseDashboardView.firstPayment = 1
@@ -564,43 +544,43 @@ Rectangle {
         }
 
         var data = {"id":obj.providerWallet, "provider":obj.provider, "services":obj.id, "client":appWindow.currentWallet.address}
-        data = JSON.stringify(data)
-        xmlhttpPost.open("POST", url, true);
-        xmlhttpPost.setRequestHeader("Content-type", "application/json");
-        xmlhttpPost.send(data);
+        data = JSON.stringify( data )
+        xmlhttpPost.open( "POST", url, true );
+        xmlhttpPost.setRequestHeader( "Content-type", "application/json" );
+        xmlhttpPost.send( data );
 
     }
 
-    function formatBytes(bytes,decimals) {
-       if(bytes == 0) return '0 Bytes';
+    function formatBytes( bytes,decimals ) {
+       if ( bytes == 0 ) return '0 Bytes';
        var k = 1000,
            dm = decimals || 2,
            sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-           i = Math.floor(Math.log(bytes) / Math.log(k));
-       return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+           i = Math.floor( Math.log( bytes ) / Math.log( k ) );
+       return parseFloat( ( bytes / Math.pow( k, i ) ).toFixed( dm ) ) + ' ' + sizes[i];
     }
 
-    function getColor(id, idRank){
+    function getColor( id, idRank ) {
 
-        if(id == 5){
+        if ( id == 5 ) {
             idRank.color = "#008b00"
-        }else if(id < 5 && id > 4.5){
+        }else if ( id < 5 && id > 4.5 ) {
             idRank.color = "#66cd00"
-        }else if(id <= 4.5 && id > 4){
+        }else if ( id <= 4.5 && id > 4 ) {
             idRank.color = "#c0ff3e"
-        }else if(id <= 4 && id > 3.5){
+        }else if ( id <= 4 && id > 3.5 ) {
             idRank.color = "#caff70"
-        }else if(id <= 3.5 && id > 3){
+        }else if ( id <= 3.5 && id > 3 ) {
             idRank.color = "#ffff00"
-        }else if(id <= 3 && id > 2.5){
+        }else if ( id <= 3 && id > 2.5 ) {
             idRank.color = "#ffa500"
-        }else if(id <= 2.5 && id > 2){
+        }else if ( id <= 2.5 && id > 2 ) {
             idRank.color = "#ffa54f"
-        }else if(id <= 2 && id > 1.5){
+        }else if ( id <= 2 && id > 1.5 ) {
             idRank.color = "#ff7f24"
-        }else if(id <= 1.5 && id > 1){
+        }else if ( id <= 1.5 && id > 1 ) {
             idRank.color = "#ee6363"
-        }else{
+        } else {
             idRank.color = "#ee2c2c"
         }
 
@@ -610,39 +590,37 @@ Rectangle {
         //time online
         data = new Date()
         // get the diff between to show the time online
-        secs = ((data.getTime()-appWindow.persistentSettings.haproxyStart.getTime())/1000).toFixed(0)
+        secs = ( ( data.getTime() - appWindow.persistentSettings.haproxyStart.getTime() ) / 1000 ).toFixed( 0 )
         var h = secs/60/60
-        var m = (secs/60)%60
+        var m = ( secs/60 )%60
         var s = secs%60
-        var array = [h,m,s].map(Math.floor)
+        var array = [h,m,s].map( Math.floor )
         var value = ''
-        for(x = 0; x < array.length; x++){
-            if(array[x] < 10){
+        for( x = 0; x < array.length; x++ ) {
+            if ( array[x] < 10 ) {
                 array[x] = "0" + array[x]
-            }else{
+            } else {
                 array[x] = array[x]
             }
-            function getCom(y){
-                if(y < 2){return ":"}else{return ""}
+            function getCom( y ) {
+                if ( y < 2 ) {return ":"} else {return ""}
             }
-            var c = getCom(x)
+            var c = getCom( x )
             value = value + array[x] + c
         }
 
-
         if ( secs % verification == 0 || firstPayment == 1 ) {
             // check if proxy is connected. if it is, this method returns true
-            var proxyConnected = callhaproxy.verifyHaproxy(Config.haproxyIp, Config.haproxyPort, obj.provider);
+            var proxyConnected = callhaproxy.verifyHaproxy( Config.haproxyIp, Config.haproxyPort, obj.provider );
 
-            //console.log("====== " + proxyConnected + " ================= Proxy Connection Status ==================")
-            if (proxyConnected === "OK") {
+            if ( proxyConnected === "OK" ) {
                 waitHaproxyPopup.close();
                 proxyStats = 1;
                 showTime = true;
                 waitHaproxy = 1;
                 verification = 60;
             // check the connection status and stop haproxy
-            }else if(proxyConnected == "CONNECTION_ERROR"){
+            }else if ( proxyConnected == "CONNECTION_ERROR" ) {
                 callhaproxy.killHAproxy()
                 waitHaproxyPopup.title = "Unavailable Service";
                 waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
@@ -653,8 +631,8 @@ Rectangle {
                 return
 
                 //only run when dont have payment
-            }else if(proxyConnected == "NO_PAYMENT"){
-                if(firstPayment == 1){
+            }else if ( proxyConnected == "NO_PAYMENT" ) {
+                if ( firstPayment == 1 ) {
                     dashboardPayment = 1;
                     setPayment()
                 }
@@ -666,31 +644,29 @@ Rectangle {
         appWindow.persistentSettings.secsTimeLeft = secs
         var data = new Date();
 
-        // make payment when the date is equal (date end - config payment - config subsequentVerificationsNeeded)
-        if(((data.getTime() - appWindow.persistentSettings.haproxyStart.getTime())/1000).toFixed(0) >=  ((appWindow.persistentSettings.haproxyTimeLeft.getTime()-appWindow.persistentSettings.haproxyStart.getTime())/1000).toFixed(0) - (Config.payTimer + (Config.subsequentVerificationsNeeded * subsequentVerificationsNeeded)) && autoRenew == true && firstPayment == 0){
+        // make payment when the date is equal ( date end - config payment - config subsequentVerificationsNeeded )
+        if ( ( ( data.getTime() - appWindow.persistentSettings.haproxyStart.getTime() ) / 1000 ).toFixed( 0 ) >=  ( ( appWindow.persistentSettings.haproxyTimeLeft.getTime() - appWindow.persistentSettings.haproxyStart.getTime() ) / 1000 ).toFixed( 0 ) - ( Config.payTimer + ( Config.subsequentVerificationsNeeded * subsequentVerificationsNeeded ) ) && autoRenew == true && firstPayment == 0 ) {
             dashboardPayment = 1;
             setPayment();
             getITNS();
 
-        }else if(appWindow.persistentSettings.haproxyTimeLeft < data && autoRenew == false && firstPayment == 0){
-            //console.log("stop after the time")
+        }else if ( appWindow.persistentSettings.haproxyTimeLeft < data && autoRenew == false && firstPayment == 0 ) {
             flag = 0
             changeStatus()
             callhaproxy.killHAproxy();
-            //delayTimer.stop();
             feedbackPopup.title = "Provider Feedback";
             feedbackPopup.open();
 
         }
 
-        if (waitHaproxy == 0) {
+        if ( waitHaproxy == 0 ) {
             waitHaproxyPopup.title = "Waiting for payment balance";
             waitHaproxyPopup.content = "The proxy may not work until the provider receives your payment.";
             waitHaproxyPopup.open();
             timeonlineTextLine.text = "Waiting for payment balance"
         }
 
-        if (showTime == true) {
+        if ( showTime == true ) {
             timeonlineTextLine.text = value
         }
 
@@ -723,7 +699,7 @@ Rectangle {
               anchors.top:  parent.top
               anchors.topMargin: 14
               //width: 156
-              text: qsTr("Status") + translationManager.emptyString
+              text: qsTr( "Status" ) + translationManager.emptyString
               font.pixelSize: 20
               color: "#6C8896"
               font.bold: true
@@ -738,7 +714,7 @@ Rectangle {
               anchors.leftMargin: 17
               width: 72; height: 87
               fillMode: Image.PreserveAspectFit
-              source: if(type == "openvpn"){"../images/shield_vpn_on.png"}else if(type == "proxy"){"../images/shield_proxy_on.png"}else{"../images/shield.png"}
+              source: if ( type == "openvpn" ) {"../images/shield_vpn_on.png"}else if ( type == "proxy" ) {"../images/shield_proxy_on.png"} else {"../images/shield.png"}
           }
 
           Text {
@@ -749,7 +725,7 @@ Rectangle {
                 anchors.topMargin: 65
                 anchors.leftMargin: 90
                 //width: 156
-                text: if(feedback.length != 36){qsTr("Not running")+ translationManager.emptyString}else{ qsTr("Connected")+ translationManager.emptyString}
+                text: if ( feedback.length != 36 ) {qsTr( "Not running" )+ translationManager.emptyString} else { qsTr( "Connected" )+ translationManager.emptyString}
                 font.pixelSize: 19
                 font.bold: true
                 color: "#535353"
@@ -776,7 +752,7 @@ Rectangle {
                 anchors.top:  parent.top
                 anchors.topMargin: 14
                 //width: 156
-                text: qsTr("Disconnected")+ translationManager.emptyString
+                text: qsTr( "Disconnected" )+ translationManager.emptyString
                 font.pixelSize: 20
                 color: "#6C8896"
                 font.bold: true
@@ -788,7 +764,7 @@ Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top:  startText.top
                 anchors.topMargin: 65
-                text: qsTr("No Historical Connection:") + translationManager.emptyString
+                text: qsTr( "No Historical Connection:" ) + translationManager.emptyString
                 font.pixelSize: 19
                 color: "#535353"
                 font.family: "Arial"
@@ -804,7 +780,7 @@ Rectangle {
                 anchors.topMargin: 31
                 anchors.rightMargin: 57
                 width: 60
-                text: qsTr("Feedback:") + translationManager.emptyString
+                text: qsTr( "Feedback:" ) + translationManager.emptyString
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignRight
                 color: "#535353"
@@ -844,7 +820,7 @@ Rectangle {
                 anchors.topMargin: 31
                 anchors.rightMargin: 57
                 width: 60
-                text: qsTr("My Feedback:") + translationManager.emptyString
+                text: qsTr( "My Feedback:" ) + translationManager.emptyString
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignRight
                 color: "#535353"
@@ -882,7 +858,7 @@ Rectangle {
                 anchors.topMargin: 31
                 anchors.leftMargin: 17
                 width: 60
-                text: qsTr("Type:") + translationManager.emptyString
+                text: qsTr( "Type:" ) + translationManager.emptyString
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignRight
                 color: "#535353"
@@ -897,7 +873,7 @@ Rectangle {
                 anchors.topMargin: 31
                 anchors.leftMargin: 90
                 width: 70
-                text: if(type == "openvpn"){qsTr("VPN") + translationManager.emptyString}else if(type == "proxy"){qsTr("PROXY") + translationManager.emptyString}
+                text: if ( type == "openvpn" ) {qsTr( "VPN" ) + translationManager.emptyString}else if ( type == "proxy" ) {qsTr( "PROXY" ) + translationManager.emptyString}
                 font.pixelSize: 13
                 horizontalAlignment: Text.AlignLeft
                 font.bold: true
@@ -913,7 +889,7 @@ Rectangle {
                 anchors.topMargin: 21
                 anchors.leftMargin: 17
                 width: 60
-                text: qsTr("Provider:") + translationManager.emptyString
+                text: qsTr( "Provider:" ) + translationManager.emptyString
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignRight
                 color: "#535353"
@@ -928,7 +904,7 @@ Rectangle {
                 anchors.topMargin: 21
                 anchors.leftMargin: 90
                 width: 70
-                text: qsTr(providerName) + translationManager.emptyString
+                text: qsTr( providerName ) + translationManager.emptyString
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignLeft
                 color: "#535353"
@@ -945,7 +921,7 @@ Rectangle {
                 anchors.topMargin: 21
                 anchors.leftMargin: 17
                 width: 60
-                text: qsTr("Plan:") + translationManager.emptyString
+                text: qsTr( "Plan:" ) + translationManager.emptyString
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignRight
                 color: "#535353"
@@ -959,7 +935,7 @@ Rectangle {
                 anchors.topMargin: 21
                 anchors.leftMargin: 90
                 width: 70
-                text: qsTr(name) + translationManager.emptyString
+                text: qsTr( name ) + translationManager.emptyString
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignLeft
                 color: "#535353"
@@ -975,7 +951,7 @@ Rectangle {
                 anchors.topMargin: 21
                 anchors.leftMargin: 17
                 width: 60
-                text: qsTr("Price:") + translationManager.emptyString
+                text: qsTr( "Price:" ) + translationManager.emptyString
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignRight
                 color: "#535353"
@@ -989,7 +965,7 @@ Rectangle {
                 anchors.topMargin: 21
                 anchors.leftMargin: 90
                 width: 70
-                text: (parseFloat(cost)/firstPrePaidMinutes) + " "+Config.coinName+"/min"
+                text: ( parseFloat( cost ) / firstPrePaidMinutes ) + " " +Config.coinName+"/min"
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignLeft
                 color: "#535353"
@@ -1004,7 +980,7 @@ Rectangle {
                 anchors.topMargin: 21
                 anchors.leftMargin: 17
                 width: 60
-                text: qsTr("Speed:") + translationManager.emptyString
+                text: qsTr( "Speed:" ) + translationManager.emptyString
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignRight
                 color: "#535353"
@@ -1019,7 +995,7 @@ Rectangle {
                 anchors.topMargin: 21
                 anchors.leftMargin: 90
                 width: 70
-                text: qsTr(speed)+"/s"
+                text: qsTr( speed )+"/s"
                 font.pixelSize: 12
                 horizontalAlignment: Text.AlignLeft
                 color: "#535353"
@@ -1033,7 +1009,7 @@ Rectangle {
               width:400
               height: 380
               onAccepted:{
-                  createJsonFeedback(obj, rank)
+                  createJsonFeedback( obj, rank )
 
               }
 
@@ -1063,14 +1039,14 @@ Rectangle {
           }
 
           StandardButton {
-              visible: if(obj.type == "proxy"){true}else{false}
+              visible: if ( obj.type == "proxy" ) {true} else {false}
               id: subConnectButton
               anchors.bottom: parent.bottom
               anchors.right: parent.right
               anchors.rightMargin: 17
               anchors.bottomMargin: 17
               width: 80
-              text: qsTr("Connect") + translationManager.emptyString
+              text: qsTr( "Connect" ) + translationManager.emptyString
               shadowReleasedColor: "#A7B8C0"
               shadowPressedColor: "#666e71"
               releasedColor: "#6C8896"
@@ -1078,7 +1054,7 @@ Rectangle {
 
               onClicked:{
                   connectPopup.title = "Connection Confirmation";
-                  connectPopup.content = buildTxConnectionString(obj);
+                  connectPopup.content = buildTxConnectionString( obj );
                   connectPopup.open();
 
               }
@@ -1110,7 +1086,7 @@ Rectangle {
               width:400
               height: 420
               onAccepted:{
-                  postJsonFeedback(appWindow.persistentSettings.feedbackTimeLeft)
+                  postJsonFeedback( appWindow.persistentSettings.feedbackTimeLeft )
               }
 
               Text {
@@ -1120,7 +1096,7 @@ Rectangle {
                     anchors.top:  parent.top
                     anchors.topMargin: 100
                     //width: 156
-                    text: qsTr(providerName) + translationManager.emptyString
+                    text: qsTr( providerName ) + translationManager.emptyString
                     font.pixelSize: 18
                     font.bold: true
                     color: "#6C8896"
@@ -1134,7 +1110,7 @@ Rectangle {
                     anchors.top:  providerFeedback.top
                     anchors.topMargin: 37
                     //width: 156
-                    text: qsTr(name) + translationManager.emptyString
+                    text: qsTr( name ) + translationManager.emptyString
                     font.pixelSize: 16
                     font.bold: true
                     color: "#6C8896"
@@ -1148,7 +1124,7 @@ Rectangle {
                     anchors.top:  nameFeedback.top
                     anchors.topMargin: 47
                     //width: 156
-                    text: qsTr("Speed") + translationManager.emptyString
+                    text: qsTr( "Speed" ) + translationManager.emptyString
                     font.pixelSize: 14
                     font.bold: false
                     color: "#000000"
@@ -1331,7 +1307,7 @@ Rectangle {
                     anchors.top:  rank3.top
                     anchors.topMargin: 47
                     //width: 156
-                    text: qsTr("Quality") + translationManager.emptyString
+                    text: qsTr( "Quality" ) + translationManager.emptyString
                     font.pixelSize: 14
                     font.bold: false
                     color: "#000000"
@@ -1543,7 +1519,7 @@ Rectangle {
                   anchors.leftMargin: 37
                   color: "#ffffff"
                   font.bold: true
-                  text: qsTr("Disconnect") + translationManager.emptyString
+                  text: qsTr( "Disconnect" ) + translationManager.emptyString
 
               }
 
@@ -1581,7 +1557,7 @@ Rectangle {
               anchors.top:  parent.top
               anchors.topMargin: 100
               //width: 156
-              text: qsTr("Learn how to use the VPN service") + translationManager.emptyString
+              text: qsTr( "Learn how to use the VPN service" ) + translationManager.emptyString
               font.pixelSize: 22
               font.bold: true
               color: "#0645AD"
@@ -1590,7 +1566,7 @@ Rectangle {
               //fontWeight: bold
               MouseArea{
                   anchors.fill: parent
-                  onClicked:Qt.openUrlExternally(Config.knowledgeBaseURL);
+                  onClicked:Qt.openUrlExternally( Config.knowledgeBaseURL );
               }
           }
 
@@ -1601,7 +1577,7 @@ Rectangle {
               anchors.top:  howToUseText.top
               anchors.topMargin: 70
               //width: 156
-              text: qsTr("or") + translationManager.emptyString
+              text: qsTr( "or" ) + translationManager.emptyString
               font.pixelSize: 18
               font.bold: true
               color: "#535353"
@@ -1617,7 +1593,7 @@ Rectangle {
               anchors.top:  orText.top
               anchors.topMargin: 70
               //width: 156
-              text: qsTr("Search for provider") + translationManager.emptyString
+              text: qsTr( "Search for provider" ) + translationManager.emptyString
               font.pixelSize: 22
               font.bold: true
               color: "#0645AD"
@@ -1627,7 +1603,7 @@ Rectangle {
                   anchors.fill: parent
                   onClicked: {
                       middlePanel.state = "Provider"
-                      leftPanel.selectItem("Provider")
+                      leftPanel.selectItem( "Provider" )
                   }
               }
           }
@@ -1642,7 +1618,7 @@ Rectangle {
               anchors.top:  parent.top
               anchors.topMargin: 27
               //width: 156
-              text: qsTr("Details") + translationManager.emptyString
+              text: qsTr( "Details" ) + translationManager.emptyString
               font.pixelSize: 18
               font.bold: true
               color: "#6C8896"
@@ -1659,7 +1635,7 @@ Rectangle {
               anchors.leftMargin: 27
               width: 140
               //anchors.left: Text.AlignRight
-              text: qsTr("Time online:") + translationManager.emptyString
+              text: qsTr( "Time online:" ) + translationManager.emptyString
               font.pixelSize: 14
               horizontalAlignment: Text.AlignRight
           }
@@ -1684,7 +1660,7 @@ Rectangle {
               anchors.topMargin: 27
               anchors.leftMargin: 27
               width: 140
-              text: qsTr("Transferred:") + translationManager.emptyString
+              text: qsTr( "Transferred:" ) + translationManager.emptyString
               font.pixelSize: 14
               horizontalAlignment: Text.AlignRight
           }
@@ -1710,7 +1686,7 @@ Rectangle {
               anchors.topMargin: 27
               anchors.leftMargin: 27
               width: 140
-              text: qsTr("Paid until now:") + translationManager.emptyString
+              text: qsTr( "Paid until now:" ) + translationManager.emptyString
               font.pixelSize: 14
               horizontalAlignment: Text.AlignRight
           }
@@ -1736,7 +1712,7 @@ Rectangle {
               anchors.top:  paiduntilnowText.top
               anchors.topMargin: 37
               //width: 156
-              text: qsTr("Provider") + translationManager.emptyString
+              text: qsTr( "Provider" ) + translationManager.emptyString
               font.pixelSize: 18
               color: "#6C8896"
               font.bold: true
@@ -1751,7 +1727,7 @@ Rectangle {
               anchors.topMargin: 47
               anchors.leftMargin: 27
               width: 140
-              text: qsTr("Name:") + translationManager.emptyString
+              text: qsTr( "Name:" ) + translationManager.emptyString
               font.pixelSize: 14
               horizontalAlignment: Text.AlignRight
           }
@@ -1764,7 +1740,7 @@ Rectangle {
               anchors.topMargin: 47
               anchors.leftMargin: 20
               width: 180
-              text: qsTr(providerName) + translationManager.emptyString
+              text: qsTr( providerName ) + translationManager.emptyString
               font.pixelSize: 14
               horizontalAlignment: Text.AlignLeft
           }
@@ -1778,7 +1754,7 @@ Rectangle {
               anchors.topMargin: 27
               anchors.leftMargin: 27
               width: 140
-              text: qsTr("Plan:") + translationManager.emptyString
+              text: qsTr( "Plan:" ) + translationManager.emptyString
               font.pixelSize: 14
               horizontalAlignment: Text.AlignRight
           }
@@ -1792,7 +1768,7 @@ Rectangle {
               anchors.topMargin: 27
               anchors.leftMargin: 20
               width: 180
-              text: qsTr(name) + translationManager.emptyString
+              text: qsTr( name ) + translationManager.emptyString
               font.pixelSize: 14
               horizontalAlignment: Text.AlignLeft
           }
@@ -1806,7 +1782,7 @@ Rectangle {
               anchors.topMargin: 27
               anchors.leftMargin: 27
               width: 140
-              text: qsTr("Price:") + translationManager.emptyString
+              text: qsTr( "Price:" ) + translationManager.emptyString
               font.pixelSize: 14
               horizontalAlignment: Text.AlignRight
           }
@@ -1820,7 +1796,7 @@ Rectangle {
               anchors.topMargin: 27
               anchors.leftMargin: 20
               width: 180
-              text: (parseFloat(cost)/firstPrePaidMinutes) + (" "+Config.coinName+"/min")
+              text: ( parseFloat( cost ) / firstPrePaidMinutes ) + ( " " +Config.coinName+"/min" )
               font.pixelSize: 14
               horizontalAlignment: Text.AlignLeft
           }
@@ -1834,7 +1810,7 @@ Rectangle {
               anchors.topMargin: 27
               anchors.leftMargin: 27
               width: 140
-              text: qsTr("Country:") + translationManager.emptyString
+              text: qsTr( "Country:" ) + translationManager.emptyString
               font.pixelSize: 14
               horizontalAlignment: Text.AlignRight
           }
@@ -1860,7 +1836,7 @@ Rectangle {
               anchors.topMargin: 27
               anchors.leftMargin: 27
               width: 140
-              text: qsTr("Server IP:") + translationManager.emptyString
+              text: qsTr( "Server IP:" ) + translationManager.emptyString
               font.pixelSize: 14
               horizontalAlignment: Text.AlignRight
           }
@@ -1890,7 +1866,7 @@ Rectangle {
               color: "#d9edf7"
               MouseArea {
                   anchors.fill: parent
-                  onClicked: Qt.openUrlExternally(Config.knowledgeBaseURL);
+                  onClicked: Qt.openUrlExternally( Config.knowledgeBaseURL );
               }
               Text {
                   anchors.left: parent.left
@@ -1906,7 +1882,7 @@ Rectangle {
                   width: 610
                   MouseArea {
                       anchors.fill: parent
-                      onClicked: Qt.openUrlExternally(Config.knowledgeBaseURL);
+                      onClicked: Qt.openUrlExternally( Config.knowledgeBaseURL );
                   }
               }
         }
@@ -1925,8 +1901,8 @@ Rectangle {
         onTriggered:
         {
             timer()
-            if(proxyStats != 0){
-                getHaproxyStats(obj)
+            if ( proxyStats != 0 ) {
+                getHaproxyStats( obj )
             }
         }
     }
@@ -1935,19 +1911,19 @@ Rectangle {
 
 
     function onPageCompleted() {
-        //console.log("Dashboard page completed");
-        //console.log(appWindow.persistentSettings.haproxyTimeLeft + " time left")
+        //console.log( "Dashboard page completed" );
+        //console.log( appWindow.persistentSettings.haproxyTimeLeft + " time left" )
 
-        //console.log(providerName + "providerName")
-        //console.log(obj + " my obj")
+        //console.log( providerName + "providerName" )
+        //console.log( obj + " my obj" )
         var data = new Date();
-        //console.log(data + " time now")
-        if (providerName != "" || appWindow.persistentSettings.haproxyTimeLeft > data){
-            getColor(rank, rankRectangle)
+        //console.log( data + " time now" )
+        if ( providerName != "" || appWindow.persistentSettings.haproxyTimeLeft > data ) {
+            getColor( rank, rankRectangle )
             getMyFeedJson()
             changeStatus()
-            if (typeof (obj) == 'undefined') {
-                //console.log('obj = 0 --------');
+            if ( typeof ( obj ) == 'undefined' ) {
+                //console.log( 'obj = 0 --------' );
                 obj = appWindow.persistentSettings.objTimeLeft;
                 //firstPrePaidMinutes = appWindow.persistentSettings.haproxyTimeLeft;
                 idService = appWindow.persistentSettings.idServiceTimeLeft;
@@ -1974,29 +1950,29 @@ Rectangle {
                 paidTextLine.text = appWindow.persistentSettings.paidTextLineTimeLeft;
                 myRankText.text =  appWindow.persistentSettings.myRankTextTimeLeft;
                 //intenseDashboardView.flag = 1;
-                getColor(appWindow.persistentSettings.myRankTextTimeLeft, myRankRectangle)
+                getColor( appWindow.persistentSettings.myRankTextTimeLeft, myRankRectangle )
                 changeStatus();
                 var host = applicationDirectory;
-                //console.log(obj.certArray[0].certContent);
+                //console.log( obj.certArray[0].certContent );
 
                 var endpoint = ''
                 var port = ''
-                if(obj.proxy.length > 0){
+                if ( obj.proxy.length > 0 ) {
                     endpoint = obj.proxy[0].endpoint
                     port = obj.proxy[0].port
-                }else{
+                } else {
                     endpoint = obj.vpn[0].endpoint
                     port = obj.vpn[0].port
                 }
-                var certArray = decode64(obj.certArray[0].certContent); // "4pyTIMOgIGxhIG1vZGU="
+                var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
 
-                console.log("Generating certificate");
-                callhaproxy.haproxyCert(host, certArray);
-                console.log("Starting haproxy");
+                console.log( "Generating certificate" );
+                callhaproxy.haproxyCert( host, certArray );
+                console.log( "Starting haproxy" );
 
                 // try to start proxy and show error if it does not start
-                var startedProxy = callhaproxy.haproxy(host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice(0,-4), 'haproxy', appWindow.persistentSettings.hexId, obj.provider, obj.providerName, obj.name)
-                if (!startedProxy) {
+                var startedProxy = callhaproxy.haproxy( host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', appWindow.persistentSettings.hexId, obj.provider, obj.providerName, obj.name )
+                if ( !startedProxy ) {
                     showProxyStartupError();
                 }
             }
