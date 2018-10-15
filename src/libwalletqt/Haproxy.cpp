@@ -27,17 +27,9 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
     QFile::remove(host + "/haproxy.cfg");
     QFile file(host + "/haproxy.cfg");
 
-    if(!file.exists()){
-        qDebug() << file.fileName() << " does not exist";
-    }
-    else{
-        qDebug() << file.fileName() << " already exists";
-    }
-
     //create provider.http
     if(fileProvider.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
         QTextStream txtStream(&fileProvider);
-        qDebug() << "---Writing to file---";
 
         txtStream << "HTTP/1.0 200 PROVIDER\n";
         txtStream << "Access-Control-Allow-Origin: *\n";
@@ -47,22 +39,21 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
 
         txtStream << "{\"provider\":\""+serviceName+"\",\"service\":\""+plan+"\"}";
 
-        qDebug() << " ----- reading from file ------";
 
         txtStream.seek(0);
+        /*
         while(!txtStream.atEnd()) {
             qDebug() << txtStream.readLine();
         }
+        */
         fileProvider.close();
     }
 
 
     //create config file
     if (file.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)) {
-        qDebug() << "Opened Config file for update";
 
         QTextStream txtStream(&file);
-        qDebug() << "---Writing to file---";
         txtStream << "global\n";
         txtStream << "maxconn         2000\n";
         txtStream << "daemon\n";
@@ -75,17 +66,12 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "bind            "+ip+":"+port+"\n";
         txtStream << "mode            http\n";
         txtStream << "log             global\n";
-        //txtStream << "option          httplog\n";
         txtStream << "option          dontlognull\n";
         txtStream << "option          nolinger\n";
         txtStream << "option          http_proxy\n";
         txtStream << "option          contstats\n";
         txtStream << "maxconn         8000\n";
         txtStream << "timeout client  30s\n";
-        //txtStream << "timeout server  30s\n";
-        //txtStream << "timeout connect 5s\n";
-
-
 
         txtStream << "acl is_mgmt_host url_dom _local_\n";
         txtStream << "acl is_mgmt_path path_beg /status\n";
@@ -94,12 +80,6 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "acl is_proxy_request url_reg '.*://.*'\n";
         txtStream << "acl is_connect method CONNECT\n";
         txtStream << "acl is_options method OPTIONS\n";
-
-        //txtStream << "acl is_provider path_beg /provider\n";
-
-        //txtStream << "use_backend b-status if is_mgmt_host is_mgmt_path is_mgmt_id\n";
-        //txtStream << "use_backend b-stats if is_mgmt_host is_stats_path is_mgmt_id\n";
-        //txtStream << "use_backend b-err if is_mgmt_host is_mgmt_path\n";
 
         txtStream << "# If this is local request with right authid /stats, forward to stats backend\n";
         txtStream << "use_backend b-stats if !is_options !is_proxy_request is_stats_path is_mgmt_id\n";
@@ -120,10 +100,6 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "use_backend b-status if is_options !is_proxy_request is_mgmt_path is_mgmt_id\n";
         txtStream << "use_backend b-status if is_options !is_proxy_request is_stats_path\n";
         txtStream << "use_backend http-proxy if is_proxy_request || is_connect\n";
-
-
-        //txtStream << "default_backend http-proxy\n";
-
 
         txtStream << "backend http-proxy\n";
         txtStream << "mode            http\n";
@@ -191,15 +167,20 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "mode            http\n";
         txtStream << "timeout server  30s\n";
         txtStream << "timeout connect 5s\n";
+        #ifdef Q_OS_WIN
+        txtStream << "errorfile 503 provider.http\n";
+        #else
         txtStream << "errorfile 503 "+host+"/provider.http\n";
+        #endif
+
         txtStream << "bind 127.0.0.1:8182\n";
 
-        qDebug() << " ----- reading from file ------";
-
         txtStream.seek(0);
+        /*
         while(!txtStream.atEnd()){
             qDebug() << txtStream.readLine();
         }
+        */
         file.close();
 
         QString command = "";
@@ -241,18 +222,16 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
 void Haproxy::haproxyCert(const QString &host, const QString &certificate){
     QFile::remove(host+"/ca.cert.pem");
     QFile file (host+"/ca.cert.pem");
-    if(!file.exists()){
-        qDebug() << file.fileName() << "Certificate does not exists";
-    }
+
     if(file.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
         QTextStream txtStream(&file);
-        qDebug() << "---Writing to file---";
         txtStream << certificate;
-        qDebug() << " ----- reading from file ------";
         txtStream.seek(0);
+        /*
         while(!txtStream.atEnd()){
             qDebug() << txtStream.readLine();
         }
+        */
         file.close();
     }else{
         qDebug() << "could not open the file";
@@ -405,7 +384,7 @@ HttpResponse proxyRequest(std::string proxyHost, std::string proxyPort, std::str
 
 
 // returns true if proxy is online and accepting connections, false otherwise
-bool Haproxy::verifyHaproxy(const QString &host, const QString &port, const QString &provider)
+QString Haproxy::verifyHaproxy(const QString &host, const QString &port, const QString &provider)
 {
     // TODO - this needs to be updated when new dispatcher is available
     std::string endpoint = std::string("http://_remote_/status");
@@ -428,10 +407,15 @@ bool Haproxy::verifyHaproxy(const QString &host, const QString &port, const QStr
         std::cout << "ITNS Header found: " << response.getHeaders()["X-ITNS-Status"] << std::endl;
     }
     else {
+        // return OK with the proxy works
         std::cout << "ITNS Header found: 200";
-        return true;
+        return "OK";
     }
 
+    // return Connection error to stop proxy
+    if(response.getHeaders()["X-ITNS-Status"] == "CONNECTION_ERROR"){
+        return "CONNECTION_ERROR";
+    }
 
-    return false;
+    return "NO_PAYMENT";
 }
