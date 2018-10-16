@@ -39,7 +39,8 @@ HEADERS += \
     src/libwalletqt/UnsignedTransaction.h \
     MainApp.h \
     src/libwalletqt/Haproxy.h \
-    src/libwalletqt/HTTPResponse.h
+    src/libwalletqt/HTTPResponse.h \
+    src/libwalletqt/Thread.h
 
 SOURCES += main.cpp \
     filter.cpp \
@@ -64,7 +65,8 @@ SOURCES += main.cpp \
     src/libwalletqt/UnsignedTransaction.cpp \
     MainApp.cpp \
     src/libwalletqt/Haproxy.cpp \
-    src/libwalletqt/HTTPResponse.cpp
+    src/libwalletqt/HTTPResponse.cpp \
+    src/libwalletqt/Thread.cpp
 
 !ios {
     HEADERS += src/daemon/DaemonManager.h
