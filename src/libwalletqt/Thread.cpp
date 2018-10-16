@@ -71,8 +71,6 @@ HttpResponse proxyRequest(std::string proxyHost, std::string proxyPort, std::str
         request_stream << "Connection: close" << regularBoundary;
         request_stream << "X-ITNS-MgmtId: " << provider << regularBoundary << regularBoundary;
 
-        std::cout << "Writing to socket\n";
-
         // Send the request.
         boost::asio::write(socket, request);
 
@@ -92,17 +90,14 @@ HttpResponse proxyRequest(std::string proxyHost, std::string proxyPort, std::str
         std::getline(response_stream, status_message);
 
 
-        std::cout << "Setting status code " << status_code << "\n";
+        // Setting status code
         output.setStatusCode(status_code);
 
         if (!response_stream || http_version.substr(0, 5) != "HTTP/")
         {
-            std::cout << "Invalid response\n";
+            //Invalid response
             return output;
         }
-
-        std::cout << "Response returned with status code " << status_code << "\n";
-
 
         // Read the response headers, which are terminated by a blank line.
         boost::asio::read_until(socket, response, "\n\n");
@@ -138,41 +133,24 @@ HttpResponse proxyRequest(std::string proxyHost, std::string proxyPort, std::str
     }
     catch (std::exception& e)
     {
-        std::cout << "Exception: " << e.what() << "\n";
+        // "Exception: " << e.what() << "\n";
     }
     return output;
 }
 
-QString Thread::start(std::string host, std::string port, std::string provider){
-    qDebug()<<"From worker thread: ";
+QString Thread::start( std::string host, std::string port, std::string provider ) {
     // TODO - this needs to be updated when new dispatcher is available
     std::string endpoint = std::string("http://_remote_/status");
 
-    HttpResponse response = proxyRequest(host, port, endpoint, provider);
-
-    std::cout << std::endl << std::endl;
-    std::cout << "Status " << std::endl;
-    std::cout << response.getStatusCode() << std::endl;
-    std::cout << "Header " << std::endl;
-    for (auto const& s : response.getHeaders()) {
-        std::cout << s.first << " -> " << s.second << std::endl;
-    }
-
-    std::cout << "Body " << std::endl;
-    std::cout << response.getBody() << std::endl;
+    HttpResponse response = proxyRequest( host, port, endpoint, provider );
 
     // return response based on the header
-    if ( response.getHeaders().find("X-ITNS-Status") != response.getHeaders().end() && response.getStatusCode() != 200) {
-        std::cout << "ITNS Header found: " << response.getHeaders()["X-ITNS-Status"] << std::endl;
-    }
-    else {
+    if ( response.getStatusCode() == 200 ) {
         // return OK with the proxy works
-        std::cout << "ITNS Header found: 200";
         return "OK";
     }
-
-    // return Connection error to stop proxy
-    if(response.getHeaders()["X-ITNS-Status"] == "CONNECTION_ERROR"){
+    else if( response.getHeaders()["X-ITNS-Status"] == "CONNECTION_ERROR" ) {
+        // return Connection error to stop proxy
         return "CONNECTION_ERROR";
     }
 

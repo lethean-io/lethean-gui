@@ -10,6 +10,7 @@
 #include <thread>
 #include <string>
 
+// Class to make non blocking threaded request to check for haproxy connectivity
 class Thread : public QThread
 {    
 public:
