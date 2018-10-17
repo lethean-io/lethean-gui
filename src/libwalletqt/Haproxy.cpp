@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QProcess>
 
+#include <thread>
 #include <string>
 #include <iostream>
 #include <istream>
@@ -389,11 +390,13 @@ QString Haproxy::verifyHaproxy(const QString &host, const QString &port, const Q
     // TODO - this needs to be updated when new dispatcher is available
     std::string endpoint = std::string("http://_remote_/status");
 
+    // Create a thread using member function
     HttpResponse response = proxyRequest(host.toStdString(), port.toStdString(), endpoint, provider.toStdString());
 
     std::cout << std::endl << std::endl;
     std::cout << "Status " << std::endl;
     std::cout << response.getStatusCode() << std::endl;
+    //std::cout << response.join() << std::endl;
     std::cout << "Header " << std::endl;
     for (auto const& s : response.getHeaders()) {
         std::cout << s.first << " -> " << s.second << std::endl;

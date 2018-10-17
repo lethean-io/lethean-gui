@@ -420,8 +420,6 @@ DISTFILES += \
     components/MobileHeader.qml \
     pages/intense.qml \
     IntenseConfig.js \
-    IntenseConfig.js \
-    IntenseConfig.js
     components/MobileHeader.qml
 
 
