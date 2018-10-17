@@ -663,7 +663,7 @@ Rectangle {
         var data = new Date();
 
         // make payment when the date is equal (date end - config payment - config subsequentVerificationsNeeded)
-        if(((data.getTime() - appWindow.persistentSettings.haproxyStart.getTime())/1000).toFixed(0) >=  ((appWindow.persistentSettings.haproxyTimeLeft.getTime()-appWindow.persistentSettings.haproxyStart.getTime())/1000).toFixed(0) - Config.payTimer - (Config.subsequentVerificationsNeeded * subsequentVerificationsNeeded) && autoRenew == true && firstPayment == 0){
+        if(((data.getTime() - appWindow.persistentSettings.haproxyStart.getTime())/1000).toFixed(0) >=  ((appWindow.persistentSettings.haproxyTimeLeft.getTime()-appWindow.persistentSettings.haproxyStart.getTime())/1000).toFixed(0) - (Config.payTimer + (Config.subsequentVerificationsNeeded * subsequentVerificationsNeeded)) && autoRenew == true && firstPayment == 0){
             dashboardPayment = 1;
             setPayment();
             getITNS();
