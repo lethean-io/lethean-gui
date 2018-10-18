@@ -21,14 +21,27 @@
 #endif
 
 bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &port, const QString &endpoint, const QString &endpointport, const QString &fixedHost, const QString &auth, const QString &provider, const QString &plan, const QString &serviceName) {
+    // TODO: this should be set at global scope instead of for these individual users of "host"
+    // many files are expected to be at "the same level" as the gui executable
+    // - for windows: a relative path is ok
+    #if defined(Q_OS_WIN)
+    const QString sibling_file_path = "";
+    // - for mac: we need to back out to be level with the .app
+    #elif defined(Q_OS_MAC)
+    const QString sibling_file_path = host + "/../../../";
+    // - for linux: we need an absolute path
+    #else
+    const QString sibling_file_path = host + "/";
+    #endif
+
     qDebug() << "Starting haproxy";
 
-    QFile::remove(host + "/provider.http");
-    QFile fileProvider(host + "/provider.http");
+    QFile::remove(sibling_file_path + "provider.http");
+    QFile fileProvider(sibling_file_path + "provider.http");
 
     // delete old file and create new one
-    QFile::remove(host + "/haproxy.cfg");
-    QFile file(host + "/haproxy.cfg");
+    QFile::remove(sibling_file_path + "haproxy.cfg");
+    QFile file(sibling_file_path + "haproxy.cfg");
 
     //create provider.http
     if(fileProvider.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
@@ -113,39 +126,23 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "option          nolinger\n";
         txtStream << "option          httplog\n";
         txtStream << "http-request add-header X-ITNS-PaymentID "+auth+"\n";
-        #ifdef Q_OS_WIN
-        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file 'ca.cert.pem'\n";
-        #else
-        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file '"+host+"/ca.cert.pem'\n";
-        #endif
+        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file '" + sibling_file_path + "ca.cert.pem'\n";
 
-        #ifdef Q_OS_WIN
-        txtStream << "errorfile 503 ha_err_connect.http\n";
-        #else
-        txtStream << "errorfile 503 "+host+"/ha_err_connect.http\n";
-        #endif
+        txtStream << "errorfile 503 " + sibling_file_path + "ha_err_connect.http\n";
 
         txtStream << "backend b-err\n";
         txtStream << "mode            http\n";
         txtStream << "timeout server  30s\n";
         txtStream << "timeout connect 5s\n";
         //txtStream << "timeout client  30s\n";
-        #ifdef Q_OS_WIN
-        txtStream << "errorfile 503 ha_err_badid.http\n";
-        #else
-        txtStream << "errorfile 503 "+host+"/ha_err_badid.http\n";
-        #endif
+        txtStream << "errorfile 503 " + sibling_file_path + "ha_err_badid.http\n";
 
         txtStream << "backend b-status\n";
         txtStream << "mode            http\n";
         txtStream << "timeout server  30s\n";
         txtStream << "timeout connect 5s\n";
         //txtStream << "timeout client  30s\n";
-        #ifdef Q_OS_WIN
-        txtStream << "errorfile 503 ha_info.http\n";
-        #else
-        txtStream << "errorfile 503 "+host+"/ha_info.http\n";
-        #endif
+        txtStream << "errorfile 503 " + sibling_file_path + "ha_info.http\n";
 
         txtStream << "backend b-stats\n";
         txtStream << "mode            http\n";
@@ -170,11 +167,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "mode            http\n";
         txtStream << "timeout server  30s\n";
         txtStream << "timeout connect 5s\n";
-        #ifdef Q_OS_WIN
-        txtStream << "errorfile 503 provider.http\n";
-        #else
-        txtStream << "errorfile 503 "+host+"/provider.http\n";
-        #endif
+        txtStream << "errorfile 503 " + sibling_file_path + "provider.http\n";
 
         txtStream << "bind 127.0.0.1:8182\n";
 
@@ -208,7 +201,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             }
 
             //system("trap 'pkill -f haproxy; echo teste haproxy; exit;' INT TERM");
-            command = haProxyPath + " -f " + host +"/haproxy.cfg";
+            command = haProxyPath + " -f " + sibling_file_path + "haproxy.cfg";
             system(qPrintable(command));
         #endif
 
@@ -223,8 +216,21 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
 }
 
 void Haproxy::haproxyCert(const QString &host, const QString &certificate){
-    QFile::remove(host+"/ca.cert.pem");
-    QFile file (host+"/ca.cert.pem");
+    // TODO: this should be set at global scope instead of for these individual users of "host"
+    // many files are expected to be at "the same level" as the gui executable
+    // - for windows: a relative path is ok
+    #if defined(Q_OS_WIN)
+    const QString sibling_file_path = "";
+    // - for mac: we need to back out to be level with the .app
+    #elif defined(Q_OS_MAC)
+    const QString sibling_file_path = host + "/../../../";
+    // - for linux: we need an absolute path
+    #else
+    const QString sibling_file_path = host + "/";
+    #endif
+
+    QFile::remove(sibling_file_path + "ca.cert.pem");
+    QFile file (sibling_file_path + "ca.cert.pem");
 
     if(file.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
         QTextStream txtStream(&file);
