@@ -184,13 +184,17 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             command = "haproxy.exe -f haproxy.cfg";
             WinExec(qPrintable(command),SW_HIDE);
         #else
-            // try to find haproxy correctly
-            QProcess shellProcess;
-            shellProcess.start("/bin/sh");
-            shellProcess.write("which haproxy || whereis haproxy | cut -d ' ' -f 2");
-            shellProcess.closeWriteChannel();
-            shellProcess.waitForFinished(-1);
-            QString haProxyPath = shellProcess.readAllStandardOutput().trimmed();
+            #if defined(Q_OS_MAC)
+                QString haProxyPath = "/usr/local/bin/haproxy";
+            #else
+                // try to find haproxy correctly
+                QProcess shellProcess;
+                shellProcess.start("/bin/sh");
+                shellProcess.write("which haproxy || whereis haproxy | cut -d ' ' -f 2");
+                shellProcess.closeWriteChannel();
+                shellProcess.waitForFinished(-1);
+                QString haProxyPath = shellProcess.readAllStandardOutput().trimmed();
+            #endif
 
             qDebug() << "HAProxy Path " << haProxyPath;
 
