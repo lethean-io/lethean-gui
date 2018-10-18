@@ -48,6 +48,8 @@ Rectangle {
     property bool autoRenew
     property bool showTime
 
+    // keep track haproxy verify 10 before payment and 300 after payment
+    property int verification: 10
 
     function getITNS(){
         itnsStart = itnsStart + (parseFloat(cost)/firstPrePaidMinutes*subsequentPrePaidMinutes)
@@ -628,7 +630,7 @@ Rectangle {
         }
 
 
-        if (secs % 10 == 0 || firstPayment == 1) {
+        if ( secs % verification == 0 || firstPayment == 1 ) {
             // check if proxy is connected. if it is, this method returns true
             var proxyConnected = callhaproxy.verifyHaproxy(Config.haproxyIp, Config.haproxyPort, obj.provider);
 
@@ -638,6 +640,7 @@ Rectangle {
                 proxyStats = 1;
                 showTime = true;
                 waitHaproxy = 1;
+                verification = 60;
             // check the connection status and stop haproxy
             }else if(proxyConnected == "CONNECTION_ERROR"){
                 callhaproxy.killHAproxy()
@@ -655,6 +658,7 @@ Rectangle {
                     dashboardPayment = 1;
                     setPayment()
                 }
+                verification = 5;
 
             }
         }
