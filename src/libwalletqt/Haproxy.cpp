@@ -117,6 +117,8 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file 'ca.cert.pem'\n";
         #else
         txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file '"+host+"/ca.cert.pem'\n";
+        //save the host variable to show in dashboard
+        Haproxy::m_haproxyConfigPath = host;
         #endif
 
         #ifdef Q_OS_WIN
@@ -200,6 +202,9 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             QString haProxyPath = shellProcess.readAllStandardOutput().trimmed();
 
             qDebug() << "HAProxy Path " << haProxyPath;
+
+            // save in haproxy variable the path to show in dashboard
+            Haproxy::m_haproxyPath = haProxyPath;
 
             // ha proxy location not found if output from command is empty or just the first word from whereis
             if (haProxyPath.isEmpty() || haProxyPath == "haproxy:") {

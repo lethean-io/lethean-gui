@@ -191,6 +191,9 @@ Rectangle {
                 // try to start proxy and show error if it does not start
                 var haproxyStarted = callhaproxy.haproxy(host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice(0,-4), 'haproxy', hexC(obj.id).toString(), obj.provider, obj.providerName, obj.name)
                 if (!haproxyStarted) {
+                    errorPopup.title = "Unavailable Haproxy Service";
+                    errorPopup.content = "trying run haproxy path: "+callhaproxy.haproxyPath+"<br />trying to save config path: "+callhaproxy.haproxyConfigPath
+                    errorPopup.open();
                     showProxyStartupError();
                 }
 
@@ -1997,6 +2000,9 @@ Rectangle {
                 // try to start proxy and show error if it does not start
                 var startedProxy = callhaproxy.haproxy(host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice(0,-4), 'haproxy', appWindow.persistentSettings.hexId, obj.provider, obj.providerName, obj.name)
                 if (!startedProxy) {
+                    errorPopup.title = "Unavailable Haproxy Service";
+                    errorPopup.content = "trying run haproxy path: "+callhaproxy.haproxyPath+"<br />trying to save config path: "+callhaproxy.haproxyConfigPath
+                    errorPopup.open();
                     showProxyStartupError();
                 }
             }
