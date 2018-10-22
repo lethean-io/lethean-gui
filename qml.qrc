@@ -155,5 +155,8 @@
         <file>images/shield.png</file>
         <file>images/power_on.png</file>
         <file>IntenseConfig.js</file>
+        <file>../../lethean-browser-extension-ff/images/loader.gif</file>
+        <file>../../../Downloads/loader.png</file>
+        <file>images/loader.png</file>
     </qresource>
 </RCC>
