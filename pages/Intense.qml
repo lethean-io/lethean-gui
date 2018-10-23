@@ -666,167 +666,168 @@ Rectangle {
 
     color: "#F0EEEE"
 
+    Rectangle {
+        color: "#F0EEEE"
+        height: 95
+        width: root.width
+        z: 20
 
-
-    Label {
-          visible: !isMobile
-          id: typeText
-          anchors.left: parent.left
-          anchors.top:  parent.top
-          anchors.leftMargin: 17
-          anchors.topMargin: 17
-          width: 100
-          text: qsTr("Type") + translationManager.emptyString
-          fontSize: 14
-      }
-
-      ListModel {
-          id: typeTransaction
-          ListElement { column1: "ALL"; column2: ""; value: "all" }
-          ListElement { column1: "VPN"; column2: ""; value: "vpn" }
-          ListElement { column1: "PROXY"; column2: ""; value: "proxy" }
-
-      }
-
-      StandardDropdown {
-          visible: !isMobile
-          id: typeDrop
-          anchors.left: parent.left
-          anchors.top: typeText.bottom
-          anchors.leftMargin: 17
-          anchors.topMargin: 5
-          width: 100
-          shadowReleasedColor: "#A7B8C0"
-          shadowPressedColor: "#666e71"
-          releasedColor: "#6C8896"
-          pressedColor: "#A7B8C0"
-          dataModel: typeTransaction
-          z: 100
-      }
-
-      Label {
-          visible: !isMobile
-          id: maxPriceText
-          anchors.left: typeText.right
-          anchors.top:  parent.top
-          anchors.leftMargin: 17
-          anchors.topMargin: 17
-          width: 156
-          text: qsTr("Max Price") + translationManager.emptyString
-          fontSize: 14
-      }
-
-      LineEdit {
-          visible: !isMobile
-          id: maxPriceLine
-          anchors.left: typeDrop.right
-          anchors.top: maxPriceText.bottom
-          anchors.leftMargin: 17
-          anchors.topMargin: 5
-          width: 156
-      }
-
-      Label {
-          visible: !isMobile
-          id: minSpeedText
-          anchors.left: maxPriceText.right
-          anchors.top: parent.top
-          anchors.leftMargin: 17
-          anchors.topMargin: 17
-          width: 110
-          text: qsTr("Min Speed") + translationManager.emptyString
-          fontSize: 14
-      }
-
-      LineEdit {
-          visible: !isMobile
-          id: minSpeedLine
-          anchors.left: maxPriceLine.right
-          anchors.top: minSpeedText.bottom
-          anchors.leftMargin: 17
-          anchors.topMargin: 5
-          width: 110
-
-      }
-
-      ListModel {
-          id: typeSpeed
-          ListElement { column1: "KB/s"; column2: ""; value: "kb" }
-          ListElement { column1: "MB/s"; column2: ""; value: "mb" }
-      }
-
-      StandardDropdown {
-          visible: !isMobile
-          id: speedDrop
-          anchors.left: minSpeedLine.right
-          anchors.top: minSpeedText.bottom
-          anchors.leftMargin: 0
-          anchors.topMargin: 5
-          width: 80
-          shadowReleasedColor: "#A7B8C0"
-          shadowPressedColor: "#666e71"
-          releasedColor: "#6C8896"
-          pressedColor: "#A7B8C0"
-          dataModel: typeSpeed
-          z: 100
-      }
-
-
-
-      CheckBox {
-          visible: !isMobile
-          id: favoriteFilter
-          text: qsTr("Favorite") + translationManager.emptyString
-          anchors.left: speedDrop.right
-          anchors.top: parent.top
-          anchors.leftMargin: 17
-          anchors.topMargin: 46
-          checkedIcon: "../images/star.png"
-          uncheckedIcon: "../images/unstar.png"
-          onClicked: {
+        Label {
+              visible: !isMobile
+              id: typeText
+              anchors.left: parent.left
+              anchors.top:  parent.top
+              anchors.leftMargin: 17
+              anchors.topMargin: 17
+              width: 100
+              text: qsTr("Type") + translationManager.emptyString
+              fontSize: 14
           }
-      }
 
-      StandardButton {
-          visible: !isMobile
-          id: filterButton
-          anchors.top: parent.top
-          anchors.left: favoriteFilter.right
-          anchors.leftMargin: 17
-          anchors.topMargin: 40
-          width: 60
-          text: qsTr("Filter") + translationManager.emptyString
-          shadowReleasedColor: "#A7B8C0"
-          shadowPressedColor: "#666e71"
-          releasedColor: "#6C8896"
-          pressedColor: "#A7B8C0"
-          onClicked:  {
-              //console.log("Getting SDP Services after clicking on button");
-              getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+          ListModel {
+              id: typeTransaction
+              ListElement { column1: "ALL"; column2: ""; value: "all" }
+              ListElement { column1: "VPN"; column2: ""; value: "vpn" }
+              ListElement { column1: "PROXY"; column2: ""; value: "proxy" }
+
           }
-      }
+
+          StandardDropdown {
+              visible: !isMobile
+              id: typeDrop
+              anchors.left: parent.left
+              anchors.top: typeText.bottom
+              anchors.leftMargin: 17
+              anchors.topMargin: 5
+              width: 100
+              shadowReleasedColor: "#A7B8C0"
+              shadowPressedColor: "#666e71"
+              releasedColor: "#6C8896"
+              pressedColor: "#A7B8C0"
+              dataModel: typeTransaction
+              z: 100
+          }
+
+          Label {
+              visible: !isMobile
+              id: maxPriceText
+              anchors.left: typeText.right
+              anchors.top:  parent.top
+              anchors.leftMargin: 17
+              anchors.topMargin: 17
+              width: 156
+              text: qsTr("Max Price") + translationManager.emptyString
+              fontSize: 14
+          }
+
+          LineEdit {
+              visible: !isMobile
+              id: maxPriceLine
+              anchors.left: typeDrop.right
+              anchors.top: maxPriceText.bottom
+              anchors.leftMargin: 17
+              anchors.topMargin: 5
+              width: 156
+          }
+
+          Label {
+              visible: !isMobile
+              id: minSpeedText
+              anchors.left: maxPriceText.right
+              anchors.top: parent.top
+              anchors.leftMargin: 17
+              anchors.topMargin: 17
+              width: 110
+              text: qsTr("Min Speed") + translationManager.emptyString
+              fontSize: 14
+          }
+
+          LineEdit {
+              visible: !isMobile
+              id: minSpeedLine
+              anchors.left: maxPriceLine.right
+              anchors.top: minSpeedText.bottom
+              anchors.leftMargin: 17
+              anchors.topMargin: 5
+              width: 110
+
+          }
+
+          ListModel {
+              id: typeSpeed
+              ListElement { column1: "KB/s"; column2: ""; value: "kb" }
+              ListElement { column1: "MB/s"; column2: ""; value: "mb" }
+          }
+
+          StandardDropdown {
+              visible: !isMobile
+              id: speedDrop
+              anchors.left: minSpeedLine.right
+              anchors.top: minSpeedText.bottom
+              anchors.leftMargin: 0
+              anchors.topMargin: 5
+              width: 80
+              shadowReleasedColor: "#A7B8C0"
+              shadowPressedColor: "#666e71"
+              releasedColor: "#6C8896"
+              pressedColor: "#A7B8C0"
+              dataModel: typeSpeed
+              z: 100
+          }
+
+
+
+          CheckBox {
+              visible: !isMobile
+              id: favoriteFilter
+              text: qsTr("Favorite") + translationManager.emptyString
+              anchors.left: speedDrop.right
+              anchors.top: parent.top
+              anchors.leftMargin: 17
+              anchors.topMargin: 46
+              checkedIcon: "../images/star.png"
+              uncheckedIcon: "../images/unstar.png"
+              onClicked: {
+              }
+          }
+
+          StandardButton {
+              visible: !isMobile
+              id: filterButton
+              anchors.top: parent.top
+              anchors.left: favoriteFilter.right
+              anchors.leftMargin: 17
+              anchors.topMargin: 40
+              width: 60
+              text: qsTr("Filter") + translationManager.emptyString
+              shadowReleasedColor: "#A7B8C0"
+              shadowPressedColor: "#666e71"
+              releasedColor: "#6C8896"
+              pressedColor: "#A7B8C0"
+              onClicked:  {
+                  //console.log("Getting SDP Services after clicking on button");
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
+          }
+    }
 
     Rectangle {
-        property int expandedHeight: parent.height - parent.y - parent.height - 5
+        //property int expandedHeight: parent.height - parent.y - parent.height - 5
         property int middleHeight: parent.height - maxPriceLine.y - maxPriceLine.height - 17
-        property int collapsedHeight: parent.height - typeDrop.y - typeDrop.height - 17
+        //property int collapsedHeight: parent.height - typeDrop.y - typeDrop.height - 17
 
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         color: "#FFFFFF"
-        z: 1
 
         height: (isMobile)? parent.height : middleHeight
-        onHeightChanged: {
-            if(height === middleHeight) z = 1
-            else if(height === collapsedHeight) z = 0
-            else z = 3
-        }
 
+        /*
         Behavior on height {
             NumberAnimation { duration: 200; easing.type: Easing.InQuad }
         }
+        */
 
         Rectangle {
             anchors.left: parent.left
