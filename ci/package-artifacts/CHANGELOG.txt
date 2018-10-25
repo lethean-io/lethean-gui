@@ -1,3 +1,7 @@
+v3.0.0.b4 - 2018.10.25
+ - fixed: difficulty calculation when crossing fork thresholds
+     https://github.com/LetheanMovement/lethean/pull/137
+
 v3.0.0.b3 - 2018.10.23
  - introduced block major version 5: hardfork at height 296,287
  - added: switched to LWMA-3 difficulty algorithm
