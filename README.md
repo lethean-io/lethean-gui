@@ -52,6 +52,10 @@ No packages are available at the moment. If you would liek to create a pull requ
   - For Ubuntu and Mint
 
 	`sudo apt install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev`
+	
+  - For Debian 9
+
+	`sudo apt install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl1.0-dev`
 
   - For Gentoo
 
