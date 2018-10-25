@@ -6,10 +6,11 @@ if [ $? -eq 0 ]; then
 	BUILD_VERSION=`git describe --tags --exact-match`
 else
 	# replace forward slashes with underscores for feature branches
-	BUILD_BRANCH=`git rev-parse --abbrev-ref HEAD | tr / _`
+	BUILD_BRANCH=`git rev-parse --abbrev-ref HEAD`
 	BUILD_COMMIT=`git rev-parse --short HEAD`
 	BUILD_VERSION="$BUILD_BRANCH-$BUILD_COMMIT"
 fi
+BUILD_VERSION=${BUILD_VERSION//\//-}
 export BUILD_VERSION
 
 # determine build host
