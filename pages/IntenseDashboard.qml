@@ -609,6 +609,7 @@ Rectangle {
             value = value + array[x] + c
         }
 
+
         if ( secs % verification == 0 || firstPayment == 1 ) {
             // check if proxy is connected. if it is, this method returns true
             var proxyConnected = callhaproxy.verifyHaproxy( Config.haproxyIp, Config.haproxyPort, obj.provider );
