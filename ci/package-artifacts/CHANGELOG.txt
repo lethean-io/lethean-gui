@@ -1,3 +1,17 @@
+v3.0.0 - 2018.11.07
+ - improved payment scheduling to maintain connections through multiple payment periods
+     https://github.com/LetheanMovement/lethean-gui/pull/98
+ - improved responsiveness by reducing blocking operations
+     https://github.com/LetheanMovement/lethean-gui/pull/100
+ - windows: fixed crashes when platform was missing GL support
+     https://github.com/LetheanMovement/lethean-gui/pull/99
+ - mac: fixed proxy functionality by correctly discovering paths used by haproxy and its configuration files
+     https://github.com/LetheanMovement/lethean-gui/pull/101
+ - fixed: OpenAlias strings now refer to Lethean
+     https://github.com/LetheanMovement/lethean/pull/142
+ - fixed: unknown block crash
+     https://github.com/LetheanMovement/lethean/pull/145
+
 v3.0.0.b4 - 2018.10.25
  - fixed: difficulty calculation when crossing fork thresholds
      https://github.com/LetheanMovement/lethean/pull/137

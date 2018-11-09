@@ -1,43 +1,51 @@
 #include "Haproxy.h"
-#include "HTTPResponse.h"
+#include "Thread.h"
 #include <QDir>
 #include <QFile>
 #include <QDebug>
 #include <QProcess>
+#include <QTimer>
+#include <QThread>
+#include <QtCore>
+#include <QObject>
 
+#include <thread>
 #include <string>
 #include <iostream>
 #include <istream>
 #include <ostream>
 #include <boost/asio.hpp>
 
-using boost::asio::ip::tcp;
-
 #ifdef Q_OS_WIN
     #include <windows.h>
 #endif
 
 bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &port, const QString &endpoint, const QString &endpointport, const QString &fixedHost, const QString &auth, const QString &provider, const QString &plan, const QString &serviceName) {
+    // TODO: this should be set at global scope instead of for these individual users of "host"
+    // many files are expected to be at "the same level" as the gui executable
+    // - for windows: a relative path is ok
+    #if defined(Q_OS_WIN)
+    const QString sibling_file_path = "";
+    // - for mac: we need to back out to be level with the .app
+    #elif defined(Q_OS_MAC)
+    const QString sibling_file_path = host + "/../../../";
+    // - for linux: we need an absolute path
+    #else
+    const QString sibling_file_path = host + "/";
+    #endif
+
     qDebug() << "Starting haproxy";
 
-    QFile::remove(host + "/provider.http");
-    QFile fileProvider(host + "/provider.http");
+    QFile::remove(sibling_file_path + "provider.http");
+    QFile fileProvider(sibling_file_path + "provider.http");
 
     // delete old file and create new one
-    QFile::remove(host + "/haproxy.cfg");
-    QFile file(host + "/haproxy.cfg");
-
-    if(!file.exists()){
-        qDebug() << file.fileName() << " does not exist";
-    }
-    else{
-        qDebug() << file.fileName() << " already exists";
-    }
+    QFile::remove(sibling_file_path + "haproxy.cfg");
+    QFile file(sibling_file_path + "haproxy.cfg");
 
     //create provider.http
     if(fileProvider.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
         QTextStream txtStream(&fileProvider);
-        qDebug() << "---Writing to file---";
 
         txtStream << "HTTP/1.0 200 PROVIDER\n";
         txtStream << "Access-Control-Allow-Origin: *\n";
@@ -47,22 +55,21 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
 
         txtStream << "{\"provider\":\""+serviceName+"\",\"service\":\""+plan+"\"}";
 
-        qDebug() << " ----- reading from file ------";
 
         txtStream.seek(0);
+        /*
         while(!txtStream.atEnd()) {
             qDebug() << txtStream.readLine();
         }
+        */
         fileProvider.close();
     }
 
 
     //create config file
     if (file.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)) {
-        qDebug() << "Opened Config file for update";
 
         QTextStream txtStream(&file);
-        qDebug() << "---Writing to file---";
         txtStream << "global\n";
         txtStream << "maxconn         2000\n";
         txtStream << "daemon\n";
@@ -75,17 +82,12 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "bind            "+ip+":"+port+"\n";
         txtStream << "mode            http\n";
         txtStream << "log             global\n";
-        //txtStream << "option          httplog\n";
         txtStream << "option          dontlognull\n";
         txtStream << "option          nolinger\n";
         txtStream << "option          http_proxy\n";
         txtStream << "option          contstats\n";
         txtStream << "maxconn         8000\n";
         txtStream << "timeout client  30s\n";
-        //txtStream << "timeout server  30s\n";
-        //txtStream << "timeout connect 5s\n";
-
-
 
         txtStream << "acl is_mgmt_host url_dom _local_\n";
         txtStream << "acl is_mgmt_path path_beg /status\n";
@@ -94,12 +96,6 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "acl is_proxy_request url_reg '.*://.*'\n";
         txtStream << "acl is_connect method CONNECT\n";
         txtStream << "acl is_options method OPTIONS\n";
-
-        //txtStream << "acl is_provider path_beg /provider\n";
-
-        //txtStream << "use_backend b-status if is_mgmt_host is_mgmt_path is_mgmt_id\n";
-        //txtStream << "use_backend b-stats if is_mgmt_host is_stats_path is_mgmt_id\n";
-        //txtStream << "use_backend b-err if is_mgmt_host is_mgmt_path\n";
 
         txtStream << "# If this is local request with right authid /stats, forward to stats backend\n";
         txtStream << "use_backend b-stats if !is_options !is_proxy_request is_stats_path is_mgmt_id\n";
@@ -121,10 +117,6 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "use_backend b-status if is_options !is_proxy_request is_stats_path\n";
         txtStream << "use_backend http-proxy if is_proxy_request || is_connect\n";
 
-
-        //txtStream << "default_backend http-proxy\n";
-
-
         txtStream << "backend http-proxy\n";
         txtStream << "mode            http\n";
         txtStream << "timeout connect 5s\n";
@@ -134,39 +126,23 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "option          nolinger\n";
         txtStream << "option          httplog\n";
         txtStream << "http-request add-header X-ITNS-PaymentID "+auth+"\n";
-        #ifdef Q_OS_WIN
-        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file 'ca.cert.pem'\n";
-        #else
-        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file '"+host+"/ca.cert.pem'\n";
-        #endif
+        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file '" + sibling_file_path + "ca.cert.pem'\n";
 
-        #ifdef Q_OS_WIN
-        txtStream << "errorfile 503 ha_err_connect.http\n";
-        #else
-        txtStream << "errorfile 503 "+host+"/ha_err_connect.http\n";
-        #endif
+        txtStream << "errorfile 503 " + sibling_file_path + "ha_err_connect.http\n";
 
         txtStream << "backend b-err\n";
         txtStream << "mode            http\n";
         txtStream << "timeout server  30s\n";
         txtStream << "timeout connect 5s\n";
         //txtStream << "timeout client  30s\n";
-        #ifdef Q_OS_WIN
-        txtStream << "errorfile 503 ha_err_badid.http\n";
-        #else
-        txtStream << "errorfile 503 "+host+"/ha_err_badid.http\n";
-        #endif
+        txtStream << "errorfile 503 " + sibling_file_path + "ha_err_badid.http\n";
 
         txtStream << "backend b-status\n";
         txtStream << "mode            http\n";
         txtStream << "timeout server  30s\n";
         txtStream << "timeout connect 5s\n";
         //txtStream << "timeout client  30s\n";
-        #ifdef Q_OS_WIN
-        txtStream << "errorfile 503 ha_info.http\n";
-        #else
-        txtStream << "errorfile 503 "+host+"/ha_info.http\n";
-        #endif
+        txtStream << "errorfile 503 " + sibling_file_path + "ha_info.http\n";
 
         txtStream << "backend b-stats\n";
         txtStream << "mode            http\n";
@@ -191,20 +167,16 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "mode            http\n";
         txtStream << "timeout server  30s\n";
         txtStream << "timeout connect 5s\n";
-        #ifdef Q_OS_WIN
-        txtStream << "errorfile 503 provider.http\n";
-        #else
-        txtStream << "errorfile 503 "+host+"/provider.http\n";
-        #endif
+        txtStream << "errorfile 503 " + sibling_file_path + "provider.http\n";
 
         txtStream << "bind 127.0.0.1:8182\n";
 
-        qDebug() << " ----- reading from file ------";
-
         txtStream.seek(0);
+        /*
         while(!txtStream.atEnd()){
             qDebug() << txtStream.readLine();
         }
+        */
         file.close();
 
         QString command = "";
@@ -212,13 +184,17 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             command = "haproxy.exe -f haproxy.cfg";
             WinExec(qPrintable(command),SW_HIDE);
         #else
-            // try to find haproxy correctly
-            QProcess shellProcess;
-            shellProcess.start("/bin/sh");
-            shellProcess.write("which haproxy || whereis haproxy | cut -d ' ' -f 2");
-            shellProcess.closeWriteChannel();
-            shellProcess.waitForFinished(-1);
-            QString haProxyPath = shellProcess.readAllStandardOutput().trimmed();
+            #if defined(Q_OS_MAC)
+                QString haProxyPath = "/usr/local/bin/haproxy";
+            #else
+                // try to find haproxy correctly
+                QProcess shellProcess;
+                shellProcess.start("/bin/sh");
+                shellProcess.write("which haproxy || whereis haproxy | cut -d ' ' -f 2");
+                shellProcess.closeWriteChannel();
+                shellProcess.waitForFinished(-1);
+                QString haProxyPath = shellProcess.readAllStandardOutput().trimmed();
+            #endif
 
             qDebug() << "HAProxy Path " << haProxyPath;
 
@@ -229,7 +205,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             }
 
             //system("trap 'pkill -f haproxy; echo teste haproxy; exit;' INT TERM");
-            command = haProxyPath + " -f " + host +"/haproxy.cfg";
+            command = haProxyPath + " -f " + sibling_file_path + "haproxy.cfg";
             system(qPrintable(command));
         #endif
 
@@ -244,20 +220,31 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
 }
 
 void Haproxy::haproxyCert(const QString &host, const QString &certificate){
-    QFile::remove(host+"/ca.cert.pem");
-    QFile file (host+"/ca.cert.pem");
-    if(!file.exists()){
-        qDebug() << file.fileName() << "Certificate does not exists";
-    }
+    // TODO: this should be set at global scope instead of for these individual users of "host"
+    // many files are expected to be at "the same level" as the gui executable
+    // - for windows: a relative path is ok
+    #if defined(Q_OS_WIN)
+    const QString sibling_file_path = "";
+    // - for mac: we need to back out to be level with the .app
+    #elif defined(Q_OS_MAC)
+    const QString sibling_file_path = host + "/../../../";
+    // - for linux: we need an absolute path
+    #else
+    const QString sibling_file_path = host + "/";
+    #endif
+
+    QFile::remove(sibling_file_path + "ca.cert.pem");
+    QFile file (sibling_file_path + "ca.cert.pem");
+
     if(file.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
         QTextStream txtStream(&file);
-        qDebug() << "---Writing to file---";
         txtStream << certificate;
-        qDebug() << " ----- reading from file ------";
         txtStream.seek(0);
+        /*
         while(!txtStream.atEnd()){
             qDebug() << txtStream.readLine();
         }
+        */
         file.close();
     }else{
         qDebug() << "could not open the file";
@@ -276,167 +263,8 @@ void Haproxy::killHAproxy(){
     #endif
 }
 
-
-
-
-// helper function to store head and body response from boost
-std::string buffer_to_string(const boost::asio::streambuf &buffer)
-{
-  using boost::asio::buffers_begin;
-  auto bufs = buffer.data();
-  std::string result(buffers_begin(bufs), buffers_begin(bufs) + buffer.size());
-  return result;
-}
-
-
-// make a request to the proxy and return a response object with code headers and body
-// based on original sync_client documentation sample from Boost
-// https://www.boost.org/doc/libs/1_49_0/doc/html/boost_asio/example/http/client/sync_client.cpp
-// Copyright (c) 2003-2012 Christopher M. Kohlhoff (chris at kohlhoff dot com)
-HttpResponse proxyRequest(std::string proxyHost, std::string proxyPort, std::string requestURL, std::string provider) {
-    HttpResponse output = HttpResponse(0);
-
-    // regular proxies use \r\n as boundaries but not this one, we need \n validation only
-    std::string regularBoundary = "\r\n";
-    std::string haproxyBoundary = "\n";
-
-    try {
-
-        boost::asio::io_service io_service;
-
-        // Get a list of endpoints corresponding to the server name.
-        tcp::resolver resolver(io_service);
-
-        // set the host and port of the proxy to query
-        tcp::resolver::query query(proxyHost, proxyPort, boost::asio::ip::resolver_query_base::numeric_service);
-
-        tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-
-        // Try each endpoint until we successfully establish a connection.
-        tcp::socket socket(io_service);
-        boost::asio::connect(socket, endpoint_iterator);
-
-        // create the request wihh all headers including mgmtid
-        boost::asio::streambuf request;
-        std::ostream request_stream(&request);
-
-        std::string httpHost = proxyHost;
-        if (requestURL.length() >= 9 && requestURL.substr(0, 7) == std::string("http://")) {
-            httpHost = requestURL.substr(7);
-            if (httpHost.find('/') != std::string::npos)
-                httpHost = httpHost.substr(0, httpHost.find('/'));
-        }
-
-        request_stream << "GET " << requestURL << " HTTP/1.0" << regularBoundary;
-        request_stream << "Host: " << httpHost << regularBoundary;
-        request_stream << "Accept: */*" << regularBoundary;
-        request_stream << "Connection: close" << regularBoundary;
-        request_stream << "X-ITNS-MgmtId: " << provider << regularBoundary << regularBoundary;
-
-        std::cout << "Writing to socket\n";
-
-        // Send the request.
-        boost::asio::write(socket, request);
-
-        // Read the response status line
-        boost::asio::streambuf response;
-
-        // regular boundaries do not work here
-        boost::asio::read_until(socket, response, haproxyBoundary);
-
-        // Check that response is OK.
-        std::istream response_stream(&response);
-        std::string http_version;
-        response_stream >> http_version;
-        unsigned int status_code;
-        response_stream >> status_code;
-        std::string status_message;
-        std::getline(response_stream, status_message);
-
-
-        std::cout << "Setting status code " << status_code << "\n";
-
-        output.setStatusCode(status_code);
-
-        if (!response_stream || http_version.substr(0, 5) != "HTTP/")
-        {
-            std::cout << "Invalid response\n";
-            return output;
-        }
-
-        std::cout << "Response returned with status code " << status_code << "\n";
-
-
-        // Read the response headers, which are terminated by a blank line.
-        boost::asio::read_until(socket, response, "\n\n");
-
-        // Process the response headers.
-        std::string header;
-
-        // append header to the response headers variable
-        while (std::getline(response_stream, header) && header != haproxyBoundary) {
-            output.addHeader(header);
-        }
-
-        // variable to keep contents of response body
-        std::string body;
-
-        // start storing response body
-        if (response.size() > 0) {
-            body += buffer_to_string(response);
-        }
-
-
-        // Read until EOF, save data for sending to caller
-        boost::system::error_code error;
-        while (boost::asio::read(socket, response, boost::asio::transfer_at_least(1), error)) {
-            body += buffer_to_string(response);
-        }
-
-        if (error != boost::asio::error::eof) {
-            throw boost::system::system_error(error);
-        }
-
-        output.setBody(body);
-
-    }
-    catch (std::exception& e)
-    {
-        std::cout << "Exception: " << e.what() << "\n";
-    }
-
-    return output;
-}
-
-
 // returns true if proxy is online and accepting connections, false otherwise
-bool Haproxy::verifyHaproxy(const QString &host, const QString &port, const QString &provider)
-{
-    // TODO - this needs to be updated when new dispatcher is available
-    std::string endpoint = std::string("http://_remote_/status");
-
-    HttpResponse response = proxyRequest(host.toStdString(), port.toStdString(), endpoint, provider.toStdString());
-
-    std::cout << std::endl << std::endl;
-    std::cout << "Status " << std::endl;
-    std::cout << response.getStatusCode() << std::endl;
-    std::cout << "Header " << std::endl;
-    for (auto const& s : response.getHeaders()) {
-        std::cout << s.first << " -> " << s.second << std::endl;
-    }
-
-    std::cout << "Body " << std::endl;
-    std::cout << response.getBody() << std::endl;
-
-    // return response based on the header
-    if ( response.getHeaders().find("X-ITNS-Status") != response.getHeaders().end() && response.getStatusCode() != 200) {
-        std::cout << "ITNS Header found: " << response.getHeaders()["X-ITNS-Status"] << std::endl;
-    }
-    else {
-        std::cout << "ITNS Header found: 200";
-        return true;
-    }
-
-
-    return false;
+QString Haproxy::verifyHaproxy(const QString &host, const QString &port, const QString &provider) {
+    Thread t;
+    return t.start(host.toStdString(), port.toStdString(), provider.toStdString());
 }
