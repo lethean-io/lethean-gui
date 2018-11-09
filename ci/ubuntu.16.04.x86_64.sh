@@ -61,7 +61,7 @@ cd ..
 echo "CI: Creating release archive..."
 RELEASE_NAME="lethean-gui-linux-64bit-$BUILD_VERSION"
 cd build/release/bin/
-mkdir -p $RELEASE_NAME
+mkdir $RELEASE_NAME
 cp letheand $RELEASE_NAME/
 cp lethean-wallet-gui $RELEASE_NAME/
 cp -R qml $RELEASE_NAME/
