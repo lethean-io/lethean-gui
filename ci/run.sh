@@ -5,6 +5,7 @@ git describe --tags --exact-match 2> /dev/null
 if [ $? -eq 0 ]; then
 	BUILD_VERSION=`git describe --tags --exact-match`
 else
+	# replace forward slashes with underscores for feature branches
 	BUILD_BRANCH=`git rev-parse --abbrev-ref HEAD`
 	BUILD_COMMIT=`git rev-parse --short HEAD`
 	BUILD_VERSION="$BUILD_BRANCH-$BUILD_COMMIT"
@@ -23,13 +24,21 @@ if [ -x "$(command -v sw_vers)" ]; then
 		echo "CI: builds not yet implemented for macOS version $macOSVersion"
 	fi
 elif [ -x "$(command -v lsb_release)" ]; then
-	ubuntuVersion=`lsb_release --release --short`
-	ubuntuArchitecture=`uname -i`
-	ubuntuScript="./ci/ubuntu.$ubuntuVersion.$ubuntuArchitecture.sh"
-	if [ -f $ubuntuScript ]; then
-		$ubuntuScript $1
+	linuxDistribution=`lsb_release --id --short | awk '{print tolower($0)}'`
+	linuxVersion=`lsb_release --release --short`
+	linuxArchitecture=`uname -i`
+	
+	# if architecture is unknown try to get it from a different source
+	if [ "$linuxArchitecture" = "unknown" ]; then
+		linuxArchitecture=`dpkg --print-architecture`
+	fi
+
+	
+	linuxScript="./ci/$linuxDistribution.$linuxVersion.$linuxArchitecture.sh"
+	if [ -f $linuxScript ]; then
+		$linuxScript $1
 	else
-		echo "CI: builds not yet implemented for Ubuntu version $ubuntuVersion $ubuntuArchitecture"
+		echo "CI: builds not yet implemented for $linuxDistribution version $linuxVersion $linuxArchitecture"
 	fi
 elif [ -x "$(command -v uname)" ]; then
 	osVersion=`expr substr $(uname -s) 1 10`
