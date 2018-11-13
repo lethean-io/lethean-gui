@@ -414,13 +414,17 @@ Rectangle {
             subConnectButton.visible = false
             timerHaproxy.restart()
             timerHaproxy.running = true
+            backgroundLoader.visible = true
 
             startText.text = "Connected"
             appWindow.persistentSettings.paidTextLineTimeLeft = itnsStart.toFixed(8) + " "+Config.coinName;
             paidTextLine.text = itnsStart.toFixed(8) + " "+Config.coinName
+            loadingTimer.start()
 
         }
         else {
+            loadingTimer.stop()
+            backgroundLoader.visible = false
             subButton.visible = false
             shield.source = "../images/shield.png"
             runningText.text = "Not running"
@@ -636,6 +640,8 @@ Rectangle {
 
             //console.log("====== " + proxyConnected + " ================= Proxy Connection Status ==================")
             if (proxyConnected === "OK") {
+                loadingTimer.stop()
+                backgroundLoader.visible = false
                 waitHaproxyPopup.close();
                 proxyStats = 1;
                 showTime = true;
@@ -644,6 +650,8 @@ Rectangle {
             // check the connection status and stop haproxy
             }else if(proxyConnected == "CONNECTION_ERROR"){
                 callhaproxy.killHAproxy()
+                loadingTimer.stop()
+                backgroundLoader.visible = false
                 waitHaproxyPopup.title = "Unavailable Service";
                 waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
                 waitHaproxyPopup.open();
@@ -684,10 +692,10 @@ Rectangle {
         }
 
         if (waitHaproxy == 0) {
-            waitHaproxyPopup.title = "Waiting for payment balance";
-            waitHaproxyPopup.content = "The proxy may not work until the provider receives your payment.";
-            waitHaproxyPopup.open();
-            timeonlineTextLine.text = "Waiting for payment balance"
+            //waitHaproxyPopup.title = "Waiting for payment balance";
+            //waitHaproxyPopup.content = "The proxy may not work until the provider receives your payment.";
+            //waitHaproxyPopup.open();
+            timeonlineTextLine.text = "Unavailable Service"
         }
 
         if (showTime == true) {
@@ -1914,7 +1922,62 @@ Rectangle {
 
 
     }
+    Rectangle {
+        id: backgroundLoader
+        visible: false;
+        anchors.centerIn: root
+        width: root.width; height: root.height;
+        color: "#000000";
 
+        Text {
+            visible: !isMobile
+            id: waitingPayment
+            anchors.top: parent.top
+            anchors.horizontalCenter:  parent.horizontalCenter
+            anchors.topMargin: 140
+            text: qsTr("Waiting for payment balance...<br />The proxy may not work until the provider receives your payment.") + translationManager.emptyString
+            font.pixelSize: 18
+            textFormat: Text.RichText
+            font.bold: true
+            horizontalAlignment: Text.AlignHCenter
+            color:"#FFFFFF"
+        }
+
+        Image {
+            id: loader
+            anchors.centerIn: parent
+            width: 100; height: 100
+            antialiasing: true
+            fillMode: Image.PreserveAspectFit
+            source: "../images/loader.png"
+
+            /*
+            states: State {
+               name: "rotated"
+               PropertyChanges { target: loader; rotation: 360 }
+            }
+
+            transitions: Transition {
+               RotationAnimation { duration: 5000; direction: RotationAnimation.Counterclockwise }
+            }
+            */
+            transformOrigin: Item.Center
+
+            //MouseArea { anchors.fill: parent; onClicked: loader.state = "rotated" }
+
+        }
+    }
+
+    Timer {
+        id: loadingTimer
+        interval: 1
+        repeat: true
+        running: false
+
+        onTriggered: {
+            loader.rotation = loader.rotation + 3
+        }
+    }
 
     Timer {
         id: timerHaproxy
