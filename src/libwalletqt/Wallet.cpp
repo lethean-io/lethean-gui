@@ -361,23 +361,15 @@ PendingTransaction *Wallet::createAutoTransaction(const QString &dst_addr, const
     return result;
 }
 
+// creates an automatic payment within a thread to avoid UI freeze
 void Wallet::createAutoTransactionAsync(const QString &dst_addr, const QString &payment_id,
                                quint64 amount, quint32 mixin_count,
                                PendingTransaction::Priority priority)
 {
-    QFuture<PendingTransaction*> future = QtConcurrent::run(this, &Wallet::createTransaction,
-                                  dst_addr, payment_id,amount, mixin_count, priority);
-    QFutureWatcher<PendingTransaction*> * watcher = new QFutureWatcher<PendingTransaction*>();
-
-    connect(watcher, &QFutureWatcher<PendingTransaction*>::finished,
-            this, [this, watcher,dst_addr,payment_id,mixin_count]() {
-        QFuture<PendingTransaction*> future = watcher->future();
-        watcher->deleteLater();
-        emit transactionAutoCreated(future.result(),dst_addr,payment_id,mixin_count);
-    });
-    watcher->setFuture(future);
+    // create a thread for payment
+    Thread t;
+    t.makeAutomatedThreadedPayment(this, dst_addr, payment_id, amount, mixin_count, priority);
 }
-
 
 
 PendingTransaction *Wallet::createTransactionAll(const QString &dst_addr, const QString &payment_id,

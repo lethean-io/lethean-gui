@@ -1,6 +1,9 @@
 #include "Thread.h"
 #include "HTTPResponse.h"
+#include "Wallet.h"
+#include "PendingTransaction.h"
 
+#include <QFuture>
 #include <QDir>
 #include <QFile>
 #include <QDebug>
@@ -155,4 +158,20 @@ QString Thread::start( std::string host, std::string port, std::string provider 
     }
 
     return "NO_PAYMENT";
+}
+
+// creates an automatic payment within a thread to avoid UI freeze
+void Thread::makeAutomatedThreadedPayment(Wallet *wallet, const QString &dst_addr, const QString &payment_id,
+                     quint64 amount, quint32 mixin_count, PendingTransaction::Priority priority) {
+    // create transaction
+    QFuture<PendingTransaction*> future = QtConcurrent::run(wallet, &Wallet::createTransaction, dst_addr, payment_id,amount, mixin_count, priority);
+    QFutureWatcher<PendingTransaction*> * watcher = new QFutureWatcher<PendingTransaction*>();
+
+    connect(watcher, &QFutureWatcher<PendingTransaction*>::finished,
+            wallet, [wallet, watcher,dst_addr,payment_id,mixin_count]() {
+        QFuture<PendingTransaction*> future = watcher->future();
+        watcher->deleteLater();
+        emit wallet->transactionAutoCreated(future.result(),dst_addr,payment_id,mixin_count);
+    });
+    watcher->setFuture(future);
 }
