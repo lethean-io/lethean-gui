@@ -155,5 +155,6 @@
         <file>images/shield.png</file>
         <file>images/power_on.png</file>
         <file>IntenseConfig.js</file>
+        <file>images/loader.png</file>
     </qresource>
 </RCC>
