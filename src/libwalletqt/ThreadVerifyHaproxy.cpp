@@ -1,29 +1,9 @@
-#include "Thread.h"
-#include "HTTPResponse.h"
-#include "Wallet.h"
-#include "PendingTransaction.h"
-
-#include <QFuture>
-#include <QDir>
-#include <QFile>
-#include <QDebug>
-#include <QProcess>
-#include <QTimer>
-#include <QThread>
-#include <QtCore>
-#include <QObject>
-
-#include <thread>
-#include <string>
-#include <iostream>
-#include <istream>
-#include <ostream>
-#include <boost/asio.hpp>
+#include "ThreadVerifyHaproxy.h"
 
 using boost::asio::ip::tcp;
 
 // helper function to store head and body response from boost
-std::string buffer_to_string(const boost::asio::streambuf &buffer)
+std::string ThreadVerifyHaproxy::buffer_to_string(const boost::asio::streambuf &buffer)
 {
   using boost::asio::buffers_begin;
   auto bufs = buffer.data();
@@ -35,7 +15,7 @@ std::string buffer_to_string(const boost::asio::streambuf &buffer)
 // based on original sync_client documentation sample from Boost
 // https://www.boost.org/doc/libs/1_49_0/doc/html/boost_asio/example/http/client/sync_client.cpp
 // Copyright (c) 2003-2012 Christopher M. Kohlhoff (chris at kohlhoff dot com)
-HttpResponse proxyRequest(std::string proxyHost, std::string proxyPort, std::string requestURL, std::string provider) {
+HttpResponse ThreadVerifyHaproxy::proxyRequest(std::string proxyHost, std::string proxyPort, std::string requestURL, std::string provider) {
     HttpResponse output = HttpResponse(0);
 
     // regular proxies use \r\n as boundaries but not this one, we need \n validation only
@@ -141,11 +121,11 @@ HttpResponse proxyRequest(std::string proxyHost, std::string proxyPort, std::str
     return output;
 }
 
-QString Thread::start( std::string host, std::string port, std::string provider ) {
+QString ThreadVerifyHaproxy::startVerifyHaproxy() {
     // TODO - this needs to be updated when new dispatcher is available
     std::string endpoint = std::string("http://_remote_/status");
 
-    HttpResponse response = proxyRequest( host, port, endpoint, provider );
+    HttpResponse response = proxyRequest( m_haproxyHost, m_haproxyPort, endpoint, m_haproxyProvider );
 
     // return response based on the header
     if ( response.getStatusCode() == 200 ) {
@@ -160,18 +140,9 @@ QString Thread::start( std::string host, std::string port, std::string provider 
     return "NO_PAYMENT";
 }
 
-// creates an automatic payment within a thread to avoid UI freeze
-void Thread::makeAutomatedThreadedPayment(Wallet *wallet, const QString &dst_addr, const QString &payment_id,
-                     quint64 amount, quint32 mixin_count, PendingTransaction::Priority priority) {
-    // create transaction
-    QFuture<PendingTransaction*> future = QtConcurrent::run(wallet, &Wallet::createTransaction, dst_addr, payment_id,amount, mixin_count, priority);
-    QFutureWatcher<PendingTransaction*> * watcher = new QFutureWatcher<PendingTransaction*>();
-
-    connect(watcher, &QFutureWatcher<PendingTransaction*>::finished,
-            wallet, [wallet, watcher,dst_addr,payment_id,mixin_count]() {
-        QFuture<PendingTransaction*> future = watcher->future();
-        watcher->deleteLater();
-        emit wallet->transactionAutoCreated(future.result(),dst_addr,payment_id,mixin_count);
-    });
-    watcher->setFuture(future);
+// set the returnable variables
+void ThreadVerifyHaproxy::setup(std::string host, std::string port, std::string provider) {
+    m_haproxyHost = host;
+    m_haproxyPort = port;
+    m_haproxyProvider = provider;
 }
