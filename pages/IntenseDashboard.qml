@@ -633,43 +633,45 @@ Rectangle {
             value = value + array[x] + c
         }
 
+        // validate haproxy status every second from the response returned by the thread
+        // console.log("====== " + proxyConnected + " ================= Proxy Connection Status ==================")
+        if (callhaproxy.haproxyStatus === "OK") {
+            loadingTimer.stop()
+            backgroundLoader.visible = false
+            waitHaproxyPopup.close();
+            proxyStats = 1;
+            showTime = true;
+            waitHaproxy = 1;
+            verification = 60;
+        // check the connection status and stop haproxy
+        }else if(callhaproxy.haproxyStatus == "CONNECTION_ERROR"){
+            callhaproxy.killHAproxy()
+            loadingTimer.stop()
+            backgroundLoader.visible = false
+            waitHaproxyPopup.title = "Unavailable Service";
+            waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
+            waitHaproxyPopup.open();
+            timeonlineTextLine.text = "Unavailable Service"
+            flag = 0;
+            changeStatus()
+            return
 
+            //only run when dont have payment
+        }else if(callhaproxy.haproxyStatus == "NO_PAYMENT"){
+            if(firstPayment == 1){
+                dashboardPayment = 1;
+                setPayment()
+            }
+            verification = 5;
+
+        }
+
+        // call thread every X seconds and update proxy status variable through thread request
         if ( secs % verification == 0 || firstPayment == 1 ) {
             // check if proxy is connected. if it is, this method returns true
-            var proxyConnected = callhaproxy.verifyHaproxy(Config.haproxyIp, Config.haproxyPort, obj.provider);
-
-            //console.log("====== " + proxyConnected + " ================= Proxy Connection Status ==================")
-            if (proxyConnected === "OK") {
-                loadingTimer.stop()
-                backgroundLoader.visible = false
-                waitHaproxyPopup.close();
-                proxyStats = 1;
-                showTime = true;
-                waitHaproxy = 1;
-                verification = 60;
-            // check the connection status and stop haproxy
-            }else if(proxyConnected == "CONNECTION_ERROR"){
-                callhaproxy.killHAproxy()
-                loadingTimer.stop()
-                backgroundLoader.visible = false
-                waitHaproxyPopup.title = "Unavailable Service";
-                waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
-                waitHaproxyPopup.open();
-                timeonlineTextLine.text = "Unavailable Service"
-                flag = 0;
-                changeStatus()
-                return
-
-                //only run when dont have payment
-            }else if(proxyConnected == "NO_PAYMENT"){
-                if(firstPayment == 1){
-                    dashboardPayment = 1;
-                    setPayment()
-                }
-                verification = 5;
-
-            }
+            callhaproxy.verifyHaproxy(Config.haproxyIp, Config.haproxyPort, obj.provider);
         }
+
         appWindow.persistentSettings.timeonlineTextLineTimeLeft = value
         appWindow.persistentSettings.secsTimeLeft = secs
         var data = new Date();

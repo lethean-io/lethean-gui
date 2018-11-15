@@ -40,7 +40,7 @@ HEADERS += \
     MainApp.h \
     src/libwalletqt/Haproxy.h \
     src/libwalletqt/HTTPResponse.h \
-    src/libwalletqt/Thread.h
+    src/libwalletqt/ThreadVerifyHaproxy.h
 
 SOURCES += main.cpp \
     filter.cpp \
@@ -66,7 +66,7 @@ SOURCES += main.cpp \
     MainApp.cpp \
     src/libwalletqt/Haproxy.cpp \
     src/libwalletqt/HTTPResponse.cpp \
-    src/libwalletqt/Thread.cpp
+    src/libwalletqt/ThreadVerifyHaproxy.cpp
 
 !ios {
     HEADERS += src/daemon/DaemonManager.h
