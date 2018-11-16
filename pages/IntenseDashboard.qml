@@ -79,6 +79,7 @@ Rectangle {
 
 
     function setPayment(){
+        var proxyConnected = callhaproxy.verifyHaproxy(Config.haproxyIp, Config.haproxyPort, obj.provider);
         if(firstPayment == 1){
             var value = parseFloat(cost)
         }else{
@@ -199,7 +200,19 @@ Rectangle {
             // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
             if(dashboardPayment != 0){
                 firstPayment = 0
-                paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment")
+                if(proxyConnected != "CONNECTION_ERROR") {
+                    paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment");
+                } else {
+                    callhaproxy.killHAproxy()
+                    loadingTimer.stop()
+                    backgroundLoader.visible = false
+                    waitHaproxyPopup.title = "Unavailable Service";
+                    waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
+                    waitHaproxyPopup.open();
+                    timeonlineTextLine.text = "Unavailable Service"
+                    flag = 0;
+                    changeStatus()
+                }
             }
         }
 
