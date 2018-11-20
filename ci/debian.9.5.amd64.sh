@@ -1,5 +1,5 @@
 set -x
-echo "CI: Ubuntu 16.04 x86_64"
+echo "CI: Debian 9.5 amd64"
 
 if [ "$1" = "prep" ]; then
 
@@ -20,7 +20,7 @@ if [ "$1" = "prep" ]; then
 
 	# dependencies
 	installDependencyIfNeeded build-essential
-	installDependencyIfNeeded libssl-dev
+	installDependencyIfNeeded libssl1.0-dev
 	installDependencyIfNeeded libboost-all-dev
 	installDependencyIfNeeded pkg-config
 	installDependencyIfNeeded cmake
