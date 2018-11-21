@@ -15,6 +15,8 @@
 #include <istream>
 #include <ostream>
 #include <boost/asio.hpp>
+// use to check if the file is open
+#include <QFileInfo>
 
 #ifdef Q_OS_WIN
     #include <windows.h>
@@ -43,6 +45,25 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
     QFile::remove(sibling_file_path + "haproxy.cfg");
     QFile file(sibling_file_path + "haproxy.cfg");
 
+    // try to read the files
+    QFileInfo fileHaCredit(sibling_file_path + "ha_credit.http");
+    QFileInfo fileHaErrBadid(sibling_file_path + "ha_err_badid.http");
+    QFileInfo fileHaErrConnect(sibling_file_path + "ha_err_connect.http");
+    QFileInfo fileHaErrNopayment(sibling_file_path + "ha_err_nopayment.http");
+    QFileInfo fileHaErrOverlimit(sibling_file_path + "ha_err_overlimit.http");
+    QFileInfo fileHaInfo(sibling_file_path + "ha_info.http");
+
+    // check if file exists
+    if (!fileHaCredit.exists()
+            || !fileHaErrBadid.exists()
+            || !fileHaErrConnect.exists()
+            || !fileHaErrNopayment.exists()
+            || !fileHaErrOverlimit.exists()
+            || !fileHaInfo.exists()
+            ) {
+        qDebug() << "could not open the files -- http";
+        return false;
+    }
     //create provider.http
     if(fileProvider.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
         QTextStream txtStream(&fileProvider);
