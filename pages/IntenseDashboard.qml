@@ -253,13 +253,13 @@ Rectangle {
             var objPattern = new RegExp(
                 (
                     // Delimiters.
-                    "( \\" + strDelimiter + "|\\r?\\n|\\r|^ )" +
+                    "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
 
                     // Quoted fields.
-                    "( ?:\"( [^\"]*( ?:\"\"[^\"]* )* )\"|" +
+                    "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
 
                     // Standard fields.
-                    "( [^\"\\" + strDelimiter + "\\r\\n]* ) )"
+                    "([^\"\\" + strDelimiter + "\\r\\n]*))"
                 ),
                 "gi"
                 );
