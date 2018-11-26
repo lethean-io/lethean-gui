@@ -650,7 +650,6 @@ Rectangle {
 
         }
 
-
         appWindow.persistentSettings.timeonlineTextLineTimeLeft = value
         appWindow.persistentSettings.secsTimeLeft = secs
         var data = new Date();
