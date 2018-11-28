@@ -228,15 +228,15 @@ Rectangle {
                 intenseDashboardView.macHostFlag = 0
                 intenseDashboardView.hexConfig = hexConfig
                 intenseDashboardView.firstPayment = 1
-                //intenseDashboardView.getTime();
                 intenseDashboardView.callProxy = 1
-                //console.log(radioRenew.checked + " =================123123=123=12=3=123=12=3=12=31=23=12=3=")
                 intenseDashboardView.autoRenew = true
                 intenseDashboardView.showTime = false
                 intenseDashboardView.dashboardPayment = 0
-                //must important to remove
+
+                // call important function to populate dashboard
                 intenseDashboardView.setPayment();
-                //subButton.enabled = false;
+                intenseDashboardView.addTextAndButtonAtDashboard();
+
                 middlePanel.state = "VPN Dashboard"
 
                 leftPanel.selectItem("VPN Dashboard")
@@ -624,12 +624,17 @@ Rectangle {
     }
 
     function getCheckedFavorite(obj){
-        for(var iCheckedFavorite = 0; iCheckedFavorite < arrChecked.length; iCheckedFavorite++){
-            if(arrChecked[iCheckedFavorite].services == obj.id && arrChecked[iCheckedFavorite].provider == obj.provider) {
-                return true
+        if ( typeof (arrChecked) == 'undefined' ){
+            return false
+        } else {
+            for(var iCheckedFavorite = 0; iCheckedFavorite < arrChecked.length; iCheckedFavorite++){
+                if(arrChecked[iCheckedFavorite].services == obj.id && arrChecked[iCheckedFavorite].provider == obj.provider) {
+                    return true
+                }
             }
+            return false
         }
-        return false
+
     }
 
     function getFavorite(checked, obj){ 
