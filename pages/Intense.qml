@@ -16,6 +16,7 @@ Rectangle {
     property bool autoLoadMode
     property bool backgroundColor: false
     property bool unlockedBalance: true
+    property bool proxyRenew: true
 
     function buildTxDetailsString(data, rank) {
         //console.log(data.subsequentVerificationsNeeded + "-------------------- ttt")
@@ -230,15 +231,13 @@ Rectangle {
                 intenseDashboardView.firstPayment = 1
                 //intenseDashboardView.getTime();
                 intenseDashboardView.callProxy = 1
-                //console.log(radioRenew.checked + " =================123123=123=12=3=123=12=3=12=31=23=12=3=")
-                intenseDashboardView.autoRenew = true
+                intenseDashboardView.autoRenew = proxyRenew
                 intenseDashboardView.showTime = false
                 intenseDashboardView.dashboardPayment = 0
-                //must important to remove
-                intenseDashboardView.setPayment();
-                //subButton.enabled = false;
-                middlePanel.state = "VPN Dashboard"
 
+                // make payment and switch to dashboard
+                intenseDashboardView.setPayment();
+                middlePanel.state = "VPN Dashboard"
                 leftPanel.selectItem("VPN Dashboard")
             }
         }
@@ -934,11 +933,17 @@ Rectangle {
                                         text: "Auto Renew Connection"
                                         checked: true
                                         exclusiveGroup: tabPositionGroup
+                                        onClicked: {
+                                            proxyRenew = true;
+                                        }
                                     }
                                     RadioButton {
                                         id: radioClose
                                         text: "Close after time expired"
                                         exclusiveGroup: tabPositionGroup
+                                        onClicked: {
+                                            proxyRenew = false;
+                                        }
                                     }
                                 }
 
