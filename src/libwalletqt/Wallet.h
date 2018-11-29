@@ -283,8 +283,6 @@ signals:
     void transactionCreated(PendingTransaction * transaction, QString address, QString paymentId, quint32 mixinCount);
     void transactionAutoCreated(PendingTransaction * transaction, QString address, QString paymentId, quint32 mixinCount);
 
-
-
     void connectionStatusChanged(ConnectionStatus status) const;
 
 private:

@@ -77,23 +77,21 @@ Rectangle {
         return hexConfig
     }
 
+    function setPayment(){
 
-    function setPayment() {
-        // get the cost value
-        if ( firstPayment == 1 ) {
-            var value = parseFloat( cost )
-        } else {
-            var value = parseFloat( cost ) / firstPrePaidMinutes * subsequentPrePaidMinutes
-        }
+        var data = new Date();
+        if(firstPayment == 1){
+            var value = parseFloat(cost)
+            // set first payment or subsequentPrePaidMinutes
+            appWindow.persistentSettings.haproxyTimeLeft = new Date(data.getTime() + firstPrePaidMinutes*60000);
+            appWindow.persistentSettings.haproxyStart = new Date();
 
-
-        var data = new Date()
-        // set first payment or subsequentPrePaidMinutes
-        if ( firstPayment == 1 ) {
-            appWindow.persistentSettings.haproxyTimeLeft = new Date( data.getTime() + firstPrePaidMinutes * 60000 )
-            appWindow.persistentSettings.haproxyStart = new Date()
-        } else {
-            appWindow.persistentSettings.haproxyTimeLeft = new Date( appWindow.persistentSettings.haproxyTimeLeft.getTime() + subsequentPrePaidMinutes * 60000 )
+            // add loading page until waiting the payment
+            loadingTimer.start();
+            backgroundLoader.visible = true;
+        }else{
+            var value = parseFloat(cost)/firstPrePaidMinutes*subsequentPrePaidMinutes
+            appWindow.persistentSettings.haproxyTimeLeft = new Date(appWindow.persistentSettings.haproxyTimeLeft.getTime() + subsequentPrePaidMinutes*60000);
         }
 
         appWindow.persistentSettings.objTimeLeft = obj;
@@ -115,8 +113,8 @@ Rectangle {
         appWindow.persistentSettings.macHostFlagTimeLeft = macHostFlag
         appWindow.persistentSettings.timerPaymentTimeLeft = timerPayment
         appWindow.persistentSettings.hexConfigTimeLeft = hexConfig
-        appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment
         appWindow.persistentSettings.haproxyAutoRenew = autoRenew
+        appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
 
         // make more than one payment if necessary
         if ( ( ( appWindow.persistentSettings.haproxyTimeLeft.getTime() - appWindow.persistentSettings.haproxyStart.getTime() ) / 1000 ).toFixed( 0 ) <= Config.payTimer + ( Config.subsequentVerificationsNeeded * subsequentVerificationsNeeded ) ) {
@@ -187,13 +185,15 @@ Rectangle {
 
                 changeStatus()
             }
-            // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
-            if ( dashboardPayment != 0 ) {
-                firstPayment = 0
 
+            // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
+            if(dashboardPayment != 0){
+                firstPayment = 0;
+                appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
                 paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment")
 
             }
+
         }
 
 
@@ -253,13 +253,13 @@ Rectangle {
             var objPattern = new RegExp(
                 (
                     // Delimiters.
-                    "( \\" + strDelimiter + "|\\r?\\n|\\r|^ )" +
+                    "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
 
                     // Quoted fields.
-                    "( ?:\"( [^\"]*( ?:\"\"[^\"]* )* )\"|" +
+                    "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
 
                     // Standard fields.
-                    "( [^\"\\" + strDelimiter + "\\r\\n]* ) )"
+                    "([^\"\\" + strDelimiter + "\\r\\n]*))"
                 ),
                 "gi"
                 );
@@ -404,13 +404,10 @@ Rectangle {
             subConnectButton.visible = false
             timerHaproxy.restart()
             timerHaproxy.running = true
-            backgroundLoader.visible = true
 
             startText.text = "Connected"
-            
-            appWindow.persistentSettings.paidTextLineTimeLeft = itnsStart.toFixed(8) + " " + Config.coinName;
-            paidTextLine.text = itnsStart.toFixed(8) + " " + Config.coinName
-            loadingTimer.start()
+            appWindow.persistentSettings.paidTextLineTimeLeft = itnsStart.toFixed(8) + " "+Config.coinName;
+            paidTextLine.text = itnsStart.toFixed(8) + " "+Config.coinName
 
         }
         else {
@@ -614,42 +611,45 @@ Rectangle {
             value = value + array[x] + c
         }
 
+        // call thread every X seconds and update proxy status variable through thread request
         if ( secs % verification == 0 || firstPayment == 1 ) {
             // check if proxy is connected. if it is, this method returns true
-            var proxyConnected = callhaproxy.verifyHaproxy( Config.haproxyIp, Config.haproxyPort, obj.provider );
-
-            if (proxyConnected === "OK") {
-                loadingTimer.stop()
-                backgroundLoader.visible = false
-
-                waitHaproxyPopup.close();
-                proxyStats = 1;
-                showTime = true;
-                waitHaproxy = 1;
-                verification = 60;
-            // check the connection status and stop haproxy
-            }else if ( proxyConnected == "CONNECTION_ERROR" ) {
-                callhaproxy.killHAproxy()
-                loadingTimer.stop()
-                backgroundLoader.visible = false
-                waitHaproxyPopup.title = "Unavailable Service";
-                waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
-                waitHaproxyPopup.open();
-                timeonlineTextLine.text = "Unavailable Service"
-                flag = 0;
-                changeStatus()
-                return
-
-                //only run when dont have payment
-            }else if ( proxyConnected == "NO_PAYMENT" ) {
-                if ( firstPayment == 1 ) {
-                    dashboardPayment = 1;
-                    setPayment()
-                }
-                verification = 5;
-
-            }
+            callhaproxy.verifyHaproxy(Config.haproxyIp, Config.haproxyPort, obj.provider);
         }
+
+        // validate haproxy status every second from the response returned by the thread
+        // console.log("====== " + callhaproxy.haproxyStatus + " ================= Proxy Connection Status ==================")
+        if (callhaproxy.haproxyStatus === "OK") {
+            loadingTimer.stop()
+            backgroundLoader.visible = false
+            waitHaproxyPopup.close();
+            proxyStats = 1;
+            showTime = true;
+            waitHaproxy = 1;
+            verification = 60;
+        // check the connection status and stop haproxy
+        }else if(callhaproxy.haproxyStatus == "CONNECTION_ERROR"){
+            callhaproxy.killHAproxy()
+            loadingTimer.stop()
+            backgroundLoader.visible = false
+            waitHaproxyPopup.title = "Unavailable Service";
+            waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
+            waitHaproxyPopup.open();
+            timeonlineTextLine.text = "Unavailable Service"
+            flag = 0;
+            changeStatus()
+            return
+
+            //only run when dont have payment
+        }else if(callhaproxy.haproxyStatus == "NO_PAYMENT"){
+            if(firstPayment == 1){
+                dashboardPayment = 1;
+                setPayment()
+            }
+            verification = 5;
+
+        }
+
         appWindow.persistentSettings.timeonlineTextLineTimeLeft = value
         appWindow.persistentSettings.secsTimeLeft = secs
         var data = new Date();
@@ -1987,10 +1987,13 @@ Rectangle {
             getColor( rank, rankRectangle )
             getMyFeedJson()
             changeStatus()
-            if ( typeof ( obj ) == 'undefined' ) {
-                //console.log( 'obj = 0 --------' );
+            if (typeof (obj) == 'undefined') {
+                // show loading page until waiting the proxy up
+                backgroundLoader.visible = true;
+                loadingTimer.start();
+
+                // set variable when come back to the wallet and have time to use the proxy
                 obj = appWindow.persistentSettings.objTimeLeft;
-                //firstPrePaidMinutes = appWindow.persistentSettings.haproxyTimeLeft;
                 idService = appWindow.persistentSettings.idServiceTimeLeft;
                 providerName = appWindow.persistentSettings.providerNameTimeLeft;
                 name = appWindow.persistentSettings.nameTimeLeft;

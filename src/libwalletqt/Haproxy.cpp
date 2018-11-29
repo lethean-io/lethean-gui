@@ -1,26 +1,4 @@
 #include "Haproxy.h"
-#include "Thread.h"
-#include <QDir>
-#include <QFile>
-#include <QDebug>
-#include <QProcess>
-#include <QTimer>
-#include <QThread>
-#include <QtCore>
-#include <QObject>
-
-#include <thread>
-#include <string>
-#include <iostream>
-#include <istream>
-#include <ostream>
-#include <boost/asio.hpp>
-// use to check if the file is open
-#include <QFileInfo>
-
-#ifdef Q_OS_WIN
-    #include <windows.h>
-#endif
 
 bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &port, const QString &endpoint, const QString &endpointport, const QString &fixedHost, const QString &auth, const QString &provider, const QString &plan, const QString &serviceName) {
     // TODO: this should be set at global scope instead of for these individual users of "host"
@@ -285,7 +263,14 @@ void Haproxy::killHAproxy(){
 }
 
 // returns true if proxy is online and accepting connections, false otherwise
-QString Haproxy::verifyHaproxy(const QString &host, const QString &port, const QString &provider) {
-    Thread t;
-    return t.start(host.toStdString(), port.toStdString(), provider.toStdString());
+void Haproxy::verifyHaproxy(const QString &host, const QString &port, const QString &provider) {
+    ThreadVerifyHaproxy *workerThread = new ThreadVerifyHaproxy();
+    workerThread->setup(host.toStdString(), port.toStdString(), provider.toStdString());
+    connect(workerThread, &ThreadVerifyHaproxy::resultReady, this, &Haproxy::handleResults);
+    connect(workerThread, &ThreadVerifyHaproxy::finished, workerThread, &QObject::deleteLater);
+    workerThread->start();
+}
+
+void Haproxy::handleResults(const QString haproxyStatus) {
+     m_haproxyStatus = haproxyStatus;
 }
