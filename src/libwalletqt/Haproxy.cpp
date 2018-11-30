@@ -23,6 +23,25 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
     QFile::remove(sibling_file_path + "haproxy.cfg");
     QFile file(sibling_file_path + "haproxy.cfg");
 
+    // try to read the files
+    QFileInfo fileHaCredit(sibling_file_path + "ha_credit.http");
+    QFileInfo fileHaErrBadid(sibling_file_path + "ha_err_badid.http");
+    QFileInfo fileHaErrConnect(sibling_file_path + "ha_err_connect.http");
+    QFileInfo fileHaErrNopayment(sibling_file_path + "ha_err_nopayment.http");
+    QFileInfo fileHaErrOverlimit(sibling_file_path + "ha_err_overlimit.http");
+    QFileInfo fileHaInfo(sibling_file_path + "ha_info.http");
+
+    // check if file exists
+    if (!fileHaCredit.exists()
+            || !fileHaErrBadid.exists()
+            || !fileHaErrConnect.exists()
+            || !fileHaErrNopayment.exists()
+            || !fileHaErrOverlimit.exists()
+            || !fileHaInfo.exists()
+            ) {
+        qDebug() << "could not open the files -- http";
+        return false;
+    }
     //create provider.http
     if(fileProvider.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
         QTextStream txtStream(&fileProvider);
@@ -106,7 +125,13 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "option          nolinger\n";
         txtStream << "option          httplog\n";
         txtStream << "http-request add-header X-ITNS-PaymentID "+auth+"\n";
-        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file '" + sibling_file_path + "ca.cert.pem'\n";
+        #ifdef Q_OS_WIN
+        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file 'ca.cert.pem'\n";
+        #else
+        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file '"+host+"/ca.cert.pem'\n";
+        //save the host variable to show in dashboard
+        Haproxy::m_haproxyConfigPath = host;
+        #endif
 
         txtStream << "errorfile 503 " + sibling_file_path + "ha_err_connect.http\n";
 
@@ -177,6 +202,9 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             #endif
 
             qDebug() << "HAProxy Path " << haProxyPath;
+
+            // save in haproxy variable the path to show in dashboard
+            Haproxy::m_haproxyPath = haProxyPath;
 
             // ha proxy location not found if output from command is empty or just the first word from whereis
             if (haProxyPath.isEmpty() || haProxyPath == "haproxy:") {

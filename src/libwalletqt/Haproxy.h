@@ -29,12 +29,21 @@ namespace Monero {
 class Haproxy : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QString haproxyPath READ haproxyPath)
+    Q_PROPERTY(QString haproxyConfigPath READ haproxyConfigPath)
     // Use in QML to get the return from proxyStatus
     Q_PROPERTY(QString haproxyStatus READ haproxyStatus)
 public:
+      QString haproxyStatus() const {
+          return m_haproxyStatus;
+    }
+    //save the path to get the error when is not possible run the haproxy
+    QString haproxyPath() const {
+        return m_haproxyPath;
+    }
 
-    QString haproxyStatus() const {
-        return m_haproxyStatus;
+    QString haproxyConfigPath() const {
+        return m_haproxyConfigPath;
     }
 
     Q_INVOKABLE bool haproxy(const QString &host, const QString &ip, const QString &port, const QString &endpoint, const QString &endpointport, const QString &fixedHost, const QString &auth, const QString &provider, const QString &plan, const QString &serviceName);
@@ -50,6 +59,8 @@ private:
     // callback to process results from thread
     void handleResults(const QString proxyStatus);
 
+    QString m_haproxyPath;
+    QString m_haproxyConfigPath;
 };
 
 #endif // HAPROXY
