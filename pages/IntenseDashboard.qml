@@ -27,6 +27,7 @@ Rectangle {
     property var feedback
     property string bton
     property string rank
+    property bool proxyRenew: true
 
     // set if the connection come from Dashboard or provider List
     property int dashboardPayment: 0
@@ -548,7 +549,7 @@ Rectangle {
                 intenseDashboardView.hexConfig = hexConfig
                 intenseDashboardView.firstPayment = 1
                 intenseDashboardView.callProxy = 1
-                intenseDashboardView.autoRenew = true
+                intenseDashboardView.autoRenew = proxyRenew
                 intenseDashboardView.showTime = false
                 dashboardPayment = 0;
                 waitHaproxy = 0;
@@ -1049,11 +1050,17 @@ Rectangle {
                           text: "Auto Renew Connection"
                           checked: true
                           exclusiveGroup: tabPositionGroup
+                          onClicked: {
+                              proxyRenew = true;
+                          }
                       }
                       RadioButton {
                           id: radioClose
                           text: "Close after time expired"
                           exclusiveGroup: tabPositionGroup
+                          onClicked: {
+                              proxyRenew = false;
+                          }
                       }
                   }
 
