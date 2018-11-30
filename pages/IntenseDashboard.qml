@@ -78,9 +78,8 @@ Rectangle {
     }
 
     function setPayment(){
-
         var data = new Date();
-        if(firstPayment == 1){
+        if (firstPayment == 1) {
             var value = parseFloat(cost)
             // set first payment or subsequentPrePaidMinutes
             appWindow.persistentSettings.haproxyTimeLeft = new Date(data.getTime() + firstPrePaidMinutes*60000);
@@ -89,7 +88,8 @@ Rectangle {
             // add loading page until waiting the payment
             loadingTimer.start();
             backgroundLoader.visible = true;
-        }else{
+        }
+        else {
             var value = parseFloat(cost)/firstPrePaidMinutes*subsequentPrePaidMinutes
             appWindow.persistentSettings.haproxyTimeLeft = new Date(appWindow.persistentSettings.haproxyTimeLeft.getTime() + subsequentPrePaidMinutes*60000);
         }
@@ -186,12 +186,24 @@ Rectangle {
                 changeStatus()
             }
 
-            // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
-            if(dashboardPayment != 0){
-                firstPayment = 0;
-                appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
-                paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment")
-
+            if (callhaproxy.haproxyStatus != "CONNECTION_ERROR") {
+                  // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
+                  if (dashboardPayment != 0) {
+                      firstPayment = 0;
+                      appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
+                      paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment");
+                  }
+            }
+            else {
+                  callhaproxy.killHAproxy()
+                  loadingTimer.stop()
+                  backgroundLoader.visible = false
+                  waitHaproxyPopup.title = "Unavailable Service";
+                  waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
+                  waitHaproxyPopup.open();
+                  timeonlineTextLine.text = "Unavailable Service"
+                  flag = 0;
+                  changeStatus()
             }
 
         }

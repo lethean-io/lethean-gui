@@ -72,7 +72,7 @@ Rectangle {
     }
 
     function makeQRCodeString() {
-        var s = "intensecoin:"
+        var s = "lethean:"
         var nfields = 0
         s += addressLine.text
         var amount = amountLine.text.trim()
