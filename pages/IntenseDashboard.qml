@@ -186,7 +186,7 @@ Rectangle {
                 changeStatus()
             }
 
-            if (proxyConnected != "CONNECTION_ERROR") {
+            if (callhaproxy.haproxyStatus != "CONNECTION_ERROR") {
                   // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
                   if (dashboardPayment != 0) {
                       firstPayment = 0;
