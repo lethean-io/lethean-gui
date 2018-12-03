@@ -187,66 +187,68 @@ Rectangle {
 
 
     function createJsonFeedback(obj, rank){
-        var url = Config.url + Config.version + Config.feedback + Config.setup
-        var xmlhttpPost = new XMLHttpRequest();
-        xmlhttpPost.onreadystatechange=function() {
-            if (xmlhttpPost.readyState == 4 && xmlhttpPost.status == 200) {
-                var feed = JSON.parse(xmlhttpPost.responseText)
-                var host = applicationDirectory;
-                //console.log(obj.certArray[0].certContent);
+      var url = Config.url + Config.version + Config.feedback + Config.setup
+      var xmlhttpPost = new XMLHttpRequest();
+      xmlhttpPost.onreadystatechange=function() {
+          if (xmlhttpPost.readyState == 4 && xmlhttpPost.status == 200) {
+              var feed = JSON.parse(xmlhttpPost.responseText)
+              var host = applicationDirectory;
+              //console.log(obj.certArray[0].certContent);
 
-                var endpoint = ''
-                var port = ''
-                if (obj.proxy.length > 0) {
-                    endpoint = obj.proxy[0].endpoint
-                    port = obj.proxy[0].port
-                }
-				else {
-                    endpoint = obj.vpn[0].endpoint
-                    port = obj.vpn[0].port
-                }
+              var endpoint = ''
+              var port = ''
+              if (obj.proxy.length > 0) {
+                  endpoint = obj.proxy[0].endpoint
+                  port = obj.proxy[0].port
+              }
+              else {
+                  endpoint = obj.vpn[0].endpoint
+                  port = obj.vpn[0].port
+              }
 
-                //var certArray = decode64(obj.certArray[0].certContent); // "4pyTIMOgIGxhIG1vZGU="
-                //callhaproxy.haproxyCert(host, certArray);
-                //callhaproxy.haproxy(host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice(0,-4), 'haproxy', hexC(obj.id).toString(), obj.provider)
-                hexC(obj.id)
-                intenseDashboardView.idService = obj.id
-                intenseDashboardView.feedback = feed.id
-                intenseDashboardView.providerName = obj.providerName
-                intenseDashboardView.name = obj.name
-                intenseDashboardView.type = obj.type
-                intenseDashboardView.cost = parseFloat(obj.cost) * obj.firstPrePaidMinutes
-                intenseDashboardView.rank = rank
-                intenseDashboardView.speed = formatBytes(obj.downloadSpeed)
-                intenseDashboardView.firstPrePaidMinutes = obj.firstPrePaidMinutes
-                intenseDashboardView.subsequentPrePaidMinutes = obj.subsequentPrePaidMinutes
-                intenseDashboardView.subsequentVerificationsNeeded = obj.subsequentVerificationsNeeded
-                intenseDashboardView.bton = "qrc:///images/power_off.png"
-                intenseDashboardView.flag = 1
-                intenseDashboardView.obj = obj
-                intenseDashboardView.secs = 0
-                intenseDashboardView.itnsStart = parseFloat(obj.cost) * obj.firstPrePaidMinutes
-                intenseDashboardView.macHostFlag = 0
-                intenseDashboardView.hexConfig = hexConfig
-                intenseDashboardView.firstPayment = 1
-                //intenseDashboardView.getTime();
-                intenseDashboardView.callProxy = 1
-                intenseDashboardView.autoRenew = proxyRenew
-                intenseDashboardView.showTime = false
-                intenseDashboardView.dashboardPayment = 0
+              //var certArray = decode64(obj.certArray[0].certContent); // "4pyTIMOgIGxhIG1vZGU="
+              //callhaproxy.haproxyCert(host, certArray);
+              //callhaproxy.haproxy(host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice(0,-4), 'haproxy', hexC(obj.id).toString(), obj.provider)
+              hexC(obj.id)
+              intenseDashboardView.idService = obj.id
+              intenseDashboardView.feedback = feed.id
+              intenseDashboardView.providerName = obj.providerName
+              intenseDashboardView.name = obj.name
+              intenseDashboardView.type = obj.type
+              intenseDashboardView.cost = parseFloat(obj.cost) * obj.firstPrePaidMinutes
+              intenseDashboardView.rank = rank
+              intenseDashboardView.speed = formatBytes(obj.downloadSpeed)
+              intenseDashboardView.firstPrePaidMinutes = obj.firstPrePaidMinutes
+              intenseDashboardView.subsequentPrePaidMinutes = obj.subsequentPrePaidMinutes
+              intenseDashboardView.subsequentVerificationsNeeded = obj.subsequentVerificationsNeeded
+              intenseDashboardView.bton = "qrc:///images/power_off.png"
+              intenseDashboardView.flag = 1
+              intenseDashboardView.obj = obj
+              intenseDashboardView.secs = 0
+              intenseDashboardView.itnsStart = parseFloat(obj.cost) * obj.firstPrePaidMinutes
+              intenseDashboardView.macHostFlag = 0
+              intenseDashboardView.hexConfig = hexConfig
+              intenseDashboardView.firstPayment = 1
+              intenseDashboardView.callProxy = 1
 
-                // make payment and switch to dashboard
-                intenseDashboardView.setPayment();
-                middlePanel.state = "VPN Dashboard"
-                leftPanel.selectItem("VPN Dashboard")
-            }
-        }
+              intenseDashboardView.autoRenew = proxyRenew
+              intenseDashboardView.showTime = false
+              intenseDashboardView.dashboardPayment = 0
 
-        var data = {"id":obj.providerWallet, "provider":obj.provider, "services":obj.id, "client":appWindow.currentWallet.address}
-        data = JSON.stringify(data)
-        xmlhttpPost.open("POST", url, true);
-        xmlhttpPost.setRequestHeader("Content-type", "application/json");
-        xmlhttpPost.send(data);
+              // call important function to populate dashboard
+              intenseDashboardView.setPayment();
+              intenseDashboardView.addTextAndButtonAtDashboard();
+
+              middlePanel.state = "VPN Dashboard"
+              leftPanel.selectItem("VPN Dashboard")
+          }
+      }
+
+      var data = {"id":obj.providerWallet, "provider":obj.provider, "services":obj.id, "client":appWindow.currentWallet.address}
+      data = JSON.stringify(data)
+      xmlhttpPost.open("POST", url, true);
+      xmlhttpPost.setRequestHeader("Content-type", "application/json");
+      xmlhttpPost.send(data);
 
     }
 
@@ -623,12 +625,17 @@ Rectangle {
     }
 
     function getCheckedFavorite(obj){
-        for(var iCheckedFavorite = 0; iCheckedFavorite < arrChecked.length; iCheckedFavorite++){
-            if(arrChecked[iCheckedFavorite].services == obj.id && arrChecked[iCheckedFavorite].provider == obj.provider) {
-                return true
+        if ( typeof (arrChecked) == 'undefined' ){
+            return false
+        } else {
+            for(var iCheckedFavorite = 0; iCheckedFavorite < arrChecked.length; iCheckedFavorite++){
+                if(arrChecked[iCheckedFavorite].services == obj.id && arrChecked[iCheckedFavorite].provider == obj.provider) {
+                    return true
+                }
             }
+            return false
         }
-        return false
+
     }
 
     function getFavorite(checked, obj){ 

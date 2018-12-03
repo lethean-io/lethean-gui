@@ -430,7 +430,6 @@ Rectangle {
             shield.source = "../images/shield.png"
             runningText.text = "Not running"
             subConnectButton.visible = true
-            //subButtonText.text = "Connect"
             timerHaproxy.stop()
             timerHaproxy.running = false
             bton = ""
@@ -551,6 +550,7 @@ Rectangle {
                 intenseDashboardView.callProxy = 1
                 intenseDashboardView.autoRenew = proxyRenew
                 intenseDashboardView.showTime = false
+                intenseDashboardView.addTextAndButtonAtDashboard();
                 dashboardPayment = 0;
                 waitHaproxy = 0;
                 setPayment()
@@ -599,6 +599,20 @@ Rectangle {
             idRank.color = "#ee2c2c"
         }
 
+    }
+
+    // Use to populate text
+    function addTextAndButtonAtDashboard(){
+        var proxyEndpoint = JSON.stringify( obj.proxy[0].endpoint );
+        proxyEndpoint = proxyEndpoint.split( '"' ).join('');
+
+        // show disconnect and connect button from dashboard
+        subConnectButton.visible = true;
+
+        // show connected text
+        runningText.text = qsTr("Connected") + translationManager.emptyString;
+        serveripTextLine.text = proxyEndpoint.toString();
+        lastTypeText.text = qsTr("PROXY") + translationManager.emptyString;
     }
 
     function timer() {
@@ -683,9 +697,6 @@ Rectangle {
         }
 
         if (waitHaproxy == 0) {
-            //waitHaproxyPopup.title = "Waiting for payment balance";
-            //waitHaproxyPopup.content = "The proxy may not work until the provider receives your payment.";
-            //waitHaproxyPopup.open();
             timeonlineTextLine.text = "Service Unavailable"
         }
 
@@ -706,7 +717,6 @@ Rectangle {
 
     Rectangle {
         anchors.left: parent.left
-        //anchors.right: parent.right
         anchors.top: parent.top
         anchors.leftMargin: 27
         anchors.topMargin: 27
@@ -721,7 +731,6 @@ Rectangle {
               anchors.horizontalCenter: parent.horizontalCenter
               anchors.top:  parent.top
               anchors.topMargin: 14
-              //width: 156
               text: qsTr( "Status" ) + translationManager.emptyString
               font.pixelSize: 20
               color: "#6C8896"
@@ -747,8 +756,7 @@ Rectangle {
                 anchors.top:  typeText.top
                 anchors.topMargin: 65
                 anchors.leftMargin: 90
-                //width: 156
-                text: if ( feedback.length != 36 ) {qsTr( "Not running" )+ translationManager.emptyString} else { qsTr( "Connected" )+ translationManager.emptyString}
+                text: qsTr( "Not running" )+ translationManager.emptyString;
                 font.pixelSize: 19
                 font.bold: true
                 color: "#535353"
@@ -765,7 +773,6 @@ Rectangle {
         anchors.leftMargin: 284
         anchors.topMargin: 27
         height: 160
-        //width: 190
         color: "#ffffff"
 
           Text {
@@ -774,7 +781,6 @@ Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top:  parent.top
                 anchors.topMargin: 14
-                //width: 156
                 text: qsTr( "Disconnected" )+ translationManager.emptyString
                 font.pixelSize: 20
                 color: "#6C8896"
@@ -896,7 +902,6 @@ Rectangle {
                 anchors.topMargin: 31
                 anchors.leftMargin: 90
                 width: 70
-                text: if ( type == "openvpn" ) {qsTr( "VPN" ) + translationManager.emptyString}else if ( type == "proxy" ) {qsTr( "PROXY" ) + translationManager.emptyString}
                 font.pixelSize: 13
                 horizontalAlignment: Text.AlignLeft
                 font.bold: true
@@ -1068,7 +1073,7 @@ Rectangle {
           }
 
           StandardButton {
-              visible: if ( obj.type == "proxy" ) {true} else {false}
+              visible: false
               id: subConnectButton
               anchors.bottom: parent.bottom
               anchors.right: parent.right
@@ -1124,12 +1129,10 @@ Rectangle {
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top:  parent.top
                     anchors.topMargin: 100
-                    //width: 156
                     text: qsTr( providerName ) + translationManager.emptyString
                     font.pixelSize: 18
                     font.bold: true
                     color: "#6C8896"
-                    //fontWeight: bold
                 }
 
               Text {
@@ -1137,13 +1140,11 @@ Rectangle {
                     id: nameFeedback
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top:  providerFeedback.top
-                    anchors.topMargin: 37
-                    //width: 156
+                    anchors.topMargin: 37  
                     text: qsTr( name ) + translationManager.emptyString
                     font.pixelSize: 16
                     font.bold: true
                     color: "#6C8896"
-                    //fontWeight: bold
                 }
 
               Text {
@@ -1152,12 +1153,10 @@ Rectangle {
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top:  nameFeedback.top
                     anchors.topMargin: 47
-                    //width: 156
                     text: qsTr( "Speed" ) + translationManager.emptyString
                     font.pixelSize: 14
                     font.bold: false
                     color: "#000000"
-                    //fontWeight: bold
                 }
 
               Rectangle {
@@ -1335,12 +1334,12 @@ Rectangle {
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top:  rank3.top
                     anchors.topMargin: 47
-                    //width: 156
+
                     text: qsTr( "Quality" ) + translationManager.emptyString
                     font.pixelSize: 14
                     font.bold: false
                     color: "#000000"
-                    //fontWeight: bold
+
                 }
 
               Rectangle {
@@ -1585,14 +1584,14 @@ Rectangle {
               anchors.horizontalCenter: parent.horizontalCenter
               anchors.top:  parent.top
               anchors.topMargin: 100
-              //width: 156
+
               text: qsTr( "Learn how to use the VPN service" ) + translationManager.emptyString
               font.pixelSize: 22
               font.bold: true
               color: "#0645AD"
               font.family: "Arial"
               textFormat: Text.RichText
-              //fontWeight: bold
+
               MouseArea{
                   anchors.fill: parent
                   onClicked:Qt.openUrlExternally( Config.knowledgeBaseURL );
@@ -1605,13 +1604,13 @@ Rectangle {
               anchors.horizontalCenter: parent.horizontalCenter
               anchors.top:  howToUseText.top
               anchors.topMargin: 70
-              //width: 156
+
               text: qsTr( "or" ) + translationManager.emptyString
               font.pixelSize: 18
               font.bold: true
               color: "#535353"
               font.family: "Arial"
-              //fontWeight: bold
+
           }
 
 
@@ -1621,13 +1620,13 @@ Rectangle {
               anchors.horizontalCenter: parent.horizontalCenter
               anchors.top:  orText.top
               anchors.topMargin: 70
-              //width: 156
+
               text: qsTr( "Search for provider" ) + translationManager.emptyString
               font.pixelSize: 22
               font.bold: true
               color: "#0645AD"
               font.family: "Arial"
-              //fontWeight: bold
+
               MouseArea {
                   anchors.fill: parent
                   onClicked: {
@@ -1646,12 +1645,12 @@ Rectangle {
               anchors.horizontalCenter: parent.horizontalCenter
               anchors.top:  parent.top
               anchors.topMargin: 27
-              //width: 156
+
               text: qsTr( "Details" ) + translationManager.emptyString
               font.pixelSize: 18
               font.bold: true
               color: "#6C8896"
-              //fontWeight: bold
+
           }
 
 
@@ -1740,7 +1739,7 @@ Rectangle {
               anchors.horizontalCenter: parent.horizontalCenter
               anchors.top:  paiduntilnowText.top
               anchors.topMargin: 37
-              //width: 156
+
               text: qsTr( "Provider" ) + translationManager.emptyString
               font.pixelSize: 18
               color: "#6C8896"
@@ -1878,7 +1877,6 @@ Rectangle {
               anchors.topMargin: 27
               anchors.leftMargin: 20
               width: 180
-              text: obj.proxy[0].endpoint
               font.pixelSize: 14
               horizontalAlignment: Text.AlignLeft
         }
@@ -1947,20 +1945,7 @@ Rectangle {
             antialiasing: true
             fillMode: Image.PreserveAspectFit
             source: "../images/loader.png"
-
-            /*
-            states: State {
-               name: "rotated"
-               PropertyChanges { target: loader; rotation: 360 }
-            }
-
-            transitions: Transition {
-               RotationAnimation { duration: 5000; direction: RotationAnimation.Counterclockwise }
-            }
-            */
             transformOrigin: Item.Center
-
-            //MouseArea { anchors.fill: parent; onClicked: loader.state = "rotated" }
 
         }
     }
@@ -1995,13 +1980,7 @@ Rectangle {
 
 
     function onPageCompleted() {
-        //console.log( "Dashboard page completed" );
-        //console.log( appWindow.persistentSettings.haproxyTimeLeft + " time left" )
-
-        //console.log( providerName + "providerName" )
-        //console.log( obj + " my obj" )
         var data = new Date();
-        //console.log( data + " time now" )
         if ( providerName != "" || appWindow.persistentSettings.haproxyTimeLeft > data ) {
             getColor( rank, rankRectangle )
             getMyFeedJson()
@@ -2036,14 +2015,16 @@ Rectangle {
                 timeonlineTextLine.text = appWindow.persistentSettings.timeonlineTextLineTimeLeft;
                 paidTextLine.text = appWindow.persistentSettings.paidTextLineTimeLeft;
                 myRankText.text =  appWindow.persistentSettings.myRankTextTimeLeft;
-                //intenseDashboardView.flag = 1;
                 getColor( appWindow.persistentSettings.myRankTextTimeLeft, myRankRectangle )
-                changeStatus();
-                var host = applicationDirectory;
-                //console.log( obj.certArray[0].certContent );
 
+                // change to online
+                changeStatus();
+                intenseDashboardView.addTextAndButtonAtDashboard();
+
+                var host = applicationDirectory;
                 var endpoint = ''
                 var port = ''
+
                 if ( obj.proxy.length > 0 ) {
                     endpoint = obj.proxy[0].endpoint
                     port = obj.proxy[0].port
