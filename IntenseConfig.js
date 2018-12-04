@@ -20,3 +20,4 @@ var macPathHaproxy = ["/usr/local/opt/haproxy","/usr/local/Cellar/haproxy","/usr
 var coinName = "LTHN"
 var knowledgeBaseURL = "https://lethean.zendesk.com/hc/"
 var SDPVersion = 2
+var publicKey = "469e787270af464cc7d641cf48e3a0f48571ff2cc3fa45793296c09c1ed13ebc"

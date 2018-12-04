@@ -539,20 +539,27 @@ Rectangle {
                   headerMap[header] = value;
                 });
 
-                //console.log(arrHeaders[5] + " my arr")
+                console.log(arrHeaders[5] + " my arr")
+                var signature = arrHeaders[5].split(".");
+
+                // Receive peer's public key.
+                var theirPublicKey = Config.publicKey;
+
+                // Receive a signed message from peer and verify it using their public key.
+                var theirSignedMessage = JSON.stringify(arr)
+                console.log(theirSignedMessage + " theirSignedMessage")
+                console.log(theirSignedMessage.length + " my json length")
+                console.log(signature[1] + " my signature")
+
+                ed25519verify.verify();
+
+
                 /*
-                var publicKey = Config.ENCRYPTION_PUBLIC_KEY;
-                var encryptionContext = new EdDSA('ed25519');
-                var publicKeyHex = publicKey.toString('hex');
-
-
-                // Import public key
-                var key = encryptionContext.keyFromPublic(publicKey, 'hex');
-                // Verify signature
-                console.log("Verifying signature using public key");
-                console.log(key.verify(jsonResponseEncoded, signatureHex));
+                var providers = arr.providers
+                for (var i = 0; i < providers.length; i++) {
+                    getSignature(providers, providers[i], i, speed, speedType, price, tp, favorite)
+                }
                 */
-
                 var providers = arr.providers
                 for (var i = 0; i < providers.length; i++) {
                     getSignature(providers, providers[i], i, speed, speedType, price, tp, favorite)
