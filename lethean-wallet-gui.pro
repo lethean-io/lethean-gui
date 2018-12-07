@@ -66,8 +66,7 @@ HEADERS += \
     src/libwalletqt/Haproxy.h \
     src/libwalletqt/HTTPResponse.h \
     src/libwalletqt/ThreadVerifyHaproxy.h \
-    src/libwalletqt/SignatureValidation.h \
-    src/libwalletqt/Validation.h
+    src/libwalletqt/SignatureValidation.h
 
 SOURCES += main.cpp \
 filter.cpp \
