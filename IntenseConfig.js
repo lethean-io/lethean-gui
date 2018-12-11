@@ -1,5 +1,5 @@
 // All configs about haproxy
-var url = "https://sdp.staging.cloud.lethean.io"
+var url = "https://sdp.lethean.io"
 var version = "/v1"
 var stage = "/qa"
 var services = "/services"
@@ -19,4 +19,4 @@ var haproxyPort = "8180"
 var macPathHaproxy = ["/usr/local/opt/haproxy","/usr/local/Cellar/haproxy","/usr/local/bin/haproxy"]
 var coinName = "LTHN"
 var knowledgeBaseURL = "https://lethean.zendesk.com/hc/"
-var SDPVersion = 2
+var SDPVersion = 3
