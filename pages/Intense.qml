@@ -590,6 +590,11 @@ Rectangle {
                 //console.log(sigkey + " my sigkey ===")
                 console.log(theirSignedMessage.length + " my msg len ===")
 
+
+
+
+
+
                 // just to test with the class work better with array
                 var msgArray = msghexkey.split(","),
                     sigArray = sigkey.split(","),
