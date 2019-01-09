@@ -215,7 +215,7 @@ Rectangle {
 
     function showProxyStartupError() {
         errorPopup.title = "Proxy Startup Error";
-        errorPopup.content = "There was an error trying to start the proxy service.\nIf the problem persists, please contact support.";
+        errorPopup.content = "There was an error trying to start the proxy service.\nIf the problem persists, please contact support.\nPlease confirm that you have HAProxy installed in your machine.";
         errorPopup.open();
 
         // set this to 1 so the popup waiting for payment is not shown
