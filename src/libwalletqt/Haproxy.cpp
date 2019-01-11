@@ -128,7 +128,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         #ifdef Q_OS_WIN
         txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file 'ca.cert.pem'\n";
         #else
-        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file '"+host+"/ca.cert.pem'\n";
+        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file '"+sibling_file_path+"/ca.cert.pem'\n";
         //save the host variable to show in dashboard
         Haproxy::m_haproxyConfigPath = host;
         #endif
