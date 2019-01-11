@@ -7,11 +7,10 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
     #if defined(Q_OS_WIN)
     const QString sibling_file_path = "";
     // - for mac: we need to back out to be level with the .app
-    /*
     #elif defined(Q_OS_MAC)
-    const QString sibling_file_path = host + "/../../../";
+    const QString sibling_file_path = "/Users/joaocosta/Downloads/lethean-gui-mac-64bit-bug-laion-fix-haproxy-macosx-3973f61/"
+    //const QString sibling_file_path = host + "/../../../";
     // - for linux: we need an absolute path
-    */
     #else
     const QString sibling_file_path = host + "/";
     #endif
