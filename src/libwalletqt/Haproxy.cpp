@@ -8,7 +8,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
     const QString sibling_file_path = "";
     // - for mac: we need to back out to be level with the .app
     #elif defined(Q_OS_MAC)
-    const QString sibling_file_path = "/Users/joaocosta/Downloads/lethean-gui-mac-64bit-bug-laion-fix-haproxy-macosx-3973f61/";
+    const QString sibling_file_path = host; //"/Users/joaocosta/Downloads/lethean-gui-mac-64bit-bug-laion-fix-haproxy-macosx-3973f61/";
     //const QString sibling_file_path = host + "/../../../";
     // - for linux: we need an absolute path
     #else
@@ -129,9 +129,9 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         #ifdef Q_OS_WIN
         txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file 'ca.cert.pem'\n";
         #else
-        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file '"+sibling_file_path+"/ca.cert.pem'\n";
+        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file '"+sibling_file_path+"ca.cert.pem'\n";
         //save the host variable to show in dashboard
-        Haproxy::m_haproxyConfigPath = host;
+        Haproxy::m_haproxyConfigPath = sibling_file_path;
         #endif
 
         txtStream << "errorfile 503 " + sibling_file_path + "ha_err_connect.http\n";
