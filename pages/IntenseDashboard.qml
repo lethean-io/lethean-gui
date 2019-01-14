@@ -215,7 +215,7 @@ Rectangle {
 
     function showProxyStartupError() {
         errorPopup.title = "Proxy Startup Error";
-        errorPopup.content = "There was an error trying to start the proxy service.\nIf the problem persists, please contact support.";
+        errorPopup.content = "There was an error trying to start the proxy service.\nIf the problem persists, please contact support.\n" + applicationDirectory;
         errorPopup.open();
 
         // set this to 1 so the popup waiting for payment is not shown
