@@ -24,6 +24,8 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
     QFile::remove(sibling_file_path + "haproxy.cfg");
     QFile file(sibling_file_path + "haproxy.cfg");
 
+    #if defined(Q_OS_MAC)
+    #else
     // try to read the files
     QFileInfo fileHaCredit(sibling_file_path + "ha_credit.http");
     QFileInfo fileHaErrBadid(sibling_file_path + "ha_err_badid.http");
@@ -40,9 +42,10 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             || !fileHaErrOverlimit.exists()
             || !fileHaInfo.exists()
             ) {
-        qDebug() << "could not open the files -- http " + QCoreApplication::applicationDirPath() + " file path " + QCoreApplication::applicationFilePath;
+        qDebug() << "could not open the files -- http " + QCoreApplication::applicationDirPath();
         return false;
     }
+    #endif
     //create provider.http
     if(fileProvider.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
         QTextStream txtStream(&fileProvider);
