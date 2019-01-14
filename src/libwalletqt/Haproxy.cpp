@@ -8,7 +8,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
     const QString sibling_file_path = "";
     // - for mac: we need to back out to be level with the .app
     #elif defined(Q_OS_MAC)
-    const QString sibling_file_path = QCoreApplication::applicationDirPath() + "/"; //"/Users/joaocosta/Downloads/lethean-gui-mac-64bit-bug-laion-fix-haproxy-macosx-3973f61/";
+    const QString sibling_file_path = QCoreApplication::applicationDirPath() + "/../../../"; //"/Users/joaocosta/Downloads/lethean-gui-mac-64bit-bug-laion-fix-haproxy-macosx-3973f61/";
     //const QString sibling_file_path = host + "/../../../";
     // - for linux: we need an absolute path
     #else
@@ -24,9 +24,6 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
     QFile::remove(sibling_file_path + "haproxy.cfg");
     QFile file(sibling_file_path + "haproxy.cfg");
 
-    #if defined(Q_OS_MAC)
-    qDebug() << "QCoreApplicationDirPath " + QCoreApplication::applicationDirPath();
-    #else
     // try to read the files
     QFileInfo fileHaCredit(sibling_file_path + "ha_credit.http");
     QFileInfo fileHaErrBadid(sibling_file_path + "ha_err_badid.http");
@@ -46,7 +43,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         qDebug() << "could not open the files -- http " + QCoreApplication::applicationDirPath();
         return false;
     }
-    #endif
+
     //create provider.http
     if(fileProvider.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
         QTextStream txtStream(&fileProvider);
