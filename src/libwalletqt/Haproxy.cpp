@@ -25,6 +25,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
     QFile file(sibling_file_path + "haproxy.cfg");
 
     #if defined(Q_OS_MAC)
+    qDebug() << "QCoreApplicationDirPath " + QCoreApplication::applicationDirPath();
     #else
     // try to read the files
     QFileInfo fileHaCredit(sibling_file_path + "ha_credit.http");
