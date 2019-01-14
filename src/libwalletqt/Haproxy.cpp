@@ -40,7 +40,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             || !fileHaErrOverlimit.exists()
             || !fileHaInfo.exists()
             ) {
-        qDebug() << "could not open the files -- http";
+        qDebug() << "could not open the files -- http " + QCoreApplication::applicationDirPath() + " file path " + QCoreApplication::applicationFilePath;
         return false;
     }
     //create provider.http
