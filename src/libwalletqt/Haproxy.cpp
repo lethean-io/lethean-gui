@@ -6,13 +6,8 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
     // - for windows: a relative path is ok
     #if defined(Q_OS_WIN)
     const QString sibling_file_path = "";
-    // - for mac: we need to back out to be level with the .app
-    #elif defined(Q_OS_MAC)
-    const QString sibling_file_path = QCoreApplication::applicationDirPath() + "/../../../"; //"/Users/joaocosta/Downloads/lethean-gui-mac-64bit-bug-laion-fix-haproxy-macosx-3973f61/";
-    //const QString sibling_file_path = host + "/../../../";
-    // - for linux: we need an absolute path
     #else
-    const QString sibling_file_path = host + "/";
+    const QString sibling_file_path = host;
     #endif
 
     qDebug() << "Starting haproxy";
@@ -20,29 +15,27 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
     QFile::remove(sibling_file_path + "provider.http");
     QFile fileProvider(sibling_file_path + "provider.http");
 
+    QFile::remove(sibling_file_path + "ha_credit.http");
+    QFile fileCredit(sibling_file_path + "ha_credit.http");
+
+    QFile::remove(sibling_file_path + "ha_err_badid.http");
+    QFile fileBadid(sibling_file_path + "ha_err_badid.http");
+
+    QFile::remove(sibling_file_path + "ha_err_connect.http");
+    QFile fileConnect(sibling_file_path + "ha_err_connect.http");
+
+    QFile::remove(sibling_file_path + "ha_err_nopayment.http");
+    QFile fileNopayment(sibling_file_path + "ha_err_nopayment.http");
+
+    QFile::remove(sibling_file_path + "ha_err_overlimit.http");
+    QFile fileOverlimit(sibling_file_path + "ha_err_overlimit.http");
+
+    QFile::remove(sibling_file_path + "ha_info.http");
+    QFile fileInfo(sibling_file_path + "ha_info.http");
+
     // delete old file and create new one
     QFile::remove(sibling_file_path + "haproxy.cfg");
     QFile file(sibling_file_path + "haproxy.cfg");
-
-    // try to read the files
-    QFileInfo fileHaCredit(sibling_file_path + "ha_credit.http");
-    QFileInfo fileHaErrBadid(sibling_file_path + "ha_err_badid.http");
-    QFileInfo fileHaErrConnect(sibling_file_path + "ha_err_connect.http");
-    QFileInfo fileHaErrNopayment(sibling_file_path + "ha_err_nopayment.http");
-    QFileInfo fileHaErrOverlimit(sibling_file_path + "ha_err_overlimit.http");
-    QFileInfo fileHaInfo(sibling_file_path + "ha_info.http");
-
-    // check if file exists
-    if (!fileHaCredit.exists()
-            || !fileHaErrBadid.exists()
-            || !fileHaErrConnect.exists()
-            || !fileHaErrNopayment.exists()
-            || !fileHaErrOverlimit.exists()
-            || !fileHaInfo.exists()
-            ) {
-        qDebug() << "could not open the files -- http " + QCoreApplication::applicationDirPath();
-        return false;
-    }
 
     //create provider.http
     if(fileProvider.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
@@ -66,6 +59,156 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         fileProvider.close();
     }
 
+    //create ha_credit.http
+    if(fileCredit.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
+        QTextStream txtStream(&fileCredit);
+
+        txtStream << "HTTP/1.0 200 OK\n";
+        txtStream << "Cache-Control: no-cache\n";
+        txtStream << "Connection: close\n";
+        txtStream << "Content-Type: text/html\n";
+        txtStream << "<html>\n";
+
+        txtStream << "<body>\n";
+        txtStream << "<h1>ITNSVPN credit unavailable yet</h1>\n";
+        txtStream << "</body>\n";
+        txtStream << "</html>\n";
+
+
+
+        txtStream.seek(0);
+        /*
+        while(!txtStream.atEnd()) {
+            qDebug() << txtStream.readLine();
+        }
+        */
+        fileCredit.close();
+    }
+
+    //create ha_err_badid.http
+    if(fileBadid.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
+        QTextStream txtStream(&fileBadid);
+
+        txtStream << "HTTP/1.0 503 BAD_ID\n";
+        txtStream << "Access-Control-Allow-Origin: *\n";
+        txtStream << "Access-Control-Allow-Methods: GET\n";
+        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Max-Age: 86400\n";
+
+        txtStream << "Cache-Control: no-cache\n";
+        txtStream << "Connection: close\n";
+        txtStream << "Content-Type: text/html\n";
+        txtStream << "X-ITNS-Status: BAD_ID\n";
+        txtStream << "BAD_ID\n";
+
+        txtStream.seek(0);
+        /*
+        while(!txtStream.atEnd()) {
+            qDebug() << txtStream.readLine();
+        }
+        */
+        fileBadid.close();
+    }
+
+    //create ha_err_connect.http
+    if(fileConnect.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
+        QTextStream txtStream(&fileConnect);
+
+        txtStream << "HTTP/1.0 503 CONNECTION_ERROR\n";
+        txtStream << "Access-Control-Allow-Origin: *\n";
+        txtStream << "Access-Control-Allow-Methods: GET\n";
+        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Max-Age: 86400\n";
+
+        txtStream << "Cache-Control: no-cache\n";
+        txtStream << "Connection: close\n";
+        txtStream << "Content-Type: text/html\n";
+        txtStream << "X-ITNS-Status: CONNECTION_ERROR\n";
+        txtStream << "CONNECTION_ERROR\n";
+
+        txtStream.seek(0);
+        /*
+        while(!txtStream.atEnd()) {
+            qDebug() << txtStream.readLine();
+        }
+        */
+        fileConnect.close();
+    }
+
+    //create ha_err_nopayment.http
+    if(fileNopayment.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
+        QTextStream txtStream(&fileNopayment);
+
+        txtStream << "HTTP/1.0 403 Forbidden\n";
+        txtStream << "Access-Control-Allow-Origin: *\n";
+        txtStream << "Access-Control-Allow-Methods: GET\n";
+        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Max-Age: 86400\n";
+
+        txtStream << "Cache-Control: no-cache\n";
+        txtStream << "Connection: close\n";
+        txtStream << "Content-Type: text/html\n";
+        txtStream << "X-ITNS-Status: NO_PAYMENT\n";
+        txtStream << "NO_PAYMENT\n";
+
+        txtStream.seek(0);
+        /*
+        while(!txtStream.atEnd()) {
+            qDebug() << txtStream.readLine();
+        }
+        */
+        fileNopayment.close();
+    }
+
+    //create ha_err_overlimit.http
+    if(fileOverlimit.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
+        QTextStream txtStream(&fileOverlimit);
+
+        txtStream << "HTTP/1.0 429 Too many requests\n";
+        txtStream << "Access-Control-Allow-Origin: *\n";
+        txtStream << "Access-Control-Allow-Methods: GET\n";
+        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Max-Age: 86400\n";
+
+        txtStream << "Cache-Control: no-cache\n";
+        txtStream << "Connection: close\n";
+        txtStream << "Content-Type: text/html\n";
+        txtStream << "X-ITNS-Status: OVERLIMIT\n";
+        txtStream << "OVERLIMIT\n";
+
+        txtStream.seek(0);
+        /*
+        while(!txtStream.atEnd()) {
+            qDebug() << txtStream.readLine();
+        }
+        */
+        fileOverlimit.close();
+    }
+
+    //create ha_info.http
+    if(fileInfo.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
+        QTextStream txtStream(&fileInfo);
+
+        txtStream << "HTTP/1.0 200 OK\n";
+        txtStream << "Access-Control-Allow-Origin: *\n";
+        txtStream << "Access-Control-Allow-Methods: GET\n";
+        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Max-Age: 86400\n";
+
+        txtStream << "Cache-Control: no-cache\n";
+        txtStream << "Connection: close\n";
+        txtStream << "Content-Type: text/html\n";
+        txtStream << "X-ITNS-Status: OK\n";
+        txtStream << "OK\n";
+
+        txtStream.seek(0);
+        /*
+        while(!txtStream.atEnd()) {
+            qDebug() << txtStream.readLine();
+        }
+        */
+        fileInfo.close();
+    }
 
     //create config file
     if (file.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)) {
@@ -235,12 +378,8 @@ void Haproxy::haproxyCert(const QString &host, const QString &certificate){
     // - for windows: a relative path is ok
     #if defined(Q_OS_WIN)
     const QString sibling_file_path = "";
-    // - for mac: we need to back out to be level with the .app
-    #elif defined(Q_OS_MAC)
-    const QString sibling_file_path = QCoreApplication::applicationDirPath() + "/../../../";
-    // - for linux: we need an absolute path
     #else
-    const QString sibling_file_path = host + "/";
+    const QString sibling_file_path = host;
     #endif
 
     QFile::remove(sibling_file_path + "ca.cert.pem");
