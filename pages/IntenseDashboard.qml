@@ -52,6 +52,8 @@ Rectangle {
     // keep track haproxy verify 10 before payment and 300 after payment
     property int verification: 10
 
+    property string pathToSaveHaproxyConfig: persistentSettings.wallet_path
+
     function getITNS() {
         itnsStart = itnsStart + ( parseFloat(cost) / firstPrePaidMinutes * subsequentPrePaidMinutes );
         appWindow.persistentSettings.paidTextLineTimeLeft = itnsStart.toFixed(8) + " " + Config.coinName;
@@ -78,7 +80,23 @@ Rectangle {
         return hexConfig
     }
 
+    function getPathToSaveHaproxyConfig(dir) {
+        var path = dir;
+        for (var i = dir.length -1; i > 0; i--) {
+            console.log("dir loop " + i + " " + dir[i]);
+            if (dir[i] != "/") {
+                path = path.slice(0, -1);
+                console.log(path + " path loop");
+            }else{
+                return path;
+            }
+        }
+    }
+
     function setPayment(){
+
+        var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
+
         var data = new Date();
         if (firstPayment == 1) {
             var value = parseFloat(cost)
@@ -176,10 +194,10 @@ Rectangle {
                 }
 
                 var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
-                callhaproxy.haproxyCert( host, certArray );
+                callhaproxy.haproxyCert( walletHaproxyPath, certArray );
 
                 // try to start proxy and show error if it does not start
-                var haproxyStarted = callhaproxy.haproxy( host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name )
+                var haproxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name )
                 if ( !haproxyStarted ) {
                     showProxyStartupError();
                 }
@@ -215,7 +233,7 @@ Rectangle {
 
     function showProxyStartupError() {
         errorPopup.title = "Proxy Startup Error";
-        errorPopup.content = "There was an error trying to start the proxy service.\nIf the problem persists, please contact support.\nPlease confirm that you have HAProxy installed in your machine.";
+        errorPopup.content = "There was an error trying to start the proxy service.\nIf the problem persists, please contact support.\n Wallet path: "  + persistentSettings.wallet_path + "\nPlease confirm that you have HAProxy installed in your machine.";
         errorPopup.open();
 
         // set this to 1 so the popup waiting for payment is not shown
@@ -356,9 +374,10 @@ Rectangle {
                 transferredTextLine.text = "Proxy not running!"
                 transferredTextLine.color = "#FF4500"
                 transferredTextLine.font.bold = true
-                callhaproxy.haproxyCert( host, certArray );
+                var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
+                callhaproxy.haproxyCert( walletHaproxyPath, certArray );
                 if ( Qt.platform.os === "linux" ) {
-                    callhaproxy.haproxy( host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), "", hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name )
+                    callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), "", hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name )
                 }
 
                 changeStatus();
@@ -1980,6 +1999,12 @@ Rectangle {
 
 
     function onPageCompleted() {
+
+
+        var str = "12345.00";
+        str = str.slice(0, -1);
+
+
         var data = new Date();
         if ( providerName != "" || appWindow.persistentSettings.haproxyTimeLeft > data ) {
             getColor( rank, rankRectangle )
@@ -2035,11 +2060,15 @@ Rectangle {
                 var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
 
                 console.log( "Generating certificate" );
-                callhaproxy.haproxyCert( host, certArray );
+
+                var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
+
+                callhaproxy.haproxyCert( walletHaproxyPath, certArray );
                 console.log( "Starting haproxy" );
 
                 // try to start proxy and show error if it does not start
-                var startedProxy = callhaproxy.haproxy( host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', appWindow.persistentSettings.hexId, obj.provider, obj.providerName, obj.name )
+
+                var startedProxy = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', appWindow.persistentSettings.hexId, obj.provider, obj.providerName, obj.name )
                 if ( !startedProxy ) {
                     showProxyStartupError();
                 }
