@@ -92,13 +92,13 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "HTTP/1.0 503 BAD_ID\n";
         txtStream << "Access-Control-Allow-Origin: *\n";
         txtStream << "Access-Control-Allow-Methods: GET\n";
-        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Allow-Headers: X-LTHN-Status\n";
         txtStream << "Access-Control-Max-Age: 86400\n";
 
         txtStream << "Cache-Control: no-cache\n";
         txtStream << "Connection: close\n";
         txtStream << "Content-Type: text/html\n";
-        txtStream << "X-ITNS-Status: BAD_ID\n";
+        txtStream << "X-LTHN-Status: BAD_ID\n";
         txtStream << "BAD_ID\n";
 
         txtStream.seek(0);
@@ -117,13 +117,13 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "HTTP/1.0 503 CONNECTION_ERROR\n";
         txtStream << "Access-Control-Allow-Origin: *\n";
         txtStream << "Access-Control-Allow-Methods: GET\n";
-        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Allow-Headers: X-LTHN-Status\n";
         txtStream << "Access-Control-Max-Age: 86400\n";
 
         txtStream << "Cache-Control: no-cache\n";
         txtStream << "Connection: close\n";
         txtStream << "Content-Type: text/html\n";
-        txtStream << "X-ITNS-Status: CONNECTION_ERROR\n";
+        txtStream << "X-LTHN-Status: CONNECTION_ERROR\n";
         txtStream << "CONNECTION_ERROR\n";
 
         txtStream.seek(0);
@@ -142,13 +142,13 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "HTTP/1.0 403 Forbidden\n";
         txtStream << "Access-Control-Allow-Origin: *\n";
         txtStream << "Access-Control-Allow-Methods: GET\n";
-        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Allow-Headers: X-LTHN-Status\n";
         txtStream << "Access-Control-Max-Age: 86400\n";
 
         txtStream << "Cache-Control: no-cache\n";
         txtStream << "Connection: close\n";
         txtStream << "Content-Type: text/html\n";
-        txtStream << "X-ITNS-Status: NO_PAYMENT\n";
+        txtStream << "X-LTHN-Status: NO_PAYMENT\n";
         txtStream << "NO_PAYMENT\n";
 
         txtStream.seek(0);
@@ -167,13 +167,13 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "HTTP/1.0 429 Too many requests\n";
         txtStream << "Access-Control-Allow-Origin: *\n";
         txtStream << "Access-Control-Allow-Methods: GET\n";
-        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Allow-Headers: X-LTHN-Status\n";
         txtStream << "Access-Control-Max-Age: 86400\n";
 
         txtStream << "Cache-Control: no-cache\n";
         txtStream << "Connection: close\n";
         txtStream << "Content-Type: text/html\n";
-        txtStream << "X-ITNS-Status: OVERLIMIT\n";
+        txtStream << "X-LTHN-Status: OVERLIMIT\n";
         txtStream << "OVERLIMIT\n";
 
         txtStream.seek(0);
@@ -192,13 +192,13 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "HTTP/1.0 200 OK\n";
         txtStream << "Access-Control-Allow-Origin: *\n";
         txtStream << "Access-Control-Allow-Methods: GET\n";
-        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Allow-Headers: X-LTHN-Status\n";
         txtStream << "Access-Control-Max-Age: 86400\n";
 
         txtStream << "Cache-Control: no-cache\n";
         txtStream << "Connection: close\n";
         txtStream << "Content-Type: text/html\n";
-        txtStream << "X-ITNS-Status: OK\n";
+        txtStream << "X-LTHN-Status: OK\n";
         txtStream << "OK\n";
 
         txtStream.seek(0);
@@ -236,7 +236,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "acl is_mgmt_host url_dom _local_\n";
         txtStream << "acl is_mgmt_path path_beg /status\n";
         txtStream << "acl is_stats_path path_beg /stats\n";
-        txtStream << "acl is_mgmt_id hdr_reg(X-ITNS-MgmtID) ^"+provider+"$\n";
+        txtStream << "acl is_mgmt_id hdr_reg(X-LTHN-MgmtID) ^"+provider+"$\n";
         txtStream << "acl is_proxy_request url_reg '.*://.*'\n";
         txtStream << "acl is_connect method CONNECT\n";
         txtStream << "acl is_options method OPTIONS\n";
@@ -269,7 +269,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "retries         2\n";
         txtStream << "option          nolinger\n";
         txtStream << "option          httplog\n";
-        txtStream << "http-request add-header X-ITNS-PaymentID "+auth+"\n";
+        txtStream << "http-request add-header X-LTHN-PaymentID "+auth+"\n";
         #ifdef Q_OS_WIN
         txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file 'ca.cert.pem'\n";
         #else

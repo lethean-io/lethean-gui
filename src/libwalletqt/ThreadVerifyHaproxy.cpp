@@ -52,7 +52,7 @@ HttpResponse ThreadVerifyHaproxy::proxyRequest(std::string proxyHost, std::strin
         request_stream << "Host: " << httpHost << regularBoundary;
         request_stream << "Accept: */*" << regularBoundary;
         request_stream << "Connection: close" << regularBoundary;
-        request_stream << "X-ITNS-MgmtId: " << provider << regularBoundary << regularBoundary;
+        request_stream << "X-LTHN-MgmtId: " << provider << regularBoundary << regularBoundary;
 
         // Send the request.
         boost::asio::write(socket, request);
@@ -132,7 +132,7 @@ QString ThreadVerifyHaproxy::startVerifyHaproxy() {
         // return OK with the proxy works
         return "OK";
     }
-    else if( response.getHeaders()["X-ITNS-Status"] == "CONNECTION_ERROR" ) {
+    else if( response.getHeaders()["X-LTHN-Status"] == "CONNECTION_ERROR" ) {
         // return Connection error to stop proxy
         return "CONNECTION_ERROR";
     }
