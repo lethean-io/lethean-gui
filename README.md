@@ -1,7 +1,7 @@
 # Lethean GUI
 
 Copyright (c) 2014-2017, The Monero Project
-Portions Copyright (c) 2018, The Lethean developers
+Portions Copyright (c) 2018-2019, The Lethean developers
 
 ## Development Resources
 
