@@ -1860,6 +1860,26 @@ Please upgrade or connect to another daemon</source>
     </message>
 </context>
 <context>
+    <name>WizardDaemon</name>
+    <message>
+        <location filename="../wizard/WizardDaemon.qml" line="52"/>
+        <source>Sync the entire blockchain?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../wizard/WizardDaemon.qml" line="108"/>
+        <source>&lt;br&gt;The blockchain requires a great deal of storage space on your computer and requires several hours to download in most cases.&lt;br/&gt;&lt;br/&gt;
+                        A simpler and faster alternative is to use a remote daemon, which is another computer that securely stores the blockchain for you.&lt;br/&gt;&lt;br/&gt;
+                        &lt;b&gt;If you do not understand the above, make sure the below option is enabled!&lt;/b&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../wizard/WizardDaemon.qml" line="130"/>
+        <source>Use remote daemon</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>WizardPassword</name>
     <message>
         <location filename="../wizard/WizardPassword.qml" line="57"/>
