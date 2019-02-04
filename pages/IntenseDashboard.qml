@@ -83,10 +83,8 @@ Rectangle {
     function getPathToSaveHaproxyConfig(dir) {
         var path = dir;
         for (var i = dir.length -1; i > 0; i--) {
-            console.log("dir loop " + i + " " + dir[i]);
             if (dir[i] != "/") {
                 path = path.slice(0, -1);
-                console.log(path + " path loop");
             }else{
                 return path;
             }
