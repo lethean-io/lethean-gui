@@ -335,20 +335,6 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             WinExec(qPrintable(command),SW_HIDE);
         #else
             QString haProxyPath = NULL;
-            #if defined(Q_OS_MAC)
-                haProxyPath = "/usr/local/bin/haproxy";
-            #endif
-            /*
-            #else
-                // try to find haproxy correctly
-                QProcess shellProcess;
-                shellProcess.start("/bin/sh");
-                shellProcess.write("which haproxy || whereis haproxy | cut -d ' ' -f 2");
-                shellProcess.closeWriteChannel();
-                shellProcess.waitForFinished(-1);
-                QString haProxyPath = shellProcess.readAllStandardOutput().trimmed();
-            #endif
-            */
 
             // try to find haproxy correctly
             QProcess shellProcess;
@@ -357,6 +343,15 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             shellProcess.closeWriteChannel();
             shellProcess.waitForFinished(-1);
             haProxyPath = shellProcess.readAllStandardOutput().trimmed();
+
+            #if defined(Q_OS_MAC)
+                // verify if thw haproxy exist in Mac if not send an alert
+                QFileInfo check_haproxy_exist_osx("/usr/local/bin/haproxy");
+                if(check_haproxy_exist_osx.exists()){
+                    haProxyPath = "/usr/local/bin/haproxy";
+                }
+            #endif
+
 
             qDebug() << "HAProxy Path " << haProxyPath;
 
