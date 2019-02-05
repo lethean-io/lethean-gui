@@ -107,6 +107,7 @@ ColumnLayout {
             horizontalAlignment: Text.AlignHCenter
             text: qsTr("<br>The blockchain requires a great deal of storage space on your computer and requires several hours to download in most cases.<br/><br/>
                         A simpler and faster alternative is to use a remote daemon, which is another computer that securely stores the blockchain for you.<br/><br/>
+                        If you can afford the storage space, running a full blockchain node offers more privacy and is a nice thing to do as it bolsters the Lethean network.<br/><br/>
                         <b>If you do not understand the above, make sure the below option is enabled!</b>")
                     + translationManager.emptyString
         }
