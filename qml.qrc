@@ -93,6 +93,7 @@
         <file>images/copyToClipboard.png</file>
         <file>wizard/WizardPassword.qml</file>
         <file>wizard/WizardConfigure.qml</file>
+        <file>wizard/WizardDaemon.qml</file>
         <file>wizard/WizardDonation.qml</file>
         <file>wizard/WizardFinish.qml</file>
         <file>wizard/WizardPasswordInput.qml</file>
