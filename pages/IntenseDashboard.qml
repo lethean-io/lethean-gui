@@ -205,7 +205,7 @@ Rectangle {
                 changeStatus()
             }
 
-            if (callhaproxy.haproxyStatus != "CONNECTION_ERROR") {
+            if (callhaproxy.haproxyStatus == "NO_PAYMENT") {
                   // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
                   if (dashboardPayment != 0) {
                       firstPayment = 0;
@@ -664,7 +664,7 @@ Rectangle {
         }
 
         // validate haproxy status every second from the response returned by the thread
-        // console.log("====== " + callhaproxy.haproxyStatus + " ================= Proxy Connection Status ==================")
+        console.log("====== " + callhaproxy.haproxyStatus + " ================= Proxy Connection Status ==================")
         if (callhaproxy.haproxyStatus === "OK") {
             loadingTimer.stop()
             backgroundLoader.visible = false
