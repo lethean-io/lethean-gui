@@ -213,6 +213,13 @@ Rectangle {
                       paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment");
                   }
             }
+            else if (callhaproxy.haproxyStatus == "OK") {
+                //probably cached from last provider we were connected to, or we re-connected to a provider we have already paid for
+                //do nothing           
+            }
+            else if (!callhaproxy.haproxyStatus) {
+                timerSetPayment.start();
+            }
             else {
                   callhaproxy.killHAproxy()
                   loadingTimer.stop()
@@ -1995,7 +2002,15 @@ Rectangle {
         }
     }
 
+    Timer {
+        id: timerSetPayment
+        interval: 1000
+        repeat: false
 
+        onTriggered: {
+            setPayment();
+        }
+    }
 
 
     function onPageCompleted() {
