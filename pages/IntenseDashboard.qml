@@ -1967,6 +1967,22 @@ Rectangle {
             transformOrigin: Item.Center
 
         }
+
+        Button {
+            anchors.top: loader.bottom
+            anchors.topMargin: 100
+            anchors.horizontalCenter:  parent.horizontalCenter
+            text: qsTr("Cancel")
+            //width: 55; height: 25;
+            onClicked: {
+                callhaproxy.killHAproxy();
+                appWindow.persistentSettings.haproxyTimeLeft = new Date()
+                loadingTimer.stop();
+                backgroundLoader.visible = false;
+                flag = 0;
+                changeStatus();
+            }
+        }
     }
 
     Timer {
