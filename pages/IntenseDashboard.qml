@@ -218,6 +218,8 @@ Rectangle {
                   callhaproxy.killHAproxy()
                   loadingTimer.stop()
                   backgroundLoader.visible = false
+                  if (dialogConfirmCancel.visible)
+                    dialogConfirmCancel.visible = false                  
                   waitHaproxyPopup.title = "Unavailable Service";
                   waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
                   waitHaproxyPopup.open();
@@ -446,6 +448,8 @@ Rectangle {
         else {
             loadingTimer.stop()
             backgroundLoader.visible = false
+            if (dialogConfirmCancel.visible)
+                dialogConfirmCancel.visible = false
             subButton.visible = false
             shield.source = "../images/shield.png"
             runningText.text = "Not running"
@@ -669,6 +673,8 @@ Rectangle {
         if (callhaproxy.haproxyStatus === "OK") {
             loadingTimer.stop()
             backgroundLoader.visible = false
+            if (dialogConfirmCancel.visible)
+                dialogConfirmCancel.visible = false
             waitHaproxyPopup.close();
             proxyStats = 1;
             showTime = true;
@@ -679,6 +685,8 @@ Rectangle {
             callhaproxy.killHAproxy()
             loadingTimer.stop()
             backgroundLoader.visible = false
+            if (dialogConfirmCancel.visible)
+                dialogConfirmCancel.visible = false
             waitHaproxyPopup.title = "Unavailable Service";
             waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
             waitHaproxyPopup.open();
