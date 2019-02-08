@@ -5,6 +5,7 @@ import QtQml 2.2
 import moneroComponents.Wallet 1.0
 import moneroComponents.WalletManager 1.0
 import moneroComponents.PendingTransaction 1.0
+import QtQuick.Dialogs 1.1
 
 import "../components"
 import "../pages"
@@ -1132,6 +1133,21 @@ Rectangle {
               height: 250
           }
 
+          MessageDialog {
+            id: dialogConfirmCancel
+            title: "Confirm cancellation"
+            text: "If you cancel before the provider processes or receives your payment, the Lethean coins you already sent will not be refunded!\n\nAre you sure you want to cancel?"
+            standardButtons: StandardButton.Yes | StandardButton.No
+            onYes: {
+                callhaproxy.killHAproxy();
+                appWindow.persistentSettings.haproxyTimeLeft = new Date();
+                loadingTimer.stop();
+                backgroundLoader.visible = false;
+                flag = 0;
+                changeStatus();
+            }
+          }
+
           StandardDialog {
               id: feedbackPopup
               cancelVisible: false
@@ -1975,12 +1991,7 @@ Rectangle {
             text: qsTr("Cancel")
             //width: 55; height: 25;
             onClicked: {
-                callhaproxy.killHAproxy();
-                appWindow.persistentSettings.haproxyTimeLeft = new Date()
-                loadingTimer.stop();
-                backgroundLoader.visible = false;
-                flag = 0;
-                changeStatus();
+                dialogConfirmCancel.visible = true
             }
         }
     }
