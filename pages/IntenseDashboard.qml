@@ -1075,6 +1075,7 @@ Rectangle {
                   anchors.topMargin: 215
                   height: 70
                   ExclusiveGroup { id: tabPositionGroup }
+                  flat: true
                   Column {
                       anchors.top: parent.top
                       anchors.topMargin: 20
