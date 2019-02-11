@@ -82,13 +82,9 @@ Rectangle {
 
     function getPathToSaveHaproxyConfig(dir) {
         var path = dir;
-        for (var i = dir.length -1; i > 0; i--) {
-            if (dir[i] != "/") {
-                path = path.slice(0, -1);
-            }else{
-                return path;
-            }
-        }
+        path = dir.split(dir.substring(dir.lastIndexOf('/')));
+        console.log(path[0]+"/");
+        return path[0]+"/";
     }
 
     function setPayment(){
@@ -231,7 +227,7 @@ Rectangle {
 
     function showProxyStartupError() {
         errorPopup.title = "Proxy Startup Error";
-        errorPopup.content = "There was an error trying to start the proxy service.\nIf the problem persists, please contact support.\n Wallet path: "  + persistentSettings.wallet_path + "\nPlease confirm that you have HAProxy installed in your machine.";
+        errorPopup.content = "There was an error trying to start the proxy service.\nIf the problem persists, please contact support.\n Wallet path: "  + getPathToSaveHaproxyConfig(persistentSettings.wallet_path) + "\nPlease confirm that you have HAProxy installed in your machine.";
         errorPopup.open();
 
         // set this to 1 so the popup waiting for payment is not shown
