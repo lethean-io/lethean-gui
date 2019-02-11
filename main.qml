@@ -57,7 +57,7 @@ ApplicationWindow {
     property bool isNewWallet: false
     property int restoreHeight:0
     property bool daemonSynced: false
-    property int maxWindowHeight: (Screen.height < 1000)? 820 : 900;
+    property int maxWindowHeight: (Screen.height < 1000) ? Screen.height - 100 : 900;
     property bool daemonRunning: false
     property alias toolTip: toolTip
     property string walletName
@@ -1008,7 +1008,7 @@ ApplicationWindow {
         property bool   allow_background_mining : false
         property bool   miningIgnoreBattery : true
         property bool   testnet: false
-        property string daemon_address: testnet ? "localhost:38782" : "localhost:48782"
+        property string daemon_address: testnet ? "localhost:38782" : "sync.lethean.io:48782"
         property string payment_id
         property int    restore_height : 0
         property bool   is_recovering : false
