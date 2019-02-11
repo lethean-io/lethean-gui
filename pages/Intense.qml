@@ -676,6 +676,9 @@ Rectangle {
               pressedColor: "#A7B8C0"
               dataModel: typeTransaction
               z: 100
+              onCurrentIndexChanged: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
           }
 
           Label {
@@ -685,7 +688,7 @@ Rectangle {
               anchors.top:  parent.top
               anchors.leftMargin: 17
               anchors.topMargin: 17
-              width: 156
+              width: 176
               text: qsTr("Max Price") + translationManager.emptyString
               fontSize: 14
           }
@@ -697,7 +700,10 @@ Rectangle {
               anchors.top: maxPriceText.bottom
               anchors.leftMargin: 17
               anchors.topMargin: 5
-              width: 156
+              width: 176
+              onTextChanged: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
           }
 
           Label {
@@ -707,7 +713,7 @@ Rectangle {
               anchors.top: parent.top
               anchors.leftMargin: 17
               anchors.topMargin: 17
-              width: 110
+              width: 176
               text: qsTr("Min Speed") + translationManager.emptyString
               fontSize: 14
           }
@@ -719,7 +725,10 @@ Rectangle {
               anchors.top: minSpeedText.bottom
               anchors.leftMargin: 17
               anchors.topMargin: 5
-              width: 110
+              width: 176
+              onTextChanged: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
 
           }
 
@@ -743,6 +752,9 @@ Rectangle {
               pressedColor: "#A7B8C0"
               dataModel: typeSpeed
               z: 100
+              onCurrentIndexChanged: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
           }
 
 
@@ -758,9 +770,11 @@ Rectangle {
               checkedIcon: "../images/star.png"
               uncheckedIcon: "../images/unstar.png"
               onClicked: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
               }
           }
 
+          /*
           StandardButton {
               visible: !isMobile
               id: filterButton
@@ -779,6 +793,7 @@ Rectangle {
                   getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
               }
           }
+          */
     }
 
     Rectangle {
