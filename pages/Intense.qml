@@ -485,24 +485,12 @@ Rectangle {
         var url = Config.url + Config.version + Config.services + Config.search
         var xmlhttp = new XMLHttpRequest();
         listView.model.clear()
-        xmlhttp.onreadystatechange=function() {
-
-            // response is not ready, return
-            if (xmlhttp.readyState != 4) {
-                return;
-            }
+        xmlhttp.onreadystatechange = function() {
 
             // hide loading once we have retrieved the services
             loading.visible = false;
 
-            if (xmlhttp.status == 200) {
-                //console.log("SDP Services correctly received");
-                getJsonFail.visible = false;
-
-                // once we auto load the services, disable auto load mode
-                autoLoadMode = false;
-
-
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
                 var arr = JSON.parse(xmlhttp.responseText)
 
                 // validate if SDP version matches wallet
@@ -558,25 +546,14 @@ Rectangle {
                     getSignature(providers, providers[i], i, speed, speedType, price, tp, favorite)
                 }
 
-                // check geo location
-                var urlGEO = "https://geoip.nekudo.com/api/"
-                var xmlGEOhttp = new XMLHttpRequest();
 
-                xmlGEOhttp.onreadystatechange=function() {
-                    if (xmlGEOhttp.readyState != 4) {
-                        return;
-                    }
-
-                    if (xmlGEOhttp.readyState != 200) {
-                        getJsonFail.visible = true;
-                        getJsonFail.text = "Error status - SDP: " + xmlhttp.status + "<br />Error readyState - SDP: " + xmlhttp.readyState + "<br />" + xmlhttp.responseText + "<br /><br />" + "Error Status - GEO: " + xmlGEOhttp.status
-                    }
+                // Show mesage when the user don't have Favorite
+                if (arrChecked.length == 0 && favoriteFilter.checked) {
+                    getJsonFail.text = "Sorry, you don't have Favorite";
+                    getJsonFail.visible = true;
                 }
-                xmlGEOhttp.open("GET", urlGEO, true);
-                xmlGEOhttp.setRequestHeader("Access-Control-Allow-Origin","*")
-                xmlGEOhttp.send();
             }
-            else { // sdp services retrieval failed, notify user and try again later
+            else if(xmlhttp.status != 200) { // sdp services retrieval failed, notify user and try again later
                 //console.log("SDP services retrieval failed");
                 //console.log(xmlhttp);
                 getJsonFail.visible = true;
@@ -586,19 +563,6 @@ Rectangle {
                 getJsonFail.text += "Code: " + xmlhttp.status + "<br>";
                 getJsonFail.text += "Message: " + xmlhttp.responseText;
 
-                //console.log("SDP Auto load mode " + autoLoadMode);
-                // this will be true if we are autoloading services after startup of the app
-                if (autoLoadMode == true) {
-                    //console.log("SDP Auto load timeout for services retrieval");
-                    getJson();
-                    /*
-                    setTimeout(
-                        function() {
-                            console.log("AutoLoadMode activated after failure retrieving services");
-                            getJson();
-                        }, 2000);
-                    */
-                }
             }
         }
 
@@ -1054,7 +1018,7 @@ Rectangle {
                 Component.onCompleted: {
                     //console.log("Getting SDP Services after List initialized");
                     autoLoadMode = true;
-                    getJson()
+                    getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
 
                 }
 
@@ -1095,9 +1059,9 @@ Rectangle {
         onTriggered:
         {
             if(unlockedBalance == true && appWindow.currentWallet.unlockedBalance < 1){
-                getJson()
+                getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
             }else if(appWindow.currentWallet.unlockedBalance > 1){
-                getJson()
+                getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
             }
         }
     }
@@ -1106,6 +1070,7 @@ Rectangle {
 
     function onPageCompleted() {
         updateStatus();
+        getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
 
     }
 }
