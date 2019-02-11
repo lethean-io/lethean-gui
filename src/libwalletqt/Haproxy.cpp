@@ -345,6 +345,15 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             shellProcess.waitForFinished(-1);
             haProxyPath = shellProcess.readAllStandardOutput().trimmed();
 
+            #if defined(Q_OS_MAC)
+                // verify if thw haproxy exist in Mac if not send an alert
+                QFileInfo check_haproxy_exist_osx("/usr/local/bin/haproxy");
+                if(check_haproxy_exist_osx.exists()){
+                    haProxyPath = "/usr/local/bin/haproxy";
+                }
+            #endif
+
+
             qDebug() << "HAProxy Path " << haProxyPath;
 
             // save in haproxy variable the path to show in dashboard
