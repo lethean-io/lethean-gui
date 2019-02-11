@@ -339,19 +339,11 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             // try to find haproxy correctly
             QProcess shellProcess;
             shellProcess.start("/bin/sh");
-            shellProcess.write("which haproxy");
+            // try to execute haproxy if exist return the path
+            shellProcess.write("command -v haproxy");
             shellProcess.closeWriteChannel();
             shellProcess.waitForFinished(-1);
             haProxyPath = shellProcess.readAllStandardOutput().trimmed();
-
-            #if defined(Q_OS_MAC)
-                // verify if thw haproxy exist in Mac if not send an alert
-                QFileInfo check_haproxy_exist_osx("/usr/local/bin/haproxy");
-                if(check_haproxy_exist_osx.exists()){
-                    haProxyPath = "/usr/local/bin/haproxy";
-                }
-            #endif
-
 
             qDebug() << "HAProxy Path " << haProxyPath;
 
