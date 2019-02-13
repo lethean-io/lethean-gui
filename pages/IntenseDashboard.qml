@@ -192,6 +192,7 @@ Rectangle {
 
                 // try to start proxy and show error if it does not start
                 var haproxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name )
+
                 if ( !haproxyStarted ) {
                     showProxyStartupError();
                 }
@@ -336,6 +337,12 @@ Rectangle {
     }
 
     function getHaproxyStats( obj ) {
+
+        // Get download and upload each 10 seconds
+        var data = new Date();
+        var secsToCheckHaproxy = ( ( data.getTime() - appWindow.persistentSettings.haproxyStart.getTime() ) / 1000 ).toFixed( 0 );
+        if ( secsToCheckHaproxy % 10 != 0 ) return;
+
         var url = "http://" +Config.haproxyIp+":8181/stats;csv"
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange=function() {
@@ -370,8 +377,11 @@ Rectangle {
                 transferredTextLine.font.bold = true
                 var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
                 callhaproxy.haproxyCert( walletHaproxyPath, certArray );
-                if ( Qt.platform.os === "linux" ) {
-                    callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), "", hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name )
+
+                var haproxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name );
+
+                if ( !haproxyStarted ) {
+                    showProxyStartupError();
                 }
 
                 changeStatus();
@@ -666,7 +676,7 @@ Rectangle {
             proxyStats = 1;
             showTime = true;
             waitHaproxy = 1;
-            verification = 60;
+            verification = 90;
         // check the connection status and stop haproxy
         }else if(callhaproxy.haproxyStatus == "CONNECTION_ERROR"){
             callhaproxy.killHAproxy()
@@ -1994,16 +2004,13 @@ Rectangle {
 
     function onPageCompleted() {
 
-
-        var str = "12345.00";
-        str = str.slice(0, -1);
-
-
         var data = new Date();
+
         if ( providerName != "" || appWindow.persistentSettings.haproxyTimeLeft > data ) {
             getColor( rank, rankRectangle )
             getMyFeedJson()
             changeStatus()
+
             if (typeof (obj) == 'undefined') {
                 // show loading page until waiting the proxy up
                 backgroundLoader.visible = true;
@@ -2036,10 +2043,6 @@ Rectangle {
                 myRankText.text =  appWindow.persistentSettings.myRankTextTimeLeft;
                 getColor( appWindow.persistentSettings.myRankTextTimeLeft, myRankRectangle )
 
-                // change to online
-                changeStatus();
-                intenseDashboardView.addTextAndButtonAtDashboard();
-
                 var host = applicationDirectory;
                 var endpoint = ''
                 var port = ''
@@ -2051,6 +2054,7 @@ Rectangle {
                     endpoint = obj.vpn[0].endpoint
                     port = obj.vpn[0].port
                 }
+
                 var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
 
                 console.log( "Generating certificate" );
@@ -2061,11 +2065,15 @@ Rectangle {
                 console.log( "Starting haproxy" );
 
                 // try to start proxy and show error if it does not start
-
                 var startedProxy = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', appWindow.persistentSettings.hexId, obj.provider, obj.providerName, obj.name )
+
                 if ( !startedProxy ) {
                     showProxyStartupError();
                 }
+
+                // change to online
+                changeStatus();
+                intenseDashboardView.addTextAndButtonAtDashboard();
             }
 
             getGeoLocation()
