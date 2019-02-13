@@ -335,15 +335,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             WinExec(qPrintable(command),SW_HIDE);
         #else
             QString haProxyPath = NULL;
-
-            // try to find haproxy correctly
-            QProcess shellProcess;
-            shellProcess.start("/bin/sh");
-            // try to execute haproxy if exist return the path
-            shellProcess.write("command -v haproxy");
-            shellProcess.closeWriteChannel();
-            shellProcess.waitForFinished(-1);
-            haProxyPath = shellProcess.readAllStandardOutput().trimmed();
+            QString hasHaproxyExecutable = NULL;
 
             #if defined(Q_OS_MAC)
                 // verify if thw haproxy exist in Mac if not send an alert
@@ -351,8 +343,45 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
                 if(check_haproxy_exist_osx.exists()){
                     haProxyPath = "/usr/local/bin/haproxy";
                 }
-            #endif
+            #else
+                // try to find haproxy correctly
+                QProcess shellProcess;
 
+                shellProcess.start("/bin/sh");
+                // try to execute haproxy if exist return the path
+                shellProcess.write("dpkg --get-selections | grep haproxy");
+                shellProcess.closeWriteChannel();
+                shellProcess.waitForFinished(-1);
+
+                char *checkInstall = "deinstall";
+                if (strstr(shellProcess.readAllStandardOutput().trimmed(), checkInstall) != NULL) {
+                    return false;
+                }
+
+                shellProcess.start("/bin/sh");
+                // try to execute haproxy if exist return the path
+                shellProcess.write("which haproxy || whereis haproxy | cut -d ' ' -f 2");
+                shellProcess.closeWriteChannel();
+                shellProcess.waitForFinished(-1);
+                haProxyPath = shellProcess.readAllStandardOutput().trimmed();
+
+                if (haProxyPath == "/etc/haproxy") {
+                    return false;
+                }
+
+                // 1 is equal deinstall
+                command = "[ ! -e " + haProxyPath + " ]; echo $?";
+                shellProcess.start("/bin/sh");
+                // try to execute haproxy if exist return the path
+                shellProcess.write(qPrintable(command));
+                shellProcess.closeWriteChannel();
+                shellProcess.waitForFinished(-1);
+                hasHaproxyExecutable = shellProcess.readAllStandardOutput().trimmed();
+
+                qDebug() << "hasHaproxyExecutable ===== " << hasHaproxyExecutable;
+
+            #endif
+return false;
 
             qDebug() << "HAProxy Path " << haProxyPath;
 
