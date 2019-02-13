@@ -5,6 +5,7 @@ import QtQml 2.2
 import moneroComponents.Wallet 1.0
 import moneroComponents.WalletManager 1.0
 import moneroComponents.PendingTransaction 1.0
+import QtQuick.Dialogs 1.1
 
 import "../components"
 import "../pages"
@@ -215,6 +216,8 @@ Rectangle {
                   callhaproxy.killHAproxy()
                   loadingTimer.stop()
                   backgroundLoader.visible = false
+                  if (dialogConfirmCancel.visible)
+                    dialogConfirmCancel.visible = false                  
                   waitHaproxyPopup.title = "Unavailable Service";
                   waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
                   waitHaproxyPopup.open();
@@ -443,6 +446,8 @@ Rectangle {
         else {
             loadingTimer.stop()
             backgroundLoader.visible = false
+            if (dialogConfirmCancel.visible)
+                dialogConfirmCancel.visible = false
             subButton.visible = false
             shield.source = "../images/shield.png"
             runningText.text = "Not running"
@@ -666,6 +671,8 @@ Rectangle {
         if (callhaproxy.haproxyStatus === "OK") {
             loadingTimer.stop()
             backgroundLoader.visible = false
+            if (dialogConfirmCancel.visible)
+                dialogConfirmCancel.visible = false
             waitHaproxyPopup.close();
             proxyStats = 1;
             showTime = true;
@@ -676,6 +683,8 @@ Rectangle {
             callhaproxy.killHAproxy()
             loadingTimer.stop()
             backgroundLoader.visible = false
+            if (dialogConfirmCancel.visible)
+                dialogConfirmCancel.visible = false
             waitHaproxyPopup.title = "Unavailable Service";
             waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
             waitHaproxyPopup.open();
@@ -1064,6 +1073,7 @@ Rectangle {
                   anchors.topMargin: 215
                   height: 70
                   ExclusiveGroup { id: tabPositionGroup }
+                  flat: true
                   Column {
                       anchors.top: parent.top
                       anchors.topMargin: 20
@@ -1128,6 +1138,21 @@ Rectangle {
               okVisible: true
               width: 500
               height: 250
+          }
+
+          MessageDialog {
+            id: dialogConfirmCancel
+            title: "Confirm cancellation"
+            text: "If you cancel before the provider processes or receives your payment, the Lethean coins you already sent will not be refunded!\n\nAre you sure you want to cancel?"
+            standardButtons: StandardButton.Yes | StandardButton.No
+            onYes: {
+                callhaproxy.killHAproxy();
+                appWindow.persistentSettings.haproxyTimeLeft = new Date();
+                loadingTimer.stop();
+                backgroundLoader.visible = false;
+                flag = 0;
+                changeStatus();
+            }
           }
 
           StandardDialog {
@@ -1964,6 +1989,17 @@ Rectangle {
             source: "../images/loader.png"
             transformOrigin: Item.Center
 
+        }
+
+        Button {
+            anchors.top: loader.bottom
+            anchors.topMargin: 100
+            anchors.horizontalCenter:  parent.horizontalCenter
+            text: qsTr("Cancel")
+            //width: 55; height: 25;
+            onClicked: {
+                dialogConfirmCancel.visible = true
+            }
         }
     }
 
