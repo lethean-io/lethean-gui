@@ -358,6 +358,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
                 // verify if the dpkg is install or deinstall
                 char *checkInstall = "deinstall";
                 if (strstr(shellProcess.readAllStandardOutput().trimmed(), checkInstall) != NULL) {
+                    qDebug() << "HAProxy has no dpkg ";
                     return false;
                 }
 
@@ -370,6 +371,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
 
                 // when you remove the haproxy from your computer that path still works
                 if (haProxyPath == "/etc/haproxy") {
+                    qDebug() << "HAProxy has only uninstall path ";
                     return false;
                 }
 
@@ -381,10 +383,10 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
                 shellProcess.waitForFinished(-1);
                 hasHaproxyExecutable = shellProcess.readAllStandardOutput().trimmed();
 
-                if (hasHaproxyExecutable != 1) {
+                if (hasHaproxyExecutable != "1") {
+                    qDebug() << "HAProxy has no executable ";
                     return false;
                 }
-
             #endif
 
             qDebug() << "HAProxy Path " << haProxyPath;
