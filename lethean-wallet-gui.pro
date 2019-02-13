@@ -314,7 +314,9 @@ macx {
         -lcrypto \
         -ldl
 
-    INCLUDEPATH += /usr/local/opt/boost/include/
+    INCLUDEPATH += /usr/local/opt/boost/include/ \
+                   /usr/local/opt/openssl/include \
+                   /usr/local/opt/openssl/lib
 
 
 }

@@ -49,8 +49,8 @@ ColumnLayout {
      //   "create_wallet" : [welcomePage, optionsPage, createWalletPage, passwordPage, donationPage, finishPage ],
      //   "recovery_wallet" : [welcomePage, optionsPage, recoveryWalletPage, passwordPage, donationPage, finishPage ],
         // disable donation page
-        "create_wallet" : [welcomePage, optionsPage, createWalletPage, passwordPage,  finishPage ],
-        "recovery_wallet" : [welcomePage, optionsPage, recoveryWalletPage, passwordPage,  finishPage ],
+        "create_wallet" : [welcomePage, optionsPage, createWalletPage, passwordPage, daemonPage, finishPage ],
+        "recovery_wallet" : [welcomePage, optionsPage, recoveryWalletPage, passwordPage, daemonPage, finishPage ],
         "create_view_only_wallet" : [ createViewOnlyWalletPage, passwordPage ],
 
     }
@@ -287,6 +287,12 @@ ColumnLayout {
 
     WizardPassword {
         id: passwordPage
+        Layout.bottomMargin: wizardBottomMargin
+        Layout.topMargin: wizardTopMargin
+    }
+
+    WizardDaemon {
+        id: daemonPage
         Layout.bottomMargin: wizardBottomMargin
         Layout.topMargin: wizardTopMargin
     }
