@@ -93,6 +93,7 @@ Rectangle {
 
     }
 
+    /*
     function decode64(input) {
         var keyStr = "ABCDEFGHIJKLMNOP" +
                        "QRSTUVWXYZabcdef" +
@@ -139,6 +140,8 @@ Rectangle {
 
          return unescape(output);
       }
+      */
+
 
     function updateStatus() {
         if(typeof currentWallet === "undefined") {
@@ -183,6 +186,25 @@ Rectangle {
         hexConfig = hex
         appWindow.persistentSettings.hexId = hex.toString()
         return hexConfig
+    }
+
+    // create a Hex value from body message
+    function asciiToHexa(str) {
+        var arr1 = [];
+        for (var n = 0, l = str.length; n < l; n ++) {
+            var hex = "0x" + Number(str.charCodeAt(n)).toString(16);
+            arr1.push(hex);
+        }
+        return arr1.join(',');
+    }
+
+    // add '0x' to a Hex value
+    function createHexValue(value) {
+        var hexValue = "";
+        for (var i = 0; i < value.length; i+=2) {
+            hexValue = hexValue + "0x" + value[i] + value[i+1] + ",";
+        }
+        return hexValue;
     }
 
 
@@ -512,8 +534,6 @@ Rectangle {
                 // Get the raw header string
                 var headers = xmlhttp.getAllResponseHeaders();
 
-                //console.log(headers + " my headers")
-
                 // Convert the header string into an array
                 // of individual headers
                 var arrHeaders = headers.trim().split(/[\r\n]+/);
@@ -527,35 +547,50 @@ Rectangle {
                   headerMap[header] = value;
                 });
 
-                //console.log(arrHeaders[5] + " my arr")
-                /*
-                var publicKey = Config.ENCRYPTION_PUBLIC_KEY;
-                var encryptionContext = new EdDSA('ed25519');
-                var publicKeyHex = publicKey.toString('hex');
+                var signature = arrHeaders[5].split(".");
+
+                // Receive a signed message from peer and verify it using their public key.
+                var theirSignedMessage = JSON.stringify(arr);
+
+                // get just signature from header
+                var signatureString = signature[1];
+
+                // format variable as Hex value
+                var msghexkey = asciiToHexa(theirSignedMessage);
+                var pkey = createHexValue(Config.publicKey);
+                var sigkey = createHexValue(signatureString);
 
 
-                // Import public key
-                var key = encryptionContext.keyFromPublic(publicKey, 'hex');
-                // Verify signature
-                console.log("Verifying signature using public key");
-                console.log(key.verify(jsonResponseEncoded, signatureHex));
-                */
+                if (!ed25519verify.verify(msghexkey, sigkey, pkey, Math.round(msghexkey.length/5))) {
+                    getJsonFail.text = "<p><b>Provider information error</b></p>";
+                    getJsonFail.text += "There was an error trying to retrieve available services.<br>";
+                    getJsonFail.text += "Please try again, and contact support if the problem persists,<br>mentioning the code 'SDP001'.";
+
+                    // disable the button to search the SDP
+                    filterButton.enabled = false;
+
+                    getJsonFail.visible = true;
+
+                    return;
+                }
+
 
                 var providers = arr.providers
                 for (var i = 0; i < providers.length; i++) {
                     getSignature(providers, providers[i], i, speed, speedType, price, tp, favorite)
                 }
 
-
                 // Show mesage when the user don't have Favorite
                 if (arrChecked.length == 0 && favoriteFilter.checked) {
                     getJsonFail.text = "Sorry, you don't have Favorite";
                     getJsonFail.visible = true;
+
                 }
             }
             else if(xmlhttp.status != 200) { // sdp services retrieval failed, notify user and try again later
                 //console.log("SDP services retrieval failed");
                 //console.log(xmlhttp);
+
                 getJsonFail.visible = true;
                 getJsonFail.text = "There was an error trying to retrieve available services.<br>";
                 getJsonFail.text += "Please click the 'Filter' button to retry.<br><br>";
@@ -911,6 +946,7 @@ Rectangle {
                                 anchors.topMargin: 215
                                 height: 70
                                 ExclusiveGroup { id: tabPositionGroup }
+                                flat: true
                                 Column {
                                     anchors.top: parent.top
                                     anchors.topMargin: 20
