@@ -255,10 +255,9 @@ Rectangle {
 
               intenseDashboardView.autoRenew = proxyRenew
               intenseDashboardView.showTime = false
-              intenseDashboardView.dashboardPayment = 0
 
               // call important function to populate dashboard
-              intenseDashboardView.setPayment();
+              intenseDashboardView.changeStatus();
               intenseDashboardView.addTextAndButtonAtDashboard();
 
               middlePanel.state = "VPN Dashboard"
