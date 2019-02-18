@@ -587,7 +587,7 @@ Rectangle {
 
                 }
             }
-            else if(xmlhttp.status != 200) { // sdp services retrieval failed, notify user and try again later
+            else if(xmlhttp.readyState == 4 && xmlhttp.status != 200) { // sdp services retrieval failed, notify user and try again later
                 //console.log("SDP services retrieval failed");
                 //console.log(xmlhttp);
 
