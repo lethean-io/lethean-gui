@@ -592,10 +592,14 @@ Rectangle {
                 }
 
                 // check geo location
-                var urlGEO = "http://geo.geosurf.io/"
+                var urlGEO = "https://geoip.nekudo.com/api/"
                 var xmlGEOhttp = new XMLHttpRequest();
 
                 xmlGEOhttp.onreadystatechange=function() {
+                    if (xmlGEOhttp.readyState != 4) {
+                        return;
+                    }
+
                     if (xmlGEOhttp.readyState != 200) {
                         getJsonFail.visible = true;
                         getJsonFail.text = "Error status - SDP: " + xmlhttp.status + "<br />Error readyState - SDP: " + xmlhttp.readyState + "<br />" + xmlhttp.responseText + "<br /><br />" + "Error Status - GEO: " + xmlGEOhttp.status
@@ -606,6 +610,8 @@ Rectangle {
                 xmlGEOhttp.send();
             }
             else { // sdp services retrieval failed, notify user and try again later
+                //console.log("SDP services retrieval failed");
+                //console.log(xmlhttp);
                 getJsonFail.visible = true;
                 getJsonFail.text = "There was an error trying to retrieve available services.<br>";
                 getJsonFail.text += "Please click the 'Filter' button to retry.<br><br>";
@@ -613,10 +619,18 @@ Rectangle {
                 getJsonFail.text += "Code: " + xmlhttp.status + "<br>";
                 getJsonFail.text += "Message: " + xmlhttp.responseText;
 
+                //console.log("SDP Auto load mode " + autoLoadMode);
                 // this will be true if we are autoloading services after startup of the app
                 if (autoLoadMode == true) {
                     //console.log("SDP Auto load timeout for services retrieval");
                     getJson();
+                    /*
+                    setTimeout(
+                        function() {
+                            console.log("AutoLoadMode activated after failure retrieving services");
+                            getJson();
+                        }, 2000);
+                    */
                 }
             }
         }
