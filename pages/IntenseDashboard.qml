@@ -53,7 +53,7 @@ Rectangle {
     // keep track haproxy verify 10 before payment and 300 after payment
     property int verification: 10
 
-    property string pathToSaveHaproxyConfig: persistentSettings.wallet_path
+    property string pathToSaveHaproxyConfig: (typeof currentWallet == "undefined") ? persistentSettings.wallet_path : currentWallet.walletLogPath
 
     function getITNS() {
         itnsStart = itnsStart + ( parseFloat(cost) / firstPrePaidMinutes * subsequentPrePaidMinutes );
