@@ -349,19 +349,6 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
                 // try to find haproxy correctly
                 QProcess shellProcess;
 
-                // verify if exist DPKG from haproxy
-                shellProcess.start("/bin/sh");
-                shellProcess.write("dpkg --get-selections | grep haproxy");
-                shellProcess.closeWriteChannel();
-                shellProcess.waitForFinished(-1);
-
-                // verify if the dpkg is install or deinstall
-                char *checkInstall = "deinstall";
-                if (strstr(shellProcess.readAllStandardOutput().trimmed(), checkInstall) != NULL) {
-                    qDebug() << "HAProxy has no dpkg ";
-                    return false;
-                }
-
                 // find for haproxy
                 shellProcess.start("/bin/sh");
                 shellProcess.write("which haproxy || whereis haproxy | cut -d ' ' -f 2");
