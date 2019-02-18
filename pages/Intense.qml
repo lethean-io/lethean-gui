@@ -581,7 +581,7 @@ Rectangle {
                 }
 
                 // Show mesage when the user don't have Favorite
-                if (arrChecked.length == 0 && favoriteFilter.checked) {
+                if (arrChecked && arrChecked.length == 0 && favoriteFilter.checked) {
                     getJsonFail.text = "Sorry, you don't have any favorites.";
                     getJsonFail.visible = true;
 
