@@ -84,7 +84,7 @@ Rectangle {
     function getPathToSaveHaproxyConfig(dir) {
         var path = dir;
         for (var i = dir.length -1; i > 0; i--) {
-            if (dir[i] != "/") {
+            if (dir[i] != "/" && dir[i] != "\\") {
                 path = path.slice(0, -1);
             }else{
                 return path;
@@ -204,13 +204,20 @@ Rectangle {
                 changeStatus()
             }
 
-            if (callhaproxy.haproxyStatus != "CONNECTION_ERROR") {
+            if (callhaproxy.haproxyStatus == "NO_PAYMENT") {
                   // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
                   if (dashboardPayment != 0) {
                       firstPayment = 0;
                       appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
                       paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment");
                   }
+            }
+            else if (callhaproxy.haproxyStatus == "OK") {
+                //probably cached from last provider we were connected to, or we re-connected to a provider we have already paid for
+                //do nothing           
+            }
+            else if (!callhaproxy.haproxyStatus) {
+                timerSetPayment.start();
             }
             else {
                   callhaproxy.killHAproxy()
@@ -2029,7 +2036,15 @@ Rectangle {
         }
     }
 
+    Timer {
+        id: timerSetPayment
+        interval: 1000
+        repeat: false
 
+        onTriggered: {
+            setPayment();
+        }
+    }
 
 
     function onPageCompleted() {
