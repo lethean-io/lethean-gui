@@ -340,6 +340,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             #if defined(Q_OS_MAC)
                 // verify if the haproxy exist in Mac if not send an alert
                 QFileInfo check_haproxy_exist_osx("/usr/local/bin/haproxy");
+                check_haproxy_exist_osx.refresh();
                 if (check_haproxy_exist_osx.exists()) {
                     haProxyPath = "/usr/local/bin/haproxy";
                 } else {
