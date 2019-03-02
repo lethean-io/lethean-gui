@@ -343,6 +343,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
                 if (check_haproxy_exist_osx.exists()) {
                     haProxyPath = "/usr/local/bin/haproxy";
                 } else {
+                    m_haproxyStatus = "Failed: " + haProxyPath;
                     return false;
                 }
             #else
@@ -384,6 +385,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             // ha proxy location not found if output from command is empty or just the first word from whereis
             if (haProxyPath.isEmpty() || haProxyPath == "haproxy:") {
                 qDebug() << "HAProxy not found!";
+                 m_haproxyStatus = "NotFound: " + haProxyPath;
                 return false;
             }
 
@@ -396,6 +398,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
 
     }
     else {
+         m_haproxyStatus = "Failed to open haproxy";
         qDebug() << "could not open the file";
         return false;
     }
