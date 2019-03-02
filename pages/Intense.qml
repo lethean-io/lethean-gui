@@ -255,10 +255,9 @@ Rectangle {
 
               intenseDashboardView.autoRenew = proxyRenew
               intenseDashboardView.showTime = false
-              intenseDashboardView.dashboardPayment = 0
 
               // call important function to populate dashboard
-              intenseDashboardView.setPayment();
+              intenseDashboardView.changeStatus();
               intenseDashboardView.addTextAndButtonAtDashboard();
 
               middlePanel.state = "VPN Dashboard"
@@ -593,10 +592,11 @@ Rectangle {
                 }
 
                 // check geo location
-                var urlGEO = "http://geo.geosurf.io/"
+                var urlGEO = "geo.geosurf.io"
                 var xmlGEOhttp = new XMLHttpRequest();
 
                 xmlGEOhttp.onreadystatechange=function() {
+
                     if (xmlGEOhttp.readyState != 200) {
                         getJsonFail.visible = true;
                         getJsonFail.text = "Error status - SDP: " + xmlhttp.status + "<br />Error readyState - SDP: " + xmlhttp.readyState + "<br />" + xmlhttp.responseText + "<br /><br />" + "Error Status - GEO: " + xmlGEOhttp.status
