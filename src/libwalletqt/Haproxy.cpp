@@ -435,6 +435,7 @@ void Haproxy::haproxyCert(const QString &host, const QString &certificate){
 
 void Haproxy::killHAproxy(){
 	qDebug() << "kill proxy";
+    m_haproxyStatus = "";
     #ifdef Q_OS_WIN
         WinExec("taskkill /f /im haproxy.exe",SW_HIDE);
     #else
