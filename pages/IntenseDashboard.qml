@@ -98,12 +98,7 @@ Rectangle {
             // set first payment or subsequentPrePaidMinutes
             appWindow.persistentSettings.haproxyTimeLeft = new Date(data.getTime() + firstPrePaidMinutes*60000);
             appWindow.persistentSettings.haproxyStart = new Date();
-
-            // add loading page until waiting the payment
-            loadingTimer.start();
-            backgroundLoader.visible = true;
-        }
-        else {
+        } else {
             var value = parseFloat(cost)/firstPrePaidMinutes*subsequentPrePaidMinutes
             appWindow.persistentSettings.haproxyTimeLeft = new Date(appWindow.persistentSettings.haproxyTimeLeft.getTime() + subsequentPrePaidMinutes*60000);
         }
@@ -198,7 +193,7 @@ Rectangle {
                     showProxyStartupError();
                 }
 
-                changeStatus()
+                changeStatus();
             }
 
             if (callhaproxy.haproxyStatus == "NO_PAYMENT") {
@@ -207,6 +202,7 @@ Rectangle {
                       firstPayment = 0;
                       appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
                       paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment");
+
                   }
             }
             else if (callhaproxy.haproxyStatus == "OK") {
@@ -437,6 +433,12 @@ Rectangle {
     // update dashboard status depending on proxy connection status
     function changeStatus() {
         if ( flag == 1 ) {
+            // add loading page until waiting the payment
+            backgroundLoader.visible = true;
+            loadingTimer.start();
+            timerHaproxy.restart()
+            timerHaproxy.running = true
+
             subButton.visible = true
             powerOn.source = "../images/power_on.png"
             if ( type == "openvpn" ) {
@@ -448,8 +450,6 @@ Rectangle {
             runningText.text = "Connected"
             subButtonText.text = "Disconnect"
             subConnectButton.visible = false
-            timerHaproxy.restart()
-            timerHaproxy.running = true
 
             startText.text = "Connected"
             appWindow.persistentSettings.paidTextLineTimeLeft = itnsStart.toFixed(8) + " "+Config.coinName;
@@ -471,6 +471,7 @@ Rectangle {
             if ( startText.text != "Disconnected" ) {
                 startText.text = "Reconnect"
             }
+
         }
 
     }
@@ -586,10 +587,8 @@ Rectangle {
                 intenseDashboardView.autoRenew = proxyRenew
                 intenseDashboardView.showTime = false
                 intenseDashboardView.addTextAndButtonAtDashboard();
-                dashboardPayment = 0;
-                waitHaproxy = 0;
-                setPayment()
 
+                changeStatus();
             }
         }
 

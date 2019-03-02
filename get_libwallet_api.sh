@@ -13,7 +13,7 @@ BUILD_LIBWALLET=false
 
 # init and update monero submodule
 if [ ! -d $MONERO_DIR/src ]; then
-    git submodule init lethean
+    git submodule init
 fi
 git submodule update
 

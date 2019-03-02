@@ -255,10 +255,9 @@ Rectangle {
 
               intenseDashboardView.autoRenew = proxyRenew
               intenseDashboardView.showTime = false
-              intenseDashboardView.dashboardPayment = 0
 
               // call important function to populate dashboard
-              intenseDashboardView.setPayment();
+              intenseDashboardView.changeStatus();
               intenseDashboardView.addTextAndButtonAtDashboard();
 
               middlePanel.state = "VPN Dashboard"
@@ -584,7 +583,6 @@ Rectangle {
                 if (arrChecked && arrChecked.length == 0 && favoriteFilter.checked) {
                     getJsonFail.text = "Sorry, you don't have any favorites.";
                     getJsonFail.visible = true;
-
                 }
             }
             else if(xmlhttp.readyState == 4 && xmlhttp.status != 200) { // sdp services retrieval failed, notify user and try again later
