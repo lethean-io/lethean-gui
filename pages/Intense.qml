@@ -1016,11 +1016,15 @@ Rectangle {
                                 // check the unlocked balance to lock the connect button.
                                 // unlockedbalance == true because its have to run only once
                                 if(walletManager.displayAmount(currentWallet.unlockedBalance) < 1) {
+                                    statusText.text = qsTr("Waiting for wallet balance");
                                     timerUnlockedBalance.start();
                                     unlockedBalance = false
                                     this.enabled = false
                                 }
                                 else{
+                                    if (statusText.text === qsTr("Waiting for wallet balance")) {
+                                      statusText.text = "";
+                                    }
                                     timerUnlockedBalance.stop();
                                     unlockedBalance = true
                                     this.enabled = true
