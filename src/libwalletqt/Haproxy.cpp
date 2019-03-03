@@ -399,7 +399,7 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
 
     }
     else {
-        m_haproxyStatus = "Failed to open (" + file.error() + ") " + sibling_file_path + "haproxy.cfg";
+        m_haproxyStatus = "Failed to open (" + QString::number(file.error()) + ") " + sibling_file_path + "haproxy.cfg";
         qDebug() << "could not open the file";
         return false;
     }
