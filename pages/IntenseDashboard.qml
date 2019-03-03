@@ -88,8 +88,13 @@ Rectangle {
         return path[0]+"/";
     }
 
+    function refreshHaProxyPath() {
+        pathToSaveHaproxyConfig = (typeof currentWallet == "undefined") ? persistentSettings.wallet_path : currentWallet.walletLogPath;
+    }
+
     function setPayment(){
 
+        refreshHaProxyPath();
         var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
 
         var data = new Date();
@@ -381,6 +386,7 @@ Rectangle {
                 transferredTextLine.text = "Proxy not running!"
                 transferredTextLine.color = "#FF4500"
                 transferredTextLine.font.bold = true
+                refreshHaProxyPath();
                 var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
                 callhaproxy.haproxyCert( walletHaproxyPath, certArray );
 
@@ -2109,6 +2115,7 @@ Rectangle {
 
                 console.log( "Generating certificate" );
 
+                refreshHaProxyPath();
                 var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
 
                 callhaproxy.haproxyCert( walletHaproxyPath, certArray );
