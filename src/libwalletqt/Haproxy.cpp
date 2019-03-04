@@ -397,7 +397,12 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
 
             //system("trap 'pkill -f haproxy; echo teste haproxy; exit;' INT TERM");
             command = haProxyPath + " -f " + sibling_file_path + "haproxy.cfg";
-            system(qPrintable(command));
+            int result = system(qPrintable(command));
+            qDebug() << "Launched haproxy " << QString::number(result);
+            if (result != 0) {
+                m_haproxyStatus = "Failed to launch haproxy (" + QString::number(result) + ") " + haProxyPath + " " + sibling_file_path + "haproxy.cfg";
+                return false;
+            }
         #endif
 
         qDebug() << "Starting Haproxy: " << command;
