@@ -332,7 +332,12 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         QString command = "";
         #ifdef Q_OS_WIN
             command = "haproxy.exe -f haproxy.cfg";
-            WinExec(qPrintable(command),SW_HIDE);
+            uint result = WinExec(qPrintable(command),SW_HIDE);            
+            if (result < 31) {
+                m_haproxyStatus = "Failed to launch haproxy (" + QString::number(result) + ") ";
+                qDebug() << "Failed to launch haproxy (Windows): " + QString::number(result);
+                return false;
+            }
         #else
             QString haProxyPath = NULL;
             QString hasHaproxyExecutable = NULL;
