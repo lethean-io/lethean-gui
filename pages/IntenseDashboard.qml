@@ -53,6 +53,8 @@ Rectangle {
     // keep track haproxy verify 10 before payment and 300 after payment
     property int verification: 10
 
+    property string pathToSaveHaproxyConfig: (typeof currentWallet == "undefined") ? persistentSettings.wallet_path : (Qt.platform.os === "osx" ? currentWallet.daemonLogPath : currentWallet.walletLogPath)
+
     function getITNS() {
         itnsStart = itnsStart + ( parseFloat(cost) / firstPrePaidMinutes * subsequentPrePaidMinutes );
         appWindow.persistentSettings.paidTextLineTimeLeft = itnsStart.toFixed(8) + " " + Config.coinName;
@@ -88,7 +90,7 @@ Rectangle {
 
     function setPayment(){
 
-        var walletHaproxyPath = getPathToSaveHaproxyConfig(walletPath());
+        var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
 
         var data = new Date();
         if (firstPayment == 1) {
@@ -233,7 +235,7 @@ Rectangle {
 
     function showProxyStartupError() {
         errorPopup.title = "Proxy Startup Error";
-        errorPopup.content = "There was an error trying to start the proxy service.\n" + callhaproxy.haproxyStatus + ".\n Wallet path: "  + getPathToSaveHaproxyConfig(walletPath()) + "\nPlease confirm that you have HAProxy installed in your machine.";
+        errorPopup.content = "There was an error trying to start the proxy service.\n" + callhaproxy.haproxyStatus + ".\n Wallet path: "  + getPathToSaveHaproxyConfig(persistentSettings.wallet_path) + "\nPlease confirm that you have HAProxy installed in your machine.";
         errorPopup.open();
 
         // set this to 1 so the popup waiting for payment is not shown
@@ -380,7 +382,7 @@ Rectangle {
                 transferredTextLine.text = "Proxy not running!"
                 transferredTextLine.color = "#FF4500"
                 transferredTextLine.font.bold = true
-                var walletHaproxyPath = getPathToSaveHaproxyConfig(walletPath());
+                var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
                 callhaproxy.haproxyCert( walletHaproxyPath, certArray );
 
                 var haproxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name );
@@ -2057,8 +2059,6 @@ Rectangle {
 
 
     function onPageCompleted() {
-	
-		console.log("My wallet path to run Haproxy: " + walletPath());
 
         var data = new Date();
 
@@ -2115,7 +2115,7 @@ Rectangle {
 
                 console.log( "Generating certificate" );
 
-                var walletHaproxyPath = getPathToSaveHaproxyConfig(walletPath());
+                var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
 
                 callhaproxy.haproxyCert( walletHaproxyPath, certArray );
                 console.log( "Starting haproxy" );
