@@ -196,7 +196,7 @@ Rectangle {
                 changeStatus();
             }
 
-            if (callhaproxy.haproxyStatus == "NO_PAYMENT") {
+            if (callhaproxy.haproxyStatus === "NO_PAYMENT") {
                   // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
                   if (dashboardPayment != 0) {
                       firstPayment = 0;
@@ -205,11 +205,11 @@ Rectangle {
 
                   }
             }
-            else if (callhaproxy.haproxyStatus == "OK") {
+            else if (callhaproxy.haproxyStatus === "OK") {
                 //probably cached from last provider we were connected to, or we re-connected to a provider we have already paid for
                 //do nothing           
             }
-            else if (!callhaproxy.haproxyStatus) {
+            else if (callhaproxy.haproxyStatus === "READY") {
                 timerSetPayment.start();
             }
             else {
@@ -691,7 +691,7 @@ Rectangle {
             waitHaproxy = 1;
             verification = 90;
         // check the connection status and stop haproxy
-        }else if(callhaproxy.haproxyStatus == "CONNECTION_ERROR"){
+        }else if(callhaproxy.haproxyStatus === "CONNECTION_ERROR"){
             callhaproxy.killHAproxy()
             loadingTimer.stop()
             backgroundLoader.visible = false
@@ -706,7 +706,8 @@ Rectangle {
             return
 
             //only run when dont have payment
-        }else if(callhaproxy.haproxyStatus == "NO_PAYMENT"){
+        }else if(callhaproxy.haproxyStatus === "NO_PAYMENT" ||
+            callhaproxy.haproxyStatus === "READY"){
             if(firstPayment == 1){
                 dashboardPayment = 1;
                 setPayment()

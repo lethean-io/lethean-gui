@@ -83,7 +83,7 @@ HttpResponse ThreadVerifyHaproxy::proxyRequest(std::string proxyHost, std::strin
         }
 
         // Read the response headers, which are terminated by a blank line.
-        boost::asio::read_until(socket, response, "\n\n");
+        boost::asio::read_until(socket, response, "\r\n\r\n");
 
         // Process the response headers.
         std::string header;
@@ -132,12 +132,17 @@ QString ThreadVerifyHaproxy::startVerifyHaproxy() {
         // return OK with the proxy works
         return "OK";
     }
-    else if( response.getHeaders()["X-ITNS-Status"] == "CONNECTION_ERROR" ) {
+    else if( response.getStatusCode() == 503 ||
+        response.getHeaders()["X-ITNS-Status"] == "CONNECTION_ERROR" ) {
         // return Connection error to stop proxy
         return "CONNECTION_ERROR";
+    } else if (response.getStatusCode() == 403) {
+        return "NO_PAYMENT";
+    } else if ( !response.getBody().empty() ) {
+        return QString::fromStdString(response.getBody());
     }
 
-    return "NO_PAYMENT";
+    return "READY";
 }
 
 // set the returnable variables
