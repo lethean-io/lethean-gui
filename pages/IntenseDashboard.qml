@@ -53,7 +53,7 @@ Rectangle {
     // keep track haproxy verify 10 before payment and 300 after payment
     property int verification: 10
 
-    property string pathToSaveHaproxyConfig: (typeof currentWallet == "undefined") ? persistentSettings.wallet_path : currentWallet.walletLogPath
+    property string pathToSaveHaproxyConfig: (typeof currentWallet == "undefined") ? persistentSettings.wallet_path : (Qt.platform.os === "osx" ? currentWallet.daemonLogPath : currentWallet.walletLogPath)
 
     function getITNS() {
         itnsStart = itnsStart + ( parseFloat(cost) / firstPrePaidMinutes * subsequentPrePaidMinutes );
@@ -234,7 +234,7 @@ Rectangle {
 
     function showProxyStartupError() {
         errorPopup.title = "Proxy Startup Error";
-        errorPopup.content = "There was an error trying to start the proxy service.\nIf the problem persists, please contact support.\n Wallet path: "  + getPathToSaveHaproxyConfig(persistentSettings.wallet_path) + "\nPlease confirm that you have HAProxy installed in your machine.";
+        errorPopup.content = "There was an error trying to start the proxy service.\n" + callhaproxy.haproxyStatus + ".\n Wallet path: "  + getPathToSaveHaproxyConfig(persistentSettings.wallet_path) + "\nPlease confirm that you have HAProxy installed in your machine.";
         errorPopup.open();
 
         // set this to 1 so the popup waiting for payment is not shown
