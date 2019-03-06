@@ -198,6 +198,7 @@ Rectangle {
                   // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
                   if (dashboardPayment != 0) {
                       firstPayment = 0;
+                      dashboardPayment = 0;
                       appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
                       paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment");
 
