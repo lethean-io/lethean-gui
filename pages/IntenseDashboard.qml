@@ -209,7 +209,7 @@ Rectangle {
                 //probably cached from last provider we were connected to, or we re-connected to a provider we have already paid for
                 //do nothing           
             }
-            else if (!callhaproxy.haproxyStatus) {
+            else if (callhaproxy.haproxyStatus === "READY") {
                 timerSetPayment.start();
             }
             else {
@@ -706,7 +706,8 @@ Rectangle {
             return
 
             //only run when dont have payment
-        }else if(callhaproxy.haproxyStatus === "NO_PAYMENT"){
+        }else if(callhaproxy.haproxyStatus === "NO_PAYMENT" ||
+            callhaproxy.haproxyStatus === "READY"){
             if(firstPayment == 1){
                 dashboardPayment = 1;
                 setPayment()
