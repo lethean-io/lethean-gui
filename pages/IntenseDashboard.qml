@@ -563,6 +563,10 @@ Rectangle {
                     port = obj.vpn[0].port
                 }
 
+                if (callhaproxy.haproxyStatus !== "") {
+                    callhaproxy.killHAproxy();
+                }
+
                 intenseDashboardView.idService = obj.id
                 intenseDashboardView.feedback = feed.id
                 intenseDashboardView.providerName = obj.providerName

@@ -228,6 +228,10 @@ Rectangle {
                   port = obj.vpn[0].port
               }
 
+              if (callhaproxy.haproxyStatus !== "") {
+                  callhaproxy.killHAproxy();
+              }
+
               //var certArray = decode64(obj.certArray[0].certContent); // "4pyTIMOgIGxhIG1vZGU="
               //callhaproxy.haproxyCert(host, certArray);
               //callhaproxy.haproxy(host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice(0,-4), 'haproxy', hexC(obj.id).toString(), obj.provider)
