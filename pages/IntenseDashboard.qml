@@ -194,6 +194,8 @@ Rectangle {
                 changeStatus();
             }
 
+            //callhaproxy.haproxyStatus NO_PAYMENT: used in initial connection
+            //callhaproxy.haproxyStatus OK: used to renew ongoing connection
             if (callhaproxy.haproxyStatus === "NO_PAYMENT" || callhaproxy.haproxyStatus === "OK") {
                   // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
                   if (dashboardPayment != 0) {
@@ -204,12 +206,8 @@ Rectangle {
 
                   }
             }
-            else if (callhaproxy.haproxyStatus === "OK") {
-                //probably cached from last provider we were connected to, or we re-connected to a provider we have already paid for
-                //do nothing           
-            }
             else if (callhaproxy.haproxyStatus === "READY") {
-                timerSetPayment.start();
+                //waiting for an actionable haproxy status (OK or NO_PAYMENT), nothing to do          
             }
             else {
                   callhaproxy.killHAproxy()
@@ -2045,15 +2043,6 @@ Rectangle {
         }
     }
 
-    Timer {
-        id: timerSetPayment
-        interval: 1000
-        repeat: false
-
-        onTriggered: {
-            setPayment();
-        }
-    }
 
 
     function onPageCompleted() {
