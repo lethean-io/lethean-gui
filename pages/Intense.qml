@@ -228,6 +228,10 @@ Rectangle {
                   port = obj.vpn[0].port
               }
 
+              if (callhaproxy.haproxyStatus !== "") {
+                  callhaproxy.killHAproxy();
+              }
+
               //var certArray = decode64(obj.certArray[0].certContent); // "4pyTIMOgIGxhIG1vZGU="
               //callhaproxy.haproxyCert(host, certArray);
               //callhaproxy.haproxy(host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice(0,-4), 'haproxy', hexC(obj.id).toString(), obj.provider)
@@ -506,24 +510,12 @@ Rectangle {
         var url = Config.url + Config.version + Config.services + Config.search
         var xmlhttp = new XMLHttpRequest();
         listView.model.clear()
-        xmlhttp.onreadystatechange=function() {
-
-            // response is not ready, return
-            if (xmlhttp.readyState != 4) {
-                return;
-            }
+        xmlhttp.onreadystatechange = function() {
 
             // hide loading once we have retrieved the services
             loading.visible = false;
 
-            if (xmlhttp.status == 200) {
-                //console.log("SDP Services correctly received");
-                getJsonFail.visible = false;
-
-                // once we auto load the services, disable auto load mode
-                autoLoadMode = false;
-
-
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
                 var arr = JSON.parse(xmlhttp.responseText)
 
                 // validate if SDP version matches wallet
@@ -591,22 +583,16 @@ Rectangle {
                     getSignature(providers, providers[i], i, speed, speedType, price, tp, favorite)
                 }
 
-                // check geo location
-                var urlGEO = "geo.geosurf.io"
-                var xmlGEOhttp = new XMLHttpRequest();
-
-                xmlGEOhttp.onreadystatechange=function() {
-
-                    if (xmlGEOhttp.readyState != 200) {
-                        getJsonFail.visible = true;
-                        getJsonFail.text = "Error status - SDP: " + xmlhttp.status + "<br />Error readyState - SDP: " + xmlhttp.readyState + "<br />" + xmlhttp.responseText + "<br /><br />" + "Error Status - GEO: " + xmlGEOhttp.status
-                    }
+                // Show mesage when the user don't have Favorite
+                if (arrChecked && arrChecked.length == 0 && favoriteFilter.checked) {
+                    getJsonFail.text = "Sorry, you don't have any favorites.";
+                    getJsonFail.visible = true;
                 }
-                xmlGEOhttp.open("GET", urlGEO, true);
-                xmlGEOhttp.setRequestHeader("Access-Control-Allow-Origin","*")
-                xmlGEOhttp.send();
             }
-            else { // sdp services retrieval failed, notify user and try again later
+            else if(xmlhttp.readyState == 4 && xmlhttp.status != 200) { // sdp services retrieval failed, notify user and try again later
+                //console.log("SDP services retrieval failed");
+                //console.log(xmlhttp);
+
                 getJsonFail.visible = true;
                 getJsonFail.text = "There was an error trying to retrieve available services.<br>";
                 getJsonFail.text += "Please click the 'Filter' button to retry.<br><br>";
@@ -614,11 +600,6 @@ Rectangle {
                 getJsonFail.text += "Code: " + xmlhttp.status + "<br>";
                 getJsonFail.text += "Message: " + xmlhttp.responseText;
 
-                // this will be true if we are autoloading services after startup of the app
-                if (autoLoadMode == true) {
-                    //console.log("SDP Auto load timeout for services retrieval");
-                    getJson();
-                }
             }
         }
 
@@ -732,6 +713,9 @@ Rectangle {
               pressedColor: "#A7B8C0"
               dataModel: typeTransaction
               z: 100
+              onCurrentIndexChanged: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
           }
 
           Label {
@@ -741,7 +725,7 @@ Rectangle {
               anchors.top:  parent.top
               anchors.leftMargin: 17
               anchors.topMargin: 17
-              width: 156
+              width: 176
               text: qsTr("Max Price") + translationManager.emptyString
               fontSize: 14
           }
@@ -753,7 +737,10 @@ Rectangle {
               anchors.top: maxPriceText.bottom
               anchors.leftMargin: 17
               anchors.topMargin: 5
-              width: 156
+              width: 176
+              onTextChanged: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
           }
 
           Label {
@@ -763,7 +750,7 @@ Rectangle {
               anchors.top: parent.top
               anchors.leftMargin: 17
               anchors.topMargin: 17
-              width: 110
+              width: 176
               text: qsTr("Min Speed") + translationManager.emptyString
               fontSize: 14
           }
@@ -775,7 +762,10 @@ Rectangle {
               anchors.top: minSpeedText.bottom
               anchors.leftMargin: 17
               anchors.topMargin: 5
-              width: 110
+              width: 176
+              onTextChanged: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
 
           }
 
@@ -799,6 +789,9 @@ Rectangle {
               pressedColor: "#A7B8C0"
               dataModel: typeSpeed
               z: 100
+              onCurrentIndexChanged: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
           }
 
 
@@ -814,9 +807,11 @@ Rectangle {
               checkedIcon: "../images/star.png"
               uncheckedIcon: "../images/unstar.png"
               onClicked: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
               }
           }
 
+          /*
           StandardButton {
               visible: !isMobile
               id: filterButton
@@ -835,6 +830,7 @@ Rectangle {
                   getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
               }
           }
+          */
     }
 
     Rectangle {
@@ -1024,11 +1020,15 @@ Rectangle {
                                 // check the unlocked balance to lock the connect button.
                                 // unlockedbalance == true because its have to run only once
                                 if(walletManager.displayAmount(currentWallet.unlockedBalance) < 1) {
+                                    statusText.text = qsTr("Waiting for wallet balance");
                                     timerUnlockedBalance.start();
                                     unlockedBalance = false
                                     this.enabled = false
                                 }
                                 else{
+                                    if (statusText.text === qsTr("Waiting for wallet balance")) {
+                                      statusText.text = "";
+                                    }
                                     timerUnlockedBalance.stop();
                                     unlockedBalance = true
                                     this.enabled = true
@@ -1075,7 +1075,7 @@ Rectangle {
                 Component.onCompleted: {
                     //console.log("Getting SDP Services after List initialized");
                     autoLoadMode = true;
-                    getJson()
+                    getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
 
                 }
 
@@ -1116,9 +1116,9 @@ Rectangle {
         onTriggered:
         {
             if(unlockedBalance == true && appWindow.currentWallet.unlockedBalance < 1){
-                getJson()
+                getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
             }else if(appWindow.currentWallet.unlockedBalance > 1){
-                getJson()
+                getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
             }
         }
     }
@@ -1127,6 +1127,7 @@ Rectangle {
 
     function onPageCompleted() {
         updateStatus();
+        getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
 
     }
 }

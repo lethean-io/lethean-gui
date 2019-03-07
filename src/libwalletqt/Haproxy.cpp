@@ -332,26 +332,56 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         QString command = "";
         #ifdef Q_OS_WIN
             command = "haproxy.exe -f haproxy.cfg";
-            WinExec(qPrintable(command),SW_HIDE);
+            uint result = WinExec(qPrintable(command),SW_HIDE);            
+            if (result < 31) {
+                m_haproxyStatus = "Failed to launch haproxy (" + QString::number(result) + ") ";
+                qDebug() << "Failed to launch haproxy (Windows): " + QString::number(result);
+                return false;
+            }
         #else
             QString haProxyPath = NULL;
-
-            // try to find haproxy correctly
-            QProcess shellProcess;
-            shellProcess.start("/bin/sh");
-            shellProcess.write("which haproxy");
-            shellProcess.closeWriteChannel();
-            shellProcess.waitForFinished(-1);
-            haProxyPath = shellProcess.readAllStandardOutput().trimmed();
+            QString hasHaproxyExecutable = NULL;
 
             #if defined(Q_OS_MAC)
                 // verify if the haproxy exist in Mac if not send an alert
                 QFileInfo check_haproxy_exist_osx("/usr/local/bin/haproxy");
-                if(check_haproxy_exist_osx.exists()){
+                check_haproxy_exist_osx.refresh();
+                if (check_haproxy_exist_osx.exists()) {
                     haProxyPath = "/usr/local/bin/haproxy";
+                } else {
+                    m_haproxyStatus = "Failed: " + haProxyPath;
+                    return false;
+                }
+            #else
+                // try to find haproxy correctly
+                QProcess shellProcess;
+
+                // find for haproxy
+                shellProcess.start("/bin/sh");
+                shellProcess.write("which haproxy || whereis haproxy | cut -d ' ' -f 2");
+                shellProcess.closeWriteChannel();
+                shellProcess.waitForFinished(-1);
+                haProxyPath = shellProcess.readAllStandardOutput().trimmed();
+
+                // when you remove the haproxy from your computer that path still works
+                if (haProxyPath == "/etc/haproxy") {
+                    qDebug() << "HAProxy has only uninstall path ";
+                    return false;
+                }
+
+                // verify if has haproxy executable
+                command = "[ ! -e " + haProxyPath + " ]; echo $?";
+                shellProcess.start("/bin/sh");
+                shellProcess.write(qPrintable(command));
+                shellProcess.closeWriteChannel();
+                shellProcess.waitForFinished(-1);
+                hasHaproxyExecutable = shellProcess.readAllStandardOutput().trimmed();
+
+                if (hasHaproxyExecutable != "1") {
+                    qDebug() << "HAProxy has no executable ";
+                    return false;
                 }
             #endif
-
 
             qDebug() << "HAProxy Path " << haProxyPath;
 
@@ -361,18 +391,25 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
             // ha proxy location not found if output from command is empty or just the first word from whereis
             if (haProxyPath.isEmpty() || haProxyPath == "haproxy:") {
                 qDebug() << "HAProxy not found!";
+                 m_haproxyStatus = "NotFound: " + haProxyPath;
                 return false;
             }
 
             //system("trap 'pkill -f haproxy; echo teste haproxy; exit;' INT TERM");
             command = haProxyPath + " -f " + sibling_file_path + "haproxy.cfg";
-            system(qPrintable(command));
+            int result = system(qPrintable(command));
+            qDebug() << "Launched haproxy " << QString::number(result);
+            if (result != 0) {
+                m_haproxyStatus = "Failed to launch haproxy (" + QString::number(result) + ") " + haProxyPath + " " + sibling_file_path + "haproxy.cfg";
+                return false;
+            }
         #endif
 
         qDebug() << "Starting Haproxy: " << command;
 
     }
     else {
+        m_haproxyStatus = "Failed to open (" + QString::number(file.error()) + ") " + sibling_file_path + "haproxy.cfg";
         qDebug() << "could not open the file";
         return false;
     }

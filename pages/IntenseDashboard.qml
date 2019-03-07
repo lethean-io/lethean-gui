@@ -53,7 +53,7 @@ Rectangle {
     // keep track haproxy verify 10 before payment and 300 after payment
     property int verification: 10
 
-    property string pathToSaveHaproxyConfig: persistentSettings.wallet_path
+    property string pathToSaveHaproxyConfig: (typeof currentWallet == "undefined") ? persistentSettings.wallet_path : (Qt.platform.os === "osx" ? currentWallet.daemonLogPath : currentWallet.walletLogPath)
 
     function getITNS() {
         itnsStart = itnsStart + ( parseFloat(cost) / firstPrePaidMinutes * subsequentPrePaidMinutes );
@@ -83,13 +83,9 @@ Rectangle {
 
     function getPathToSaveHaproxyConfig(dir) {
         var path = dir;
-        for (var i = dir.length -1; i > 0; i--) {
-            if (dir[i] != "/" && dir[i] != "\\") {
-                path = path.slice(0, -1);
-            }else{
-                return path;
-            }
-        }
+        path = dir.split(dir.substring(dir.lastIndexOf('/')));
+        console.log(path[0]+"/");
+        return path[0]+"/";
     }
 
     function setPayment(){
@@ -192,6 +188,7 @@ Rectangle {
 
                 // try to start proxy and show error if it does not start
                 var haproxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name )
+
                 if ( !haproxyStarted ) {
                     showProxyStartupError();
                 }
@@ -199,20 +196,21 @@ Rectangle {
                 changeStatus();
             }
 
-            if (callhaproxy.haproxyStatus == "NO_PAYMENT") {
+            if (callhaproxy.haproxyStatus === "NO_PAYMENT") {
                   // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
                   if (dashboardPayment != 0) {
                       firstPayment = 0;
+                      dashboardPayment = 0;
                       appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
                       paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment");
 
                   }
             }
-            else if (callhaproxy.haproxyStatus == "OK") {
+            else if (callhaproxy.haproxyStatus === "OK") {
                 //probably cached from last provider we were connected to, or we re-connected to a provider we have already paid for
                 //do nothing           
             }
-            else if (!callhaproxy.haproxyStatus) {
+            else if (callhaproxy.haproxyStatus === "READY") {
                 timerSetPayment.start();
             }
             else {
@@ -237,7 +235,7 @@ Rectangle {
 
     function showProxyStartupError() {
         errorPopup.title = "Proxy Startup Error";
-        errorPopup.content = "There was an error trying to start the proxy service.\nIf the problem persists, please contact support.\n Wallet path: "  + persistentSettings.wallet_path + "\nPlease confirm that you have HAProxy installed in your machine.";
+        errorPopup.content = "There was an error trying to start the proxy service.\n" + callhaproxy.haproxyStatus + ".\n Wallet path: "  + getPathToSaveHaproxyConfig(persistentSettings.wallet_path) + "\nPlease confirm that you have HAProxy installed in your machine.";
         errorPopup.open();
 
         // set this to 1 so the popup waiting for payment is not shown
@@ -346,6 +344,12 @@ Rectangle {
     }
 
     function getHaproxyStats( obj ) {
+
+        // Get download and upload each 10 seconds
+        var data = new Date();
+        var secsToCheckHaproxy = ( ( data.getTime() - appWindow.persistentSettings.haproxyStart.getTime() ) / 1000 ).toFixed( 0 );
+        if ( secsToCheckHaproxy % 10 != 0 ) return;
+
         var url = "http://" +Config.haproxyIp+":8181/stats;csv"
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange=function() {
@@ -380,8 +384,11 @@ Rectangle {
                 transferredTextLine.font.bold = true
                 var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
                 callhaproxy.haproxyCert( walletHaproxyPath, certArray );
-                if ( Qt.platform.os === "linux" ) {
-                    callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), "", hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name )
+
+                var haproxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name );
+
+                if ( !haproxyStarted ) {
+                    showProxyStartupError();
                 }
 
                 changeStatus();
@@ -559,6 +566,10 @@ Rectangle {
                     port = obj.vpn[0].port
                 }
 
+                if (callhaproxy.haproxyStatus !== "") {
+                    callhaproxy.killHAproxy();
+                }
+
                 intenseDashboardView.idService = obj.id
                 intenseDashboardView.feedback = feed.id
                 intenseDashboardView.providerName = obj.providerName
@@ -683,9 +694,9 @@ Rectangle {
             proxyStats = 1;
             showTime = true;
             waitHaproxy = 1;
-            verification = 60;
+            verification = 90;
         // check the connection status and stop haproxy
-        }else if(callhaproxy.haproxyStatus == "CONNECTION_ERROR"){
+        }else if(callhaproxy.haproxyStatus === "CONNECTION_ERROR"){
             callhaproxy.killHAproxy()
             loadingTimer.stop()
             backgroundLoader.visible = false
@@ -700,7 +711,8 @@ Rectangle {
             return
 
             //only run when dont have payment
-        }else if(callhaproxy.haproxyStatus == "NO_PAYMENT"){
+        }else if(callhaproxy.haproxyStatus === "NO_PAYMENT" ||
+            callhaproxy.haproxyStatus === "READY"){
             if(firstPayment == 1){
                 dashboardPayment = 1;
                 setPayment()
@@ -2048,16 +2060,13 @@ Rectangle {
 
     function onPageCompleted() {
 
-
-        var str = "12345.00";
-        str = str.slice(0, -1);
-
-
         var data = new Date();
+
         if ( providerName != "" || appWindow.persistentSettings.haproxyTimeLeft > data ) {
             getColor( rank, rankRectangle )
             getMyFeedJson()
             changeStatus()
+
             if (typeof (obj) == 'undefined') {
                 // show loading page until waiting the proxy up
                 backgroundLoader.visible = true;
@@ -2090,10 +2099,6 @@ Rectangle {
                 myRankText.text =  appWindow.persistentSettings.myRankTextTimeLeft;
                 getColor( appWindow.persistentSettings.myRankTextTimeLeft, myRankRectangle )
 
-                // change to online
-                changeStatus();
-                intenseDashboardView.addTextAndButtonAtDashboard();
-
                 var host = applicationDirectory;
                 var endpoint = ''
                 var port = ''
@@ -2105,6 +2110,7 @@ Rectangle {
                     endpoint = obj.vpn[0].endpoint
                     port = obj.vpn[0].port
                 }
+
                 var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
 
                 console.log( "Generating certificate" );
@@ -2115,11 +2121,15 @@ Rectangle {
                 console.log( "Starting haproxy" );
 
                 // try to start proxy and show error if it does not start
-
                 var startedProxy = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', appWindow.persistentSettings.hexId, obj.provider, obj.providerName, obj.name )
+
                 if ( !startedProxy ) {
                     showProxyStartupError();
                 }
+
+                // change to online
+                changeStatus();
+                intenseDashboardView.addTextAndButtonAtDashboard();
             }
 
             getGeoLocation()
