@@ -56,6 +56,7 @@ Rectangle {
             + (data.cost ? trStart + qsTr("Total Price:") + trMiddle + (parseFloat(data.cost)*data.firstPrePaidMinutes).toFixed(8)+" "+Config.coinName + trEnd : "")
             + (data.firstPrePaidMinutes ? trStart + qsTr("First Pre Paid Minutes:") + trMiddle + data.firstPrePaidMinutes + trEnd : "")
             + "</table>"
+            + '<p>' + qsTr("Your TX requires " + data.subsequentVerificationsNeeded + " confirmations by this provider. You currently have <0,1,> confirmations. Typically confirmations occur once every 2 minutes - you will not be able to use your proxy until the confirmations proceed!") + "</p>"
             + translationManager.emptyString;
     }
 
@@ -92,56 +93,6 @@ Rectangle {
         }
 
     }
-
-    /*
-    function decode64(input) {
-        var keyStr = "ABCDEFGHIJKLMNOP" +
-                       "QRSTUVWXYZabcdef" +
-                       "ghijklmnopqrstuv" +
-                       "wxyz0123456789+/" +
-                       "=";
-         var output = "";
-         var chr1, chr2, chr3 = "";
-         var enc1, enc2, enc3, enc4 = "";
-         var i = 0;
-
-         // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
-         var base64test = /[^A-Za-z0-9\+\/\=]/g;
-         if (base64test.exec(input)) {
-            alert("There were invalid base64 characters in the input text.\n" +
-                  "Valid base64 characters are A-Z, a-z, 0-9, '+', '/',and '='\n" +
-                  "Expect errors in decoding.");
-         }
-         input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-
-         do {
-            enc1 = keyStr.indexOf(input.charAt(i++));
-            enc2 = keyStr.indexOf(input.charAt(i++));
-            enc3 = keyStr.indexOf(input.charAt(i++));
-            enc4 = keyStr.indexOf(input.charAt(i++));
-
-            chr1 = (enc1 << 2) | (enc2 >> 4);
-            chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-            chr3 = ((enc3 & 3) << 6) | enc4;
-
-            output = output + String.fromCharCode(chr1);
-
-            if (enc3 != 64) {
-               output = output + String.fromCharCode(chr2);
-            }
-            if (enc4 != 64) {
-               output = output + String.fromCharCode(chr3);
-            }
-
-            chr1 = chr2 = chr3 = "";
-            enc1 = enc2 = enc3 = enc4 = "";
-
-         } while (i < input.length);
-
-         return unescape(output);
-      }
-      */
-
 
     function updateStatus() {
         if(typeof currentWallet === "undefined") {
@@ -232,9 +183,6 @@ Rectangle {
                   callhaproxy.killHAproxy();
               }
 
-              //var certArray = decode64(obj.certArray[0].certContent); // "4pyTIMOgIGxhIG1vZGU="
-              //callhaproxy.haproxyCert(host, certArray);
-              //callhaproxy.haproxy(host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice(0,-4), 'haproxy', hexC(obj.id).toString(), obj.provider)
               hexC(obj.id)
               intenseDashboardView.idService = obj.id
               intenseDashboardView.feedback = feed.id
@@ -810,27 +758,6 @@ Rectangle {
                   getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
               }
           }
-
-          /*
-          StandardButton {
-              visible: !isMobile
-              id: filterButton
-              anchors.top: parent.top
-              anchors.left: favoriteFilter.right
-              anchors.leftMargin: 17
-              anchors.topMargin: 40
-              width: 60
-              text: qsTr("Filter") + translationManager.emptyString
-              shadowReleasedColor: "#A7B8C0"
-              shadowPressedColor: "#666e71"
-              releasedColor: "#6C8896"
-              pressedColor: "#A7B8C0"
-              onClicked:  {
-                  //console.log("Getting SDP Services after clicking on button");
-                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
-              }
-          }
-          */
     }
 
     Rectangle {
@@ -918,7 +845,6 @@ Rectangle {
                         CheckBox {
                             visible: !isMobile
                             id: favoriteCheck
-                            //text: qsTr("Favorite") + translationManager.emptyString
                             anchors.left: parent.left
                             anchors.top: parent.top
                             anchors.leftMargin: -50
@@ -936,7 +862,7 @@ Rectangle {
                             cancelVisible: true
                             okVisible: true
                             width:400
-                            height: 380
+                            height: 430
                             onAccepted:{
                                 createJsonFeedback(obj, rank)
 
@@ -945,7 +871,7 @@ Rectangle {
                             GroupBox {
                                 anchors.top: parent.top
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                anchors.topMargin: 215
+                                anchors.topMargin: 270
                                 height: 70
                                 ExclusiveGroup { id: tabPositionGroup }
                                 flat: true
