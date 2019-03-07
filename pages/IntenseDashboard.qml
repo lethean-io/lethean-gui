@@ -47,7 +47,6 @@ Rectangle {
     property int waitHaproxy: 0
     property int callProxy
     property int proxyStats: 0
-    property bool autoRenew
     property bool showTime
 
     // keep track haproxy verify 10 before payment and 300 after payment
@@ -122,7 +121,6 @@ Rectangle {
         appWindow.persistentSettings.macHostFlagTimeLeft = macHostFlag
         appWindow.persistentSettings.timerPaymentTimeLeft = timerPayment
         appWindow.persistentSettings.hexConfigTimeLeft = hexConfig
-        appWindow.persistentSettings.haproxyAutoRenew = autoRenew
         appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
 
         // make more than one payment if necessary
@@ -196,7 +194,7 @@ Rectangle {
                 changeStatus();
             }
 
-            if (callhaproxy.haproxyStatus === "NO_PAYMENT") {
+            if (callhaproxy.haproxyStatus === "NO_PAYMENT" || callhaproxy.haproxyStatus === "OK") {
                   // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
                   if (dashboardPayment != 0) {
                       firstPayment = 0;
@@ -589,8 +587,8 @@ Rectangle {
                 intenseDashboardView.hexConfig = hexConfig
                 intenseDashboardView.firstPayment = 1
                 intenseDashboardView.callProxy = 1
-                intenseDashboardView.autoRenew = proxyRenew
                 intenseDashboardView.showTime = false
+                appWindow.persistentSettings.haproxyAutoRenew = proxyRenew;
                 intenseDashboardView.addTextAndButtonAtDashboard();
 
                 changeStatus();
@@ -726,12 +724,12 @@ Rectangle {
         var data = new Date();
 
         // make payment when the date is equal ( date end - config payment - config subsequentVerificationsNeeded )
-        if ( ( ( data.getTime() - appWindow.persistentSettings.haproxyStart.getTime() ) / 1000 ).toFixed( 0 ) >=  ( ( appWindow.persistentSettings.haproxyTimeLeft.getTime() - appWindow.persistentSettings.haproxyStart.getTime() ) / 1000 ).toFixed( 0 ) - ( Config.payTimer + ( Config.subsequentVerificationsNeeded * subsequentVerificationsNeeded ) ) && autoRenew == true && firstPayment == 0 ) {
+        if ( ( ( data.getTime() - appWindow.persistentSettings.haproxyStart.getTime() ) / 1000 ).toFixed( 0 ) >=  ( ( appWindow.persistentSettings.haproxyTimeLeft.getTime() - appWindow.persistentSettings.haproxyStart.getTime() ) / 1000 ).toFixed( 0 ) - ( Config.payTimer + ( Config.subsequentVerificationsNeeded * subsequentVerificationsNeeded ) ) && appWindow.persistentSettings.haproxyAutoRenew == true && firstPayment == 0 ) {
             dashboardPayment = 1;
             setPayment();
             getITNS();
 
-        }else if ( appWindow.persistentSettings.haproxyTimeLeft < data && autoRenew == false && firstPayment == 0 ) {
+        }else if ( appWindow.persistentSettings.haproxyTimeLeft < data && appWindow.persistentSettings.haproxyAutoRenew == false && firstPayment == 0 ) {
             flag = 0
             changeStatus()
             callhaproxy.killHAproxy();
@@ -2059,13 +2057,15 @@ Rectangle {
 
 
     function onPageCompleted() {
+        proxyRenew = true;
+        radioRenew.checked = true;
 
         var data = new Date();
 
         if ( providerName != "" || appWindow.persistentSettings.haproxyTimeLeft > data ) {
             getColor( rank, rankRectangle )
             getMyFeedJson()
-            changeStatus()
+            //changeStatus()
 
             if (typeof (obj) == 'undefined') {
                 // show loading page until waiting the proxy up
@@ -2166,7 +2166,6 @@ Rectangle {
             lastCostIntenseText.visible = true
             lastSpeedLabel.visible = true
             lastSpeedText.visible = true
-
         }
         else {
             howToUseText.visible = true

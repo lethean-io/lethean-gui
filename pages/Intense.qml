@@ -256,9 +256,8 @@ Rectangle {
               intenseDashboardView.hexConfig = hexConfig
               intenseDashboardView.firstPayment = 1
               intenseDashboardView.callProxy = 1
-
-              intenseDashboardView.autoRenew = proxyRenew
               intenseDashboardView.showTime = false
+              appWindow.persistentSettings.haproxyAutoRenew = proxyRenew;
 
               // call important function to populate dashboard
               intenseDashboardView.changeStatus();
@@ -1126,6 +1125,7 @@ Rectangle {
 
 
     function onPageCompleted() {
+        proxyRenew = true;
         updateStatus();
         getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
 
