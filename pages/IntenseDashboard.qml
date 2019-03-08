@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import moneroComponents.TransactionInfo 1.0
 import QtQuick.Controls 1.4
+import QtQuick.Controls.Styles 1.4
 import QtQml 2.2
 import moneroComponents.Wallet 1.0
 import moneroComponents.WalletManager 1.0
@@ -455,6 +456,7 @@ Rectangle {
             startText.text = "Connected"
             appWindow.persistentSettings.paidTextLineTimeLeft = itnsStart.toFixed(8) + " "+Config.coinName;
             paidTextLine.text = itnsStart.toFixed(8) + " "+Config.coinName
+            switchAutoRenew.checked = appWindow.persistentSettings.haproxyAutoRenew
 
         }
         else {
@@ -1701,6 +1703,42 @@ Rectangle {
 
         Text {
               visible: !isMobile
+              id: switchTextOn
+              anchors.right: switchAutoRenew.left
+              anchors.top:  parent.top
+              anchors.topMargin: 10
+              anchors.rightMargin: 6
+              text: qsTr( "Auto renew" ) + translationManager.emptyString
+              font.pixelSize: 14
+          }
+
+        Switch {
+            id: switchAutoRenew
+            anchors.right: parent.right
+            anchors.top:  parent.top
+            anchors.topMargin: 10
+            anchors.rightMargin: 17
+            style: SwitchStyle {
+                groove: Rectangle {
+                    implicitWidth: 30
+                    implicitHeight: 15
+                    radius: 2
+                    border.width: 1
+                    border.color: switchAutoRenew.checked ? "#17a81a" : "#cccccc"
+                    color: switchAutoRenew.checked ? "#21be2b" : "white"
+                }
+            }
+
+            onClicked:{
+                switchAutoRenew.checked ?
+                          appWindow.persistentSettings.haproxyAutoRenew = true :
+                          appWindow.persistentSettings.haproxyAutoRenew = false;
+                console.log("was clicked > " + appWindow.persistentSettings.haproxyAutoRenew);
+            }
+        }
+
+        Text {
+              visible: !isMobile
               id: detailsText
               anchors.horizontalCenter: parent.horizontalCenter
               anchors.top:  parent.top
@@ -2166,6 +2204,8 @@ Rectangle {
             lastCostIntenseText.visible = true
             lastSpeedLabel.visible = true
             lastSpeedText.visible = true
+            switchTextOn.visible = true
+            switchAutoRenew.visible = true
 
         }
         else {
@@ -2203,6 +2243,8 @@ Rectangle {
             lastSpeedLabel.visible = false
             lastSpeedText.visible = false
             subConnectButton.visible = false
+            switchTextOn.visible = false
+            switchAutoRenew.visible = false
         }
     }
 }
