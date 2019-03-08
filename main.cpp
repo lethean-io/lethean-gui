@@ -52,6 +52,7 @@
 #include "wallet/wallet2_api.h"
 #include "MainApp.h"
 #include "Haproxy.h"
+#include "SignatureValidation.h"
 
 // IOS exclusions
 #ifndef Q_OS_IOS
@@ -153,8 +154,8 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("callhaproxy", &haproxy);
 
 
-    //SHA512 sha512;
-    //engine.rootContext()->setContextProperty("hash", &sha512);
+    SignatureValidation signature;
+    engine.rootContext()->setContextProperty("ed25519verify", &signature);
 
 
     engine.rootContext()->setContextProperty("walletManager", WalletManager::instance());

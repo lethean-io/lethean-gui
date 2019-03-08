@@ -1,3 +1,34 @@
+v3.1.0 - 2019.03.07
+
+ - fixed: validate provider online status before sending payment
+ - fixed: provider list filters are applied on-the-fly without needing to click 'filter'
+ - fixed: provider filters not applied when provider list auto-refreshes
+ - fixed: haproxy initialization and config file storage on mac
+ - fixed: haproxy no longer recognized as installed/cached after package removed
+ - improvement: haproxy launch status assessed and handled
+     https://github.com/LetheanMovement/lethean-gui/pull/148
+ - fixed: geoip api update
+     https://github.com/LetheanMovement/lethean-gui/pull/143
+ - add cancel button to pending payment dialog
+     https://github.com/LetheanMovement/lethean-gui/pull/140
+ - fixed: max window height on small resolution displays
+     https://github.com/LetheanMovement/lethean-gui/pull/139
+ - improvement: automatically use remote node sync.lethean.io as daemon ("lite wallet")
+     https://github.com/LetheanMovement/lethean-gui/pull/137
+ - switched to using production SDP URL
+     https://github.com/LetheanMovement/lethean-gui/pull/126
+ - improvement: use multithreading for haproxy interaction
+     https://github.com/LetheanMovement/lethean-gui/pull/117
+ - fixed: QR code for lethean addresses
+     https://github.com/LetheanMovement/lethean-gui/pull/119
+ - add loading screen for pending payment
+     https://github.com/LetheanMovement/lethean-gui/pull/116
+ - introduced block major version 6: hardfork at height 391,500
+ - Proof of Work (POW) change to CryptonightR (variant 4)
+     https://github.com/monero-project/monero/pull/5126
+ - upstream exploit fix (mishandling rct outputs in coinbase)
+     https://github.com/monero-project/monero/pull/5217
+
 v3.0.0 - 2018.11.07
  - improved payment scheduling to maintain connections through multiple payment periods
      https://github.com/LetheanMovement/lethean-gui/pull/98

@@ -97,6 +97,7 @@ ColumnLayout {
             //ListElement { dotColor: "#DBDBDB" }
             ListElement { dotColor: "#DBDBDB" }
             ListElement { dotColor: "#DBDBDB" }
+            ListElement { dotColor: "#DBDBDB" }
         }
 
         Repeater {

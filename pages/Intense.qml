@@ -16,6 +16,7 @@ Rectangle {
     property bool autoLoadMode
     property bool backgroundColor: false
     property bool unlockedBalance: true
+    property bool proxyRenew: true
 
     function buildTxDetailsString(data, rank) {
         //console.log(data.subsequentVerificationsNeeded + "-------------------- ttt")
@@ -92,6 +93,7 @@ Rectangle {
 
     }
 
+    /*
     function decode64(input) {
         var keyStr = "ABCDEFGHIJKLMNOP" +
                        "QRSTUVWXYZabcdef" +
@@ -138,6 +140,8 @@ Rectangle {
 
          return unescape(output);
       }
+      */
+
 
     function updateStatus() {
         if(typeof currentWallet === "undefined") {
@@ -184,70 +188,91 @@ Rectangle {
         return hexConfig
     }
 
+    // create a Hex value from body message
+    function asciiToHexa(str) {
+        var arr1 = [];
+        for (var n = 0, l = str.length; n < l; n ++) {
+            var hex = "0x" + Number(str.charCodeAt(n)).toString(16);
+            arr1.push(hex);
+        }
+        return arr1.join(',');
+    }
+
+    // add '0x' to a Hex value
+    function createHexValue(value) {
+        var hexValue = "";
+        for (var i = 0; i < value.length; i+=2) {
+            hexValue = hexValue + "0x" + value[i] + value[i+1] + ",";
+        }
+        return hexValue;
+    }
+
 
     function createJsonFeedback(obj, rank){
-        var url = Config.url + Config.version + Config.feedback + Config.setup
-        var xmlhttpPost = new XMLHttpRequest();
-        xmlhttpPost.onreadystatechange=function() {
-            if (xmlhttpPost.readyState == 4 && xmlhttpPost.status == 200) {
-                var feed = JSON.parse(xmlhttpPost.responseText)
-                var host = applicationDirectory;
-                //console.log(obj.certArray[0].certContent);
+      var url = Config.url + Config.version + Config.feedback + Config.setup
+      var xmlhttpPost = new XMLHttpRequest();
+      xmlhttpPost.onreadystatechange=function() {
+          if (xmlhttpPost.readyState == 4 && xmlhttpPost.status == 200) {
+              var feed = JSON.parse(xmlhttpPost.responseText)
+              var host = applicationDirectory;
+              //console.log(obj.certArray[0].certContent);
 
-                var endpoint = ''
-                var port = ''
-                if (obj.proxy.length > 0) {
-                    endpoint = obj.proxy[0].endpoint
-                    port = obj.proxy[0].port
-                }
-				else {
-                    endpoint = obj.vpn[0].endpoint
-                    port = obj.vpn[0].port
-                }
+              var endpoint = ''
+              var port = ''
+              if (obj.proxy.length > 0) {
+                  endpoint = obj.proxy[0].endpoint
+                  port = obj.proxy[0].port
+              }
+              else {
+                  endpoint = obj.vpn[0].endpoint
+                  port = obj.vpn[0].port
+              }
 
-                //var certArray = decode64(obj.certArray[0].certContent); // "4pyTIMOgIGxhIG1vZGU="
-                //callhaproxy.haproxyCert(host, certArray);
-                //callhaproxy.haproxy(host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice(0,-4), 'haproxy', hexC(obj.id).toString(), obj.provider)
-                hexC(obj.id)
-                intenseDashboardView.idService = obj.id
-                intenseDashboardView.feedback = feed.id
-                intenseDashboardView.providerName = obj.providerName
-                intenseDashboardView.name = obj.name
-                intenseDashboardView.type = obj.type
-                intenseDashboardView.cost = parseFloat(obj.cost) * obj.firstPrePaidMinutes
-                intenseDashboardView.rank = rank
-                intenseDashboardView.speed = formatBytes(obj.downloadSpeed)
-                intenseDashboardView.firstPrePaidMinutes = obj.firstPrePaidMinutes
-                intenseDashboardView.subsequentPrePaidMinutes = obj.subsequentPrePaidMinutes
-                intenseDashboardView.subsequentVerificationsNeeded = obj.subsequentVerificationsNeeded
-                intenseDashboardView.bton = "qrc:///images/power_off.png"
-                intenseDashboardView.flag = 1
-                intenseDashboardView.obj = obj
-                intenseDashboardView.secs = 0
-                intenseDashboardView.itnsStart = parseFloat(obj.cost) * obj.firstPrePaidMinutes
-                intenseDashboardView.macHostFlag = 0
-                intenseDashboardView.hexConfig = hexConfig
-                intenseDashboardView.firstPayment = 1
-                //intenseDashboardView.getTime();
-                intenseDashboardView.callProxy = 1
-                //console.log(radioRenew.checked + " =================123123=123=12=3=123=12=3=12=31=23=12=3=")
-                intenseDashboardView.autoRenew = true
-                intenseDashboardView.showTime = false
-                intenseDashboardView.dashboardPayment = 0
-                //must important to remove
-                intenseDashboardView.setPayment();
-                //subButton.enabled = false;
-                middlePanel.state = "VPN Dashboard"
+              if (callhaproxy.haproxyStatus !== "") {
+                  callhaproxy.killHAproxy();
+              }
 
-                leftPanel.selectItem("VPN Dashboard")
-            }
-        }
+              //var certArray = decode64(obj.certArray[0].certContent); // "4pyTIMOgIGxhIG1vZGU="
+              //callhaproxy.haproxyCert(host, certArray);
+              //callhaproxy.haproxy(host, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice(0,-4), 'haproxy', hexC(obj.id).toString(), obj.provider)
+              hexC(obj.id)
+              intenseDashboardView.idService = obj.id
+              intenseDashboardView.feedback = feed.id
+              intenseDashboardView.providerName = obj.providerName
+              intenseDashboardView.name = obj.name
+              intenseDashboardView.type = obj.type
+              intenseDashboardView.cost = parseFloat(obj.cost) * obj.firstPrePaidMinutes
+              intenseDashboardView.rank = rank
+              intenseDashboardView.speed = formatBytes(obj.downloadSpeed)
+              intenseDashboardView.firstPrePaidMinutes = obj.firstPrePaidMinutes
+              intenseDashboardView.subsequentPrePaidMinutes = obj.subsequentPrePaidMinutes
+              intenseDashboardView.subsequentVerificationsNeeded = obj.subsequentVerificationsNeeded
+              intenseDashboardView.bton = "qrc:///images/power_off.png"
+              intenseDashboardView.flag = 1
+              intenseDashboardView.obj = obj
+              intenseDashboardView.secs = 0
+              intenseDashboardView.itnsStart = parseFloat(obj.cost) * obj.firstPrePaidMinutes
+              intenseDashboardView.macHostFlag = 0
+              intenseDashboardView.hexConfig = hexConfig
+              intenseDashboardView.firstPayment = 1
+              intenseDashboardView.callProxy = 1
+              intenseDashboardView.showTime = false
+              appWindow.persistentSettings.haproxyAutoRenew = proxyRenew;
 
-        var data = {"id":obj.providerWallet, "provider":obj.provider, "services":obj.id, "client":appWindow.currentWallet.address}
-        data = JSON.stringify(data)
-        xmlhttpPost.open("POST", url, true);
-        xmlhttpPost.setRequestHeader("Content-type", "application/json");
-        xmlhttpPost.send(data);
+              // call important function to populate dashboard
+              intenseDashboardView.changeStatus();
+              intenseDashboardView.addTextAndButtonAtDashboard();
+
+              middlePanel.state = "VPN Dashboard"
+              leftPanel.selectItem("VPN Dashboard")
+          }
+      }
+
+      var data = {"id":obj.providerWallet, "provider":obj.provider, "services":obj.id, "client":appWindow.currentWallet.address}
+      data = JSON.stringify(data)
+      xmlhttpPost.open("POST", url, true);
+      xmlhttpPost.setRequestHeader("Content-type", "application/json");
+      xmlhttpPost.send(data);
 
     }
 
@@ -484,24 +509,12 @@ Rectangle {
         var url = Config.url + Config.version + Config.services + Config.search
         var xmlhttp = new XMLHttpRequest();
         listView.model.clear()
-        xmlhttp.onreadystatechange=function() {
-
-            // response is not ready, return
-            if (xmlhttp.readyState != 4) {
-                return;
-            }
+        xmlhttp.onreadystatechange = function() {
 
             // hide loading once we have retrieved the services
             loading.visible = false;
 
-            if (xmlhttp.status == 200) {
-                //console.log("SDP Services correctly received");
-                getJsonFail.visible = false;
-
-                // once we auto load the services, disable auto load mode
-                autoLoadMode = false;
-
-
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
                 var arr = JSON.parse(xmlhttp.responseText)
 
                 // validate if SDP version matches wallet
@@ -523,8 +536,6 @@ Rectangle {
                 // Get the raw header string
                 var headers = xmlhttp.getAllResponseHeaders();
 
-                //console.log(headers + " my headers")
-
                 // Convert the header string into an array
                 // of individual headers
                 var arrHeaders = headers.trim().split(/[\r\n]+/);
@@ -538,46 +549,49 @@ Rectangle {
                   headerMap[header] = value;
                 });
 
-                //console.log(arrHeaders[5] + " my arr")
-                /*
-                var publicKey = Config.ENCRYPTION_PUBLIC_KEY;
-                var encryptionContext = new EdDSA('ed25519');
-                var publicKeyHex = publicKey.toString('hex');
+                var signature = arrHeaders[5].split(".");
+
+                // Receive a signed message from peer and verify it using their public key.
+                var theirSignedMessage = JSON.stringify(arr);
+
+                // get just signature from header
+                var signatureString = signature[1];
+
+                // format variable as Hex value
+                var msghexkey = asciiToHexa(theirSignedMessage);
+                var pkey = createHexValue(Config.publicKey);
+                var sigkey = createHexValue(signatureString);
 
 
-                // Import public key
-                var key = encryptionContext.keyFromPublic(publicKey, 'hex');
-                // Verify signature
-                console.log("Verifying signature using public key");
-                console.log(key.verify(jsonResponseEncoded, signatureHex));
-                */
+                if (!ed25519verify.verify(msghexkey, sigkey, pkey, Math.round(msghexkey.length/5))) {
+                    getJsonFail.text = "<p><b>Provider information error</b></p>";
+                    getJsonFail.text += "There was an error trying to retrieve available services.<br>";
+                    getJsonFail.text += "Please try again, and contact support if the problem persists,<br>mentioning the code 'SDP001'.";
+
+                    // disable the button to search the SDP
+                    filterButton.enabled = false;
+
+                    getJsonFail.visible = true;
+
+                    return;
+                }
+
 
                 var providers = arr.providers
                 for (var i = 0; i < providers.length; i++) {
                     getSignature(providers, providers[i], i, speed, speedType, price, tp, favorite)
                 }
 
-                // check geo location
-                var urlGEO = "https://geoip.nekudo.com/api/"
-                var xmlGEOhttp = new XMLHttpRequest();
-
-                xmlGEOhttp.onreadystatechange=function() {
-                    if (xmlGEOhttp.readyState != 4) {
-                        return;
-                    }
-
-                    if (xmlGEOhttp.readyState != 200) {
-                        getJsonFail.visible = true;
-                        getJsonFail.text = "Error status - SDP: " + xmlhttp.status + "<br />Error readyState - SDP: " + xmlhttp.readyState + "<br />" + xmlhttp.responseText + "<br /><br />" + "Error Status - GEO: " + xmlGEOhttp.status
-                    }
+                // Show mesage when the user don't have Favorite
+                if (arrChecked && arrChecked.length == 0 && favoriteFilter.checked) {
+                    getJsonFail.text = "Sorry, you don't have any favorites.";
+                    getJsonFail.visible = true;
                 }
-                xmlGEOhttp.open("GET", urlGEO, true);
-                xmlGEOhttp.setRequestHeader("Access-Control-Allow-Origin","*")
-                xmlGEOhttp.send();
             }
-            else { // sdp services retrieval failed, notify user and try again later
+            else if(xmlhttp.readyState == 4 && xmlhttp.status != 200) { // sdp services retrieval failed, notify user and try again later
                 //console.log("SDP services retrieval failed");
                 //console.log(xmlhttp);
+
                 getJsonFail.visible = true;
                 getJsonFail.text = "There was an error trying to retrieve available services.<br>";
                 getJsonFail.text += "Please click the 'Filter' button to retry.<br><br>";
@@ -585,19 +599,6 @@ Rectangle {
                 getJsonFail.text += "Code: " + xmlhttp.status + "<br>";
                 getJsonFail.text += "Message: " + xmlhttp.responseText;
 
-                //console.log("SDP Auto load mode " + autoLoadMode);
-                // this will be true if we are autoloading services after startup of the app
-                if (autoLoadMode == true) {
-                    //console.log("SDP Auto load timeout for services retrieval");
-                    getJson();
-                    /*
-                    setTimeout(
-                        function() {
-                            console.log("AutoLoadMode activated after failure retrieving services");
-                            getJson();
-                        }, 2000);
-                    */
-                }
             }
         }
 
@@ -624,12 +625,17 @@ Rectangle {
     }
 
     function getCheckedFavorite(obj){
-        for(var iCheckedFavorite = 0; iCheckedFavorite < arrChecked.length; iCheckedFavorite++){
-            if(arrChecked[iCheckedFavorite].services == obj.id && arrChecked[iCheckedFavorite].provider == obj.provider) {
-                return true
+        if ( typeof (arrChecked) == 'undefined' ){
+            return false
+        } else {
+            for(var iCheckedFavorite = 0; iCheckedFavorite < arrChecked.length; iCheckedFavorite++){
+                if(arrChecked[iCheckedFavorite].services == obj.id && arrChecked[iCheckedFavorite].provider == obj.provider) {
+                    return true
+                }
             }
+            return false
         }
-        return false
+
     }
 
     function getFavorite(checked, obj){ 
@@ -666,167 +672,183 @@ Rectangle {
 
     color: "#F0EEEE"
 
+    Rectangle {
+        color: "#F0EEEE"
+        height: 95
+        width: root.width
+        z: 20
 
-
-    Label {
-          visible: !isMobile
-          id: typeText
-          anchors.left: parent.left
-          anchors.top:  parent.top
-          anchors.leftMargin: 17
-          anchors.topMargin: 17
-          width: 100
-          text: qsTr("Type") + translationManager.emptyString
-          fontSize: 14
-      }
-
-      ListModel {
-          id: typeTransaction
-          ListElement { column1: "ALL"; column2: ""; value: "all" }
-          ListElement { column1: "VPN"; column2: ""; value: "vpn" }
-          ListElement { column1: "PROXY"; column2: ""; value: "proxy" }
-
-      }
-
-      StandardDropdown {
-          visible: !isMobile
-          id: typeDrop
-          anchors.left: parent.left
-          anchors.top: typeText.bottom
-          anchors.leftMargin: 17
-          anchors.topMargin: 5
-          width: 100
-          shadowReleasedColor: "#A7B8C0"
-          shadowPressedColor: "#666e71"
-          releasedColor: "#6C8896"
-          pressedColor: "#A7B8C0"
-          dataModel: typeTransaction
-          z: 100
-      }
-
-      Label {
-          visible: !isMobile
-          id: maxPriceText
-          anchors.left: typeText.right
-          anchors.top:  parent.top
-          anchors.leftMargin: 17
-          anchors.topMargin: 17
-          width: 156
-          text: qsTr("Max Price") + translationManager.emptyString
-          fontSize: 14
-      }
-
-      LineEdit {
-          visible: !isMobile
-          id: maxPriceLine
-          anchors.left: typeDrop.right
-          anchors.top: maxPriceText.bottom
-          anchors.leftMargin: 17
-          anchors.topMargin: 5
-          width: 156
-      }
-
-      Label {
-          visible: !isMobile
-          id: minSpeedText
-          anchors.left: maxPriceText.right
-          anchors.top: parent.top
-          anchors.leftMargin: 17
-          anchors.topMargin: 17
-          width: 110
-          text: qsTr("Min Speed") + translationManager.emptyString
-          fontSize: 14
-      }
-
-      LineEdit {
-          visible: !isMobile
-          id: minSpeedLine
-          anchors.left: maxPriceLine.right
-          anchors.top: minSpeedText.bottom
-          anchors.leftMargin: 17
-          anchors.topMargin: 5
-          width: 110
-
-      }
-
-      ListModel {
-          id: typeSpeed
-          ListElement { column1: "KB/s"; column2: ""; value: "kb" }
-          ListElement { column1: "MB/s"; column2: ""; value: "mb" }
-      }
-
-      StandardDropdown {
-          visible: !isMobile
-          id: speedDrop
-          anchors.left: minSpeedLine.right
-          anchors.top: minSpeedText.bottom
-          anchors.leftMargin: 0
-          anchors.topMargin: 5
-          width: 80
-          shadowReleasedColor: "#A7B8C0"
-          shadowPressedColor: "#666e71"
-          releasedColor: "#6C8896"
-          pressedColor: "#A7B8C0"
-          dataModel: typeSpeed
-          z: 100
-      }
-
-
-
-      CheckBox {
-          visible: !isMobile
-          id: favoriteFilter
-          text: qsTr("Favorite") + translationManager.emptyString
-          anchors.left: speedDrop.right
-          anchors.top: parent.top
-          anchors.leftMargin: 17
-          anchors.topMargin: 46
-          checkedIcon: "../images/star.png"
-          uncheckedIcon: "../images/unstar.png"
-          onClicked: {
+        Label {
+              visible: !isMobile
+              id: typeText
+              anchors.left: parent.left
+              anchors.top:  parent.top
+              anchors.leftMargin: 17
+              anchors.topMargin: 17
+              width: 100
+              text: qsTr("Type") + translationManager.emptyString
+              fontSize: 14
           }
-      }
 
-      StandardButton {
-          visible: !isMobile
-          id: filterButton
-          anchors.top: parent.top
-          anchors.left: favoriteFilter.right
-          anchors.leftMargin: 17
-          anchors.topMargin: 40
-          width: 60
-          text: qsTr("Filter") + translationManager.emptyString
-          shadowReleasedColor: "#A7B8C0"
-          shadowPressedColor: "#666e71"
-          releasedColor: "#6C8896"
-          pressedColor: "#A7B8C0"
-          onClicked:  {
-              //console.log("Getting SDP Services after clicking on button");
-              getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+          ListModel {
+              id: typeTransaction
+              ListElement { column1: "ALL"; column2: ""; value: "all" }
+              ListElement { column1: "VPN"; column2: ""; value: "vpn" }
+              ListElement { column1: "PROXY"; column2: ""; value: "proxy" }
+
           }
-      }
+
+          StandardDropdown {
+              visible: !isMobile
+              id: typeDrop
+              anchors.left: parent.left
+              anchors.top: typeText.bottom
+              anchors.leftMargin: 17
+              anchors.topMargin: 5
+              width: 100
+              shadowReleasedColor: "#A7B8C0"
+              shadowPressedColor: "#666e71"
+              releasedColor: "#6C8896"
+              pressedColor: "#A7B8C0"
+              dataModel: typeTransaction
+              z: 100
+              onCurrentIndexChanged: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
+          }
+
+          Label {
+              visible: !isMobile
+              id: maxPriceText
+              anchors.left: typeText.right
+              anchors.top:  parent.top
+              anchors.leftMargin: 17
+              anchors.topMargin: 17
+              width: 176
+              text: qsTr("Max Price") + translationManager.emptyString
+              fontSize: 14
+          }
+
+          LineEdit {
+              visible: !isMobile
+              id: maxPriceLine
+              anchors.left: typeDrop.right
+              anchors.top: maxPriceText.bottom
+              anchors.leftMargin: 17
+              anchors.topMargin: 5
+              width: 176
+              onTextChanged: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
+          }
+
+          Label {
+              visible: !isMobile
+              id: minSpeedText
+              anchors.left: maxPriceText.right
+              anchors.top: parent.top
+              anchors.leftMargin: 17
+              anchors.topMargin: 17
+              width: 176
+              text: qsTr("Min Speed") + translationManager.emptyString
+              fontSize: 14
+          }
+
+          LineEdit {
+              visible: !isMobile
+              id: minSpeedLine
+              anchors.left: maxPriceLine.right
+              anchors.top: minSpeedText.bottom
+              anchors.leftMargin: 17
+              anchors.topMargin: 5
+              width: 176
+              onTextChanged: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
+
+          }
+
+          ListModel {
+              id: typeSpeed
+              ListElement { column1: "KB/s"; column2: ""; value: "kb" }
+              ListElement { column1: "MB/s"; column2: ""; value: "mb" }
+          }
+
+          StandardDropdown {
+              visible: !isMobile
+              id: speedDrop
+              anchors.left: minSpeedLine.right
+              anchors.top: minSpeedText.bottom
+              anchors.leftMargin: 0
+              anchors.topMargin: 5
+              width: 80
+              shadowReleasedColor: "#A7B8C0"
+              shadowPressedColor: "#666e71"
+              releasedColor: "#6C8896"
+              pressedColor: "#A7B8C0"
+              dataModel: typeSpeed
+              z: 100
+              onCurrentIndexChanged: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
+          }
+
+
+
+          CheckBox {
+              visible: !isMobile
+              id: favoriteFilter
+              text: qsTr("Favorite") + translationManager.emptyString
+              anchors.left: speedDrop.right
+              anchors.top: parent.top
+              anchors.leftMargin: 17
+              anchors.topMargin: 46
+              checkedIcon: "../images/star.png"
+              uncheckedIcon: "../images/unstar.png"
+              onClicked: {
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
+          }
+
+          /*
+          StandardButton {
+              visible: !isMobile
+              id: filterButton
+              anchors.top: parent.top
+              anchors.left: favoriteFilter.right
+              anchors.leftMargin: 17
+              anchors.topMargin: 40
+              width: 60
+              text: qsTr("Filter") + translationManager.emptyString
+              shadowReleasedColor: "#A7B8C0"
+              shadowPressedColor: "#666e71"
+              releasedColor: "#6C8896"
+              pressedColor: "#A7B8C0"
+              onClicked:  {
+                  //console.log("Getting SDP Services after clicking on button");
+                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+              }
+          }
+          */
+    }
 
     Rectangle {
-        property int expandedHeight: parent.height - parent.y - parent.height - 5
+        //property int expandedHeight: parent.height - parent.y - parent.height - 5
         property int middleHeight: parent.height - maxPriceLine.y - maxPriceLine.height - 17
-        property int collapsedHeight: parent.height - typeDrop.y - typeDrop.height - 17
+        //property int collapsedHeight: parent.height - typeDrop.y - typeDrop.height - 17
 
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         color: "#FFFFFF"
-        z: 1
 
         height: (isMobile)? parent.height : middleHeight
-        onHeightChanged: {
-            if(height === middleHeight) z = 1
-            else if(height === collapsedHeight) z = 0
-            else z = 3
-        }
 
+        /*
         Behavior on height {
             NumberAnimation { duration: 200; easing.type: Easing.InQuad }
         }
+        */
 
         Rectangle {
             anchors.left: parent.left
@@ -925,6 +947,7 @@ Rectangle {
                                 anchors.topMargin: 215
                                 height: 70
                                 ExclusiveGroup { id: tabPositionGroup }
+                                flat: true
                                 Column {
                                     anchors.top: parent.top
                                     anchors.topMargin: 20
@@ -933,11 +956,17 @@ Rectangle {
                                         text: "Auto Renew Connection"
                                         checked: true
                                         exclusiveGroup: tabPositionGroup
+                                        onClicked: {
+                                            proxyRenew = true;
+                                        }
                                     }
                                     RadioButton {
                                         id: radioClose
                                         text: "Close after time expired"
                                         exclusiveGroup: tabPositionGroup
+                                        onClicked: {
+                                            proxyRenew = false;
+                                        }
                                     }
                                 }
 
@@ -990,11 +1019,15 @@ Rectangle {
                                 // check the unlocked balance to lock the connect button.
                                 // unlockedbalance == true because its have to run only once
                                 if(walletManager.displayAmount(currentWallet.unlockedBalance) < 1) {
+                                    statusText.text = qsTr("Waiting for wallet balance");
                                     timerUnlockedBalance.start();
                                     unlockedBalance = false
                                     this.enabled = false
                                 }
                                 else{
+                                    if (statusText.text === qsTr("Waiting for wallet balance")) {
+                                      statusText.text = "";
+                                    }
                                     timerUnlockedBalance.stop();
                                     unlockedBalance = true
                                     this.enabled = true
@@ -1041,7 +1074,7 @@ Rectangle {
                 Component.onCompleted: {
                     //console.log("Getting SDP Services after List initialized");
                     autoLoadMode = true;
-                    getJson()
+                    getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
 
                 }
 
@@ -1082,9 +1115,9 @@ Rectangle {
         onTriggered:
         {
             if(unlockedBalance == true && appWindow.currentWallet.unlockedBalance < 1){
-                getJson()
+                getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
             }else if(appWindow.currentWallet.unlockedBalance > 1){
-                getJson()
+                getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
             }
         }
     }
@@ -1092,7 +1125,9 @@ Rectangle {
 
 
     function onPageCompleted() {
+        proxyRenew = true;
         updateStatus();
+        getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
 
     }
 }

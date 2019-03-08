@@ -1,26 +1,9 @@
-#include "Thread.h"
-#include "HTTPResponse.h"
-
-#include <QDir>
-#include <QFile>
-#include <QDebug>
-#include <QProcess>
-#include <QTimer>
-#include <QThread>
-#include <QtCore>
-#include <QObject>
-
-#include <thread>
-#include <string>
-#include <iostream>
-#include <istream>
-#include <ostream>
-#include <boost/asio.hpp>
+#include "ThreadVerifyHaproxy.h"
 
 using boost::asio::ip::tcp;
 
 // helper function to store head and body response from boost
-std::string buffer_to_string(const boost::asio::streambuf &buffer)
+std::string ThreadVerifyHaproxy::buffer_to_string(const boost::asio::streambuf &buffer)
 {
   using boost::asio::buffers_begin;
   auto bufs = buffer.data();
@@ -32,7 +15,7 @@ std::string buffer_to_string(const boost::asio::streambuf &buffer)
 // based on original sync_client documentation sample from Boost
 // https://www.boost.org/doc/libs/1_49_0/doc/html/boost_asio/example/http/client/sync_client.cpp
 // Copyright (c) 2003-2012 Christopher M. Kohlhoff (chris at kohlhoff dot com)
-HttpResponse proxyRequest(std::string proxyHost, std::string proxyPort, std::string requestURL, std::string provider) {
+HttpResponse ThreadVerifyHaproxy::proxyRequest(std::string proxyHost, std::string proxyPort, std::string requestURL, std::string provider) {
     HttpResponse output = HttpResponse(0);
 
     // regular proxies use \r\n as boundaries but not this one, we need \n validation only
@@ -100,7 +83,7 @@ HttpResponse proxyRequest(std::string proxyHost, std::string proxyPort, std::str
         }
 
         // Read the response headers, which are terminated by a blank line.
-        boost::asio::read_until(socket, response, "\n\n");
+        boost::asio::read_until(socket, response, "\r\n\r\n");
 
         // Process the response headers.
         std::string header;
@@ -138,21 +121,33 @@ HttpResponse proxyRequest(std::string proxyHost, std::string proxyPort, std::str
     return output;
 }
 
-QString Thread::start( std::string host, std::string port, std::string provider ) {
+QString ThreadVerifyHaproxy::startVerifyHaproxy() {
     // TODO - this needs to be updated when new dispatcher is available
     std::string endpoint = std::string("http://_remote_/status");
 
-    HttpResponse response = proxyRequest( host, port, endpoint, provider );
+    HttpResponse response = proxyRequest( m_haproxyHost, m_haproxyPort, endpoint, m_haproxyProvider );
 
     // return response based on the header
     if ( response.getStatusCode() == 200 ) {
         // return OK with the proxy works
         return "OK";
     }
-    else if( response.getHeaders()["X-ITNS-Status"] == "CONNECTION_ERROR" ) {
+    else if( response.getStatusCode() == 503 ||
+        response.getHeaders()["X-ITNS-Status"] == "CONNECTION_ERROR" ) {
         // return Connection error to stop proxy
         return "CONNECTION_ERROR";
+    } else if (response.getStatusCode() == 403) {
+        return "NO_PAYMENT";
+    } else if ( !response.getBody().empty() ) {
+        return QString::fromStdString(response.getBody());
     }
 
-    return "NO_PAYMENT";
+    return "READY";
+}
+
+// set the returnable variables
+void ThreadVerifyHaproxy::setup(std::string host, std::string port, std::string provider) {
+    m_haproxyHost = host;
+    m_haproxyPort = port;
+    m_haproxyProvider = provider;
 }

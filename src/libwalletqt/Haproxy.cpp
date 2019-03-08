@@ -1,24 +1,4 @@
 #include "Haproxy.h"
-#include "Thread.h"
-#include <QDir>
-#include <QFile>
-#include <QDebug>
-#include <QProcess>
-#include <QTimer>
-#include <QThread>
-#include <QtCore>
-#include <QObject>
-
-#include <thread>
-#include <string>
-#include <iostream>
-#include <istream>
-#include <ostream>
-#include <boost/asio.hpp>
-
-#ifdef Q_OS_WIN
-    #include <windows.h>
-#endif
 
 bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &port, const QString &endpoint, const QString &endpointport, const QString &fixedHost, const QString &auth, const QString &provider, const QString &plan, const QString &serviceName) {
     // TODO: this should be set at global scope instead of for these individual users of "host"
@@ -26,18 +6,32 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
     // - for windows: a relative path is ok
     #if defined(Q_OS_WIN)
     const QString sibling_file_path = "";
-    // - for mac: we need to back out to be level with the .app
-    #elif defined(Q_OS_MAC)
-    const QString sibling_file_path = host + "/../../../";
-    // - for linux: we need an absolute path
     #else
-    const QString sibling_file_path = host + "/";
+    const QString sibling_file_path = host;
     #endif
 
     qDebug() << "Starting haproxy";
 
     QFile::remove(sibling_file_path + "provider.http");
     QFile fileProvider(sibling_file_path + "provider.http");
+
+    QFile::remove(sibling_file_path + "ha_credit.http");
+    QFile fileCredit(sibling_file_path + "ha_credit.http");
+
+    QFile::remove(sibling_file_path + "ha_err_badid.http");
+    QFile fileBadid(sibling_file_path + "ha_err_badid.http");
+
+    QFile::remove(sibling_file_path + "ha_err_connect.http");
+    QFile fileConnect(sibling_file_path + "ha_err_connect.http");
+
+    QFile::remove(sibling_file_path + "ha_err_nopayment.http");
+    QFile fileNopayment(sibling_file_path + "ha_err_nopayment.http");
+
+    QFile::remove(sibling_file_path + "ha_err_overlimit.http");
+    QFile fileOverlimit(sibling_file_path + "ha_err_overlimit.http");
+
+    QFile::remove(sibling_file_path + "ha_info.http");
+    QFile fileInfo(sibling_file_path + "ha_info.http");
 
     // delete old file and create new one
     QFile::remove(sibling_file_path + "haproxy.cfg");
@@ -65,6 +59,156 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         fileProvider.close();
     }
 
+    //create ha_credit.http
+    if(fileCredit.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
+        QTextStream txtStream(&fileCredit);
+
+        txtStream << "HTTP/1.0 200 OK\n";
+        txtStream << "Cache-Control: no-cache\n";
+        txtStream << "Connection: close\n";
+        txtStream << "Content-Type: text/html\n";
+        txtStream << "<html>\n";
+
+        txtStream << "<body>\n";
+        txtStream << "<h1>ITNSVPN credit unavailable yet</h1>\n";
+        txtStream << "</body>\n";
+        txtStream << "</html>\n";
+
+
+
+        txtStream.seek(0);
+        /*
+        while(!txtStream.atEnd()) {
+            qDebug() << txtStream.readLine();
+        }
+        */
+        fileCredit.close();
+    }
+
+    //create ha_err_badid.http
+    if(fileBadid.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
+        QTextStream txtStream(&fileBadid);
+
+        txtStream << "HTTP/1.0 503 BAD_ID\n";
+        txtStream << "Access-Control-Allow-Origin: *\n";
+        txtStream << "Access-Control-Allow-Methods: GET\n";
+        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Max-Age: 86400\n";
+
+        txtStream << "Cache-Control: no-cache\n";
+        txtStream << "Connection: close\n";
+        txtStream << "Content-Type: text/html\n";
+        txtStream << "X-ITNS-Status: BAD_ID\n";
+        txtStream << "BAD_ID\n";
+
+        txtStream.seek(0);
+        /*
+        while(!txtStream.atEnd()) {
+            qDebug() << txtStream.readLine();
+        }
+        */
+        fileBadid.close();
+    }
+
+    //create ha_err_connect.http
+    if(fileConnect.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
+        QTextStream txtStream(&fileConnect);
+
+        txtStream << "HTTP/1.0 503 CONNECTION_ERROR\n";
+        txtStream << "Access-Control-Allow-Origin: *\n";
+        txtStream << "Access-Control-Allow-Methods: GET\n";
+        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Max-Age: 86400\n";
+
+        txtStream << "Cache-Control: no-cache\n";
+        txtStream << "Connection: close\n";
+        txtStream << "Content-Type: text/html\n";
+        txtStream << "X-ITNS-Status: CONNECTION_ERROR\n";
+        txtStream << "CONNECTION_ERROR\n";
+
+        txtStream.seek(0);
+        /*
+        while(!txtStream.atEnd()) {
+            qDebug() << txtStream.readLine();
+        }
+        */
+        fileConnect.close();
+    }
+
+    //create ha_err_nopayment.http
+    if(fileNopayment.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
+        QTextStream txtStream(&fileNopayment);
+
+        txtStream << "HTTP/1.0 403 Forbidden\n";
+        txtStream << "Access-Control-Allow-Origin: *\n";
+        txtStream << "Access-Control-Allow-Methods: GET\n";
+        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Max-Age: 86400\n";
+
+        txtStream << "Cache-Control: no-cache\n";
+        txtStream << "Connection: close\n";
+        txtStream << "Content-Type: text/html\n";
+        txtStream << "X-ITNS-Status: NO_PAYMENT\n";
+        txtStream << "NO_PAYMENT\n";
+
+        txtStream.seek(0);
+        /*
+        while(!txtStream.atEnd()) {
+            qDebug() << txtStream.readLine();
+        }
+        */
+        fileNopayment.close();
+    }
+
+    //create ha_err_overlimit.http
+    if(fileOverlimit.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
+        QTextStream txtStream(&fileOverlimit);
+
+        txtStream << "HTTP/1.0 429 Too many requests\n";
+        txtStream << "Access-Control-Allow-Origin: *\n";
+        txtStream << "Access-Control-Allow-Methods: GET\n";
+        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Max-Age: 86400\n";
+
+        txtStream << "Cache-Control: no-cache\n";
+        txtStream << "Connection: close\n";
+        txtStream << "Content-Type: text/html\n";
+        txtStream << "X-ITNS-Status: OVERLIMIT\n";
+        txtStream << "OVERLIMIT\n";
+
+        txtStream.seek(0);
+        /*
+        while(!txtStream.atEnd()) {
+            qDebug() << txtStream.readLine();
+        }
+        */
+        fileOverlimit.close();
+    }
+
+    //create ha_info.http
+    if(fileInfo.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)){
+        QTextStream txtStream(&fileInfo);
+
+        txtStream << "HTTP/1.0 200 OK\n";
+        txtStream << "Access-Control-Allow-Origin: *\n";
+        txtStream << "Access-Control-Allow-Methods: GET\n";
+        txtStream << "Access-Control-Allow-Headers: X-ITNS-Status\n";
+        txtStream << "Access-Control-Max-Age: 86400\n";
+
+        txtStream << "Cache-Control: no-cache\n";
+        txtStream << "Connection: close\n";
+        txtStream << "Content-Type: text/html\n";
+        txtStream << "X-ITNS-Status: OK\n";
+        txtStream << "OK\n";
+
+        txtStream.seek(0);
+        /*
+        while(!txtStream.atEnd()) {
+            qDebug() << txtStream.readLine();
+        }
+        */
+        fileInfo.close();
+    }
 
     //create config file
     if (file.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text)) {
@@ -126,7 +270,13 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         txtStream << "option          nolinger\n";
         txtStream << "option          httplog\n";
         txtStream << "http-request add-header X-ITNS-PaymentID "+auth+"\n";
-        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file '" + sibling_file_path + "ca.cert.pem'\n";
+        #ifdef Q_OS_WIN
+        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file 'ca.cert.pem'\n";
+        #else
+        txtStream << "server hatls " + endpoint + ":" + endpointport + " force-tlsv12 ssl ca-file '"+sibling_file_path+"ca.cert.pem'\n";
+        //save the host variable to show in dashboard
+        Haproxy::m_haproxyConfigPath = sibling_file_path;
+        #endif
 
         txtStream << "errorfile 503 " + sibling_file_path + "ha_err_connect.http\n";
 
@@ -182,37 +332,84 @@ bool Haproxy::haproxy(const QString &host, const QString &ip, const QString &por
         QString command = "";
         #ifdef Q_OS_WIN
             command = "haproxy.exe -f haproxy.cfg";
-            WinExec(qPrintable(command),SW_HIDE);
+            uint result = WinExec(qPrintable(command),SW_HIDE);            
+            if (result < 31) {
+                m_haproxyStatus = "Failed to launch haproxy (" + QString::number(result) + ") ";
+                qDebug() << "Failed to launch haproxy (Windows): " + QString::number(result);
+                return false;
+            }
         #else
+            QString haProxyPath = NULL;
+            QString hasHaproxyExecutable = NULL;
+
             #if defined(Q_OS_MAC)
-                QString haProxyPath = "/usr/local/bin/haproxy";
+                // verify if the haproxy exist in Mac if not send an alert
+                QFileInfo check_haproxy_exist_osx("/usr/local/bin/haproxy");
+                check_haproxy_exist_osx.refresh();
+                if (check_haproxy_exist_osx.exists()) {
+                    haProxyPath = "/usr/local/bin/haproxy";
+                } else {
+                    m_haproxyStatus = "Failed: " + haProxyPath;
+                    return false;
+                }
             #else
                 // try to find haproxy correctly
                 QProcess shellProcess;
+
+                // find for haproxy
                 shellProcess.start("/bin/sh");
                 shellProcess.write("which haproxy || whereis haproxy | cut -d ' ' -f 2");
                 shellProcess.closeWriteChannel();
                 shellProcess.waitForFinished(-1);
-                QString haProxyPath = shellProcess.readAllStandardOutput().trimmed();
+                haProxyPath = shellProcess.readAllStandardOutput().trimmed();
+
+                // when you remove the haproxy from your computer that path still works
+                if (haProxyPath == "/etc/haproxy") {
+                    qDebug() << "HAProxy has only uninstall path ";
+                    return false;
+                }
+
+                // verify if has haproxy executable
+                command = "[ ! -e " + haProxyPath + " ]; echo $?";
+                shellProcess.start("/bin/sh");
+                shellProcess.write(qPrintable(command));
+                shellProcess.closeWriteChannel();
+                shellProcess.waitForFinished(-1);
+                hasHaproxyExecutable = shellProcess.readAllStandardOutput().trimmed();
+
+                if (hasHaproxyExecutable != "1") {
+                    qDebug() << "HAProxy has no executable ";
+                    return false;
+                }
             #endif
 
             qDebug() << "HAProxy Path " << haProxyPath;
 
+            // save in haproxy variable the path to show in dashboard
+            Haproxy::m_haproxyPath = haProxyPath;
+
             // ha proxy location not found if output from command is empty or just the first word from whereis
             if (haProxyPath.isEmpty() || haProxyPath == "haproxy:") {
                 qDebug() << "HAProxy not found!";
+                 m_haproxyStatus = "NotFound: " + haProxyPath;
                 return false;
             }
 
             //system("trap 'pkill -f haproxy; echo teste haproxy; exit;' INT TERM");
             command = haProxyPath + " -f " + sibling_file_path + "haproxy.cfg";
-            system(qPrintable(command));
+            int result = system(qPrintable(command));
+            qDebug() << "Launched haproxy " << QString::number(result);
+            if (result != 0) {
+                m_haproxyStatus = "Failed to launch haproxy (" + QString::number(result) + ") " + haProxyPath + " " + sibling_file_path + "haproxy.cfg";
+                return false;
+            }
         #endif
 
         qDebug() << "Starting Haproxy: " << command;
 
     }
     else {
+        m_haproxyStatus = "Failed to open (" + QString::number(file.error()) + ") " + sibling_file_path + "haproxy.cfg";
         qDebug() << "could not open the file";
         return false;
     }
@@ -225,12 +422,8 @@ void Haproxy::haproxyCert(const QString &host, const QString &certificate){
     // - for windows: a relative path is ok
     #if defined(Q_OS_WIN)
     const QString sibling_file_path = "";
-    // - for mac: we need to back out to be level with the .app
-    #elif defined(Q_OS_MAC)
-    const QString sibling_file_path = host + "/../../../";
-    // - for linux: we need an absolute path
     #else
-    const QString sibling_file_path = host + "/";
+    const QString sibling_file_path = host;
     #endif
 
     QFile::remove(sibling_file_path + "ca.cert.pem");
@@ -256,6 +449,7 @@ void Haproxy::haproxyCert(const QString &host, const QString &certificate){
 
 void Haproxy::killHAproxy(){
 	qDebug() << "kill proxy";
+    m_haproxyStatus = "";
     #ifdef Q_OS_WIN
         WinExec("taskkill /f /im haproxy.exe",SW_HIDE);
     #else
@@ -264,7 +458,14 @@ void Haproxy::killHAproxy(){
 }
 
 // returns true if proxy is online and accepting connections, false otherwise
-QString Haproxy::verifyHaproxy(const QString &host, const QString &port, const QString &provider) {
-    Thread t;
-    return t.start(host.toStdString(), port.toStdString(), provider.toStdString());
+void Haproxy::verifyHaproxy(const QString &host, const QString &port, const QString &provider) {
+    ThreadVerifyHaproxy *workerThread = new ThreadVerifyHaproxy();
+    workerThread->setup(host.toStdString(), port.toStdString(), provider.toStdString());
+    connect(workerThread, &ThreadVerifyHaproxy::resultReady, this, &Haproxy::handleResults);
+    connect(workerThread, &ThreadVerifyHaproxy::finished, workerThread, &QObject::deleteLater);
+    workerThread->start();
+}
+
+void Haproxy::handleResults(const QString haproxyStatus) {
+     m_haproxyStatus = haproxyStatus;
 }

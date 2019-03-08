@@ -16,6 +16,31 @@ INCLUDEPATH +=  $$WALLET_ROOT/include \
                 $$WALLET_ROOT/src
 
 HEADERS += \
+    src/ed25519-donna/curve25519-donna-32bit.h \
+    src/ed25519-donna/curve25519-donna-64bit.h \
+    src/ed25519-donna/curve25519-donna-helpers.h \
+    src/ed25519-donna/curve25519-donna-sse2.h \
+    src/ed25519-donna/ed25519-donna-32bit-sse2.h \
+    src/ed25519-donna/ed25519-donna-32bit-tables.h \
+    src/ed25519-donna/ed25519-donna-64bit-sse2.h \
+    src/ed25519-donna/ed25519-donna-64bit-tables.h \
+    src/ed25519-donna/ed25519-donna-64bit-x86-32bit.h \
+    src/ed25519-donna/ed25519-donna-64bit-x86.h \
+    src/ed25519-donna/ed25519-donna-basepoint-table.h \
+    src/ed25519-donna/ed25519-donna-batchverify.h \
+    src/ed25519-donna/ed25519-donna-impl-base.h \
+    src/ed25519-donna/ed25519-donna-impl-sse2.h \
+    src/ed25519-donna/ed25519-donna-portable-identify.h \
+    src/ed25519-donna/ed25519-donna-portable.h \
+    src/ed25519-donna/ed25519-donna.h \
+    src/ed25519-donna/ed25519-hash-custom.h \
+    src/ed25519-donna/ed25519-hash.h \
+    src/ed25519-donna/ed25519-randombytes-custom.h \
+    src/ed25519-donna/ed25519-randombytes.h \
+    src/ed25519-donna/ed25519.h \
+    src/ed25519-donna/modm-donna-32bit.h \
+    src/ed25519-donna/modm-donna-64bit.h \
+    src/ed25519-donna/regression.h \
     filter.h \
     clipboardAdapter.h \
     oscursor.h \
@@ -40,10 +65,11 @@ HEADERS += \
     MainApp.h \
     src/libwalletqt/Haproxy.h \
     src/libwalletqt/HTTPResponse.h \
-    src/libwalletqt/Thread.h
+    src/libwalletqt/ThreadVerifyHaproxy.h \
+    src/libwalletqt/SignatureValidation.h
 
 SOURCES += main.cpp \
-    filter.cpp \
+filter.cpp \
     clipboardAdapter.cpp \
     oscursor.cpp \
     src/libwalletqt/WalletManager.cpp \
@@ -66,7 +92,9 @@ SOURCES += main.cpp \
     MainApp.cpp \
     src/libwalletqt/Haproxy.cpp \
     src/libwalletqt/HTTPResponse.cpp \
-    src/libwalletqt/Thread.cpp
+    src/libwalletqt/ThreadVerifyHaproxy.cpp \
+    src/ed25519-donna/ed25519.c \
+    src/libwalletqt/SignatureValidation.cpp
 
 !ios {
     HEADERS += src/daemon/DaemonManager.h
@@ -286,7 +314,9 @@ macx {
         -lcrypto \
         -ldl
 
-    INCLUDEPATH += /usr/local/opt/boost/include/
+    INCLUDEPATH += /usr/local/opt/boost/include/ \
+                   /usr/local/opt/openssl/include \
+                   /usr/local/opt/openssl/lib
 
 
 }
