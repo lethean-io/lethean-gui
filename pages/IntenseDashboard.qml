@@ -197,7 +197,7 @@ Rectangle {
                 changeStatus();
             }
 
-            if (!usingLthnVpnc()) {
+            if (!isUsingLthnVpnc()) {
                 //callhaproxy.haproxyStatus NO_PAYMENT: used in initial connection
                 //callhaproxy.haproxyStatus OK: used to renew ongoing connection
                 if (callhaproxy.haproxyStatus === "NO_PAYMENT" || callhaproxy.haproxyStatus === "OK") {
