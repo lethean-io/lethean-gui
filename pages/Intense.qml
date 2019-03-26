@@ -145,7 +145,7 @@ Rectangle {
 
     function updateStatus() {
         if(typeof currentWallet === "undefined") {
-            statusText.text = qsTr("Wallet is not connected to daemon.") + "<br>" + root.startLinkText
+            statusText.text = qsTr("Wallet is not connected to daemon.")
             return;
         }
 
@@ -157,7 +157,7 @@ Rectangle {
 
         switch (currentWallet.connected()) {
         case Wallet.ConnectionStatus_Disconnected:
-            statusText.text = qsTr("Wallet is not connected to daemon.") + "<br>" + root.startLinkText
+            statusText.text = qsTr("Wallet is not connected to daemon.")
             break
         case Wallet.ConnectionStatus_WrongVersion:
             statusText.text = qsTr("Connected daemon is not compatible with GUI. \n" +
