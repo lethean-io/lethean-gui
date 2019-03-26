@@ -143,7 +143,7 @@ Rectangle {
             hideProcessingSplash()
             flag = 0
             changeStatus()
-            callhaproxy.killHAproxy();
+            closeProxyClient();
             informationPopup.title = qsTr( "Error" ) + translationManager.emptyString;
             informationPopup.text  = qsTr( "Amount is wrong: expected number from %1 to %2" )
                     .arg( walletManager.displayAmount( 0 ) )
@@ -157,7 +157,7 @@ Rectangle {
             hideProcessingSplash()
             flag = 0
             changeStatus()
-            callhaproxy.killHAproxy();
+            closeProxyClient();
             informationPopup.title = qsTr( "Error" ) + translationManager.emptyString;
             informationPopup.text  = qsTr( "Insufficient funds. Unlocked balance: %1" )
                     .arg( walletManager.displayAmount( currentWallet.unlockedBalance ) )
@@ -573,6 +573,13 @@ Rectangle {
          return unescape( output );
       }
 
+    function closeProxyClient() {
+        if (isUsingLthnVpnc())
+            lthnvpnc.killLthnvpnc();
+        else
+            callhaproxy.killHAproxy();
+    }
+
     function createJsonFeedback( obj, rank ) {
         subButton.visible = true;
         var url = Config.url+Config.version+Config.feedback+Config.setup
@@ -833,7 +840,7 @@ Rectangle {
         }else if ( appWindow.persistentSettings.haproxyTimeLeft < data && appWindow.persistentSettings.haproxyAutoRenew == false && firstPayment == 0 ) {
             flag = 0
             changeStatus()
-            callhaproxy.killHAproxy();
+            closeProxyClient();
             feedbackPopup.title = "Provider Feedback";
             feedbackPopup.open();
 
@@ -1263,7 +1270,7 @@ Rectangle {
             text: "If you cancel before the provider processes or receives your payment, the Lethean coins you already sent will not be refunded!\n\nAre you sure you want to cancel?"
             standardButtons: StandardButton.Yes | StandardButton.No
             onYes: {
-                callhaproxy.killHAproxy();
+                closeProxyClient();
                 appWindow.persistentSettings.haproxyTimeLeft = new Date();
                 loadingTimer.stop();
                 backgroundLoader.visible = false;
@@ -1690,7 +1697,8 @@ Rectangle {
               onClicked:{
                   flag = 0
                   changeStatus()
-                  callhaproxy.killHAproxy();
+                  closeProxyClient();
+
                   appWindow.persistentSettings.haproxyTimeLeft = new Date()
                   //delayTimer.stop();
                   feedbackPopup.title = "Provider Feedback";
