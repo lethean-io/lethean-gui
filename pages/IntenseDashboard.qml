@@ -654,6 +654,10 @@ Rectangle {
         //time online
         data = new Date()
         // get the diff between to show the time online
+        if (firstPayment == 1) {
+            appWindow.persistentSettings.haproxyStart = new Date();
+        }
+
         secs = ( ( data.getTime() - appWindow.persistentSettings.haproxyStart.getTime() ) / 1000 ).toFixed( 0 )
         var h = secs/60/60
         var m = ( secs/60 )%60
