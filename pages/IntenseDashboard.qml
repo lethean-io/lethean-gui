@@ -173,54 +173,68 @@ Rectangle {
 
                 var endpoint = ''
                 var port = ''
+                var proxyStarted = false;
                 if ( obj.proxy.length > 0 ) {
                     endpoint = obj.proxy[0].endpoint
                     port = obj.proxy[0].port
+
+                    var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
+                    callhaproxy.haproxyCert( walletHaproxyPath, certArray );
+
+                    // try to start proxy and show error if it does not start
+                    proxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name )
+
                 } else {
                     endpoint = obj.vpn[0].endpoint
                     port = obj.vpn[0].port
+                    proxyStarted = true;
                 }
 
-                var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
-                callhaproxy.haproxyCert( walletHaproxyPath, certArray );
-
-                // try to start proxy and show error if it does not start
-                var haproxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name )
-
-                if ( !haproxyStarted ) {
+                if ( !proxyStarted ) {
                     showProxyStartupError();
                 }
 
                 changeStatus();
             }
 
-            //callhaproxy.haproxyStatus NO_PAYMENT: used in initial connection
-            //callhaproxy.haproxyStatus OK: used to renew ongoing connection
-            if (callhaproxy.haproxyStatus === "NO_PAYMENT" || callhaproxy.haproxyStatus === "OK") {
-                  // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
-                  if (dashboardPayment != 0) {
-                      firstPayment = 0;
-                      dashboardPayment = 0;
-                      appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
-                      paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment");
+            if (!usingLthnVpnc()) {
+                //callhaproxy.haproxyStatus NO_PAYMENT: used in initial connection
+                //callhaproxy.haproxyStatus OK: used to renew ongoing connection
+                if (callhaproxy.haproxyStatus === "NO_PAYMENT" || callhaproxy.haproxyStatus === "OK") {
+                      // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
+                      if (dashboardPayment != 0) {
+                          firstPayment = 0;
+                          dashboardPayment = 0;
+                          appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
+                          paymentAutoClicked(obj.providerWallet, appWindow.persistentSettings.hexId, value.toString(), privacy, priority, "Lethean payment");
 
-                  }
-            }
-            else if (callhaproxy.haproxyStatus === "READY") {
-                //waiting for an actionable haproxy status (OK or NO_PAYMENT), nothing to do          
-            }
-            else {
-                  callhaproxy.killHAproxy()
-                  loadingTimer.stop()
-                  backgroundLoader.visible = false
-                  if (dialogConfirmCancel.visible)
-                    dialogConfirmCancel.visible = false                  
-                  waitHaproxyPopup.title = "Unavailable Service";
-                  waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
-                  waitHaproxyPopup.open();
-                  timeonlineTextLine.text = "Unavailable Service"
-                  flag = 0;
-                  changeStatus()
+                      }
+                }
+                else if (callhaproxy.haproxyStatus === "READY") {
+                    //waiting for an actionable haproxy status (OK or NO_PAYMENT), nothing to do          
+                }
+                else {
+                      callhaproxy.killHAproxy()
+                      loadingTimer.stop()
+                      backgroundLoader.visible = false
+                      if (dialogConfirmCancel.visible)
+                        dialogConfirmCancel.visible = false                  
+                      waitHaproxyPopup.title = "Unavailable Service";
+                      waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
+                      waitHaproxyPopup.open();
+                      timeonlineTextLine.text = "Unavailable Service"
+                      flag = 0;
+                      changeStatus()
+                }
+            } else {
+                //if setPayment() was called and we're in VPN mode, it's time to send a payment
+                console.log("Initiating VPN payment...");
+                if (dashboardPayment != 0) {
+                  firstPayment = 0;
+                  dashboardPayment = 0;
+                  appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
+                  paymentAutoClicked(obj.providerWallet, appWindow.persistentSettings.hexId, value.toString(), privacy, priority, "Lethean payment");
+              }
             }
 
         }
@@ -228,6 +242,20 @@ Rectangle {
 
     }
 
+    function showVpnError(error) {
+        errorPopup.title = "VPN Error";
+        errorPopup.content = "There was an error trying to start the VPN service.\n" + error;
+        errorPopup.open();
+
+        // set this to 1 so the popup waiting for payment is not shown
+        waitHaproxy = 1;
+
+        // set this to one and for update of status so we dont see the service as connected
+        flag = 0
+
+        // update dashboard status
+        changeStatus();
+    }
 
     function showProxyStartupError() {
         errorPopup.title = "Proxy Startup Error";
@@ -325,7 +353,7 @@ Rectangle {
 
     // get my location by provider IP
     function getGeoLocation() {
-        var url = "http://ip-api.com/json/" +obj.proxy[0].endpoint;
+        var url = "http://ip-api.com/json/" + getProviderEndpoint();
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange=function() {
             if ( xmlhttp.readyState == 4 && xmlhttp.status == 200 ) {
@@ -364,26 +392,28 @@ Rectangle {
                 var host = applicationDirectory;
                 var endpoint = ''
                 var port = ''
-                if ( obj.proxy.length > 0 ) {
-                    endpoint = obj.proxy[0].endpoint
-                    port = obj.proxy[0].port
-                } else {
-                    endpoint = obj.vpn[0].endpoint
-                    port = obj.vpn[0].port
-                }
-
-                var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
+                var proxyStarted = false;
 
                 flag = 0
                 transferredTextLine.text = "Proxy not running!"
                 transferredTextLine.color = "#FF4500"
                 transferredTextLine.font.bold = true
-                var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
-                callhaproxy.haproxyCert( walletHaproxyPath, certArray );
 
-                var haproxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name );
+                if ( obj.proxy.length > 0 ) {
+                    endpoint = obj.proxy[0].endpoint
+                    port = obj.proxy[0].port
+                    var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
+                    var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
+                    callhaproxy.haproxyCert( walletHaproxyPath, certArray );
 
-                if ( !haproxyStarted ) {
+                    proxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name );
+                } else {
+                    endpoint = obj.vpn[0].endpoint
+                    port = obj.vpn[0].port
+                    proxyStarted = true;
+                }
+
+                if ( !proxyStarted ) {
                     showProxyStartupError();
                 }
 
@@ -636,9 +666,26 @@ Rectangle {
 
     }
 
+    function isUsingLthnVpnc() {
+        return (obj.vpn && obj.vpn.length > 0 &&
+            obj.vpn[0].endpoint);
+    }
+
+    function getProviderEndpoint() {
+        var thisEndpoint="none";
+        if (obj.proxy && obj.proxy.length > 0 &&
+            obj.proxy[0].endpoint)
+            thisEndpoint = obj.proxy[0].endpoint;
+        else if (obj.vpn && obj.vpn.length > 0 &&
+            obj.vpn[0].endpoint)
+            thisEndpoint = obj.vpn[0].endpoint;
+
+        return thisEndpoint;
+    }
+
     // Use to populate text
-    function addTextAndButtonAtDashboard(){
-        var proxyEndpoint = JSON.stringify( obj.proxy[0].endpoint );
+    function addTextAndButtonAtDashboard(){      
+        var proxyEndpoint = JSON.stringify( getProviderEndpoint() );
         proxyEndpoint = proxyEndpoint.split( '"' ).join('');
 
         // show disconnect and connect button from dashboard
@@ -647,7 +694,19 @@ Rectangle {
         // show connected text
         runningText.text = qsTr("Connected") + translationManager.emptyString;
         serveripTextLine.text = proxyEndpoint.toString();
-        lastTypeText.text = qsTr("PROXY") + translationManager.emptyString;
+        lastTypeText.text = (isUsingLthnVpnc() ? qsTr("VPN") : qsTr("PROXY")) + translationManager.emptyString;
+    }
+
+    function updateUiForSuccessfulConnection() {
+        loadingTimer.stop();
+        backgroundLoader.visible = false;
+        if (dialogConfirmCancel.visible)
+            dialogConfirmCancel.visible = false;
+        waitHaproxyPopup.close();
+        proxyStats = 1;
+        showTime = true;
+        waitHaproxy = 1;
+        verification = 90;
     }
 
     function timer() {
@@ -673,47 +732,66 @@ Rectangle {
             value = value + array[x] + c
         }
 
-        // call thread every X seconds and update proxy status variable through thread request
-        if ( secs % verification == 0 || firstPayment == 1 ) {
-            // check if proxy is connected. if it is, this method returns true
-            callhaproxy.verifyHaproxy(Config.haproxyIp, Config.haproxyPort, obj.provider);
-        }
+        if (isUsingLthnVpnc()) {
+            if (lthnvpnc.isMessageAvailable()) {
+                var msg = lthnvpnc.getLastMessage();
+                console.log("== Received message from lthnvpnc: " + msg);
 
-        // validate haproxy status every second from the response returned by the thread
-        // console.log("====== " + callhaproxy.haproxyStatus + " ================= Proxy Connection Status ==================")
-        if (callhaproxy.haproxyStatus === "OK") {
-            loadingTimer.stop()
-            backgroundLoader.visible = false
-            if (dialogConfirmCancel.visible)
-                dialogConfirmCancel.visible = false
-            waitHaproxyPopup.close();
-            proxyStats = 1;
-            showTime = true;
-            waitHaproxy = 1;
-            verification = 90;
-        // check the connection status and stop haproxy
-        }else if(callhaproxy.haproxyStatus === "CONNECTION_ERROR"){
-            callhaproxy.killHAproxy()
-            loadingTimer.stop()
-            backgroundLoader.visible = false
-            if (dialogConfirmCancel.visible)
-                dialogConfirmCancel.visible = false
-            waitHaproxyPopup.title = "Unavailable Service";
-            waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
-            waitHaproxyPopup.open();
-            timeonlineTextLine.text = "Unavailable Service"
-            flag = 0;
-            changeStatus()
-            return
-
-            //only run when dont have payment
-        }else if(callhaproxy.haproxyStatus === "NO_PAYMENT" ||
-            callhaproxy.haproxyStatus === "READY"){
-            if(firstPayment == 1){
-                dashboardPayment = 1;
-                setPayment()
+                if (msg.indexOf("audit:action=NEED_PAYMENT") !== -1) {
+                    console.log("VPN payment needed to authorize connection!");
+                    firstPayment = 1;
+                    dashboardPayment = 1;
+                    setPayment();
+                    verification = 5;
+                } else if (msg.indexOf("ERROR:lthnvpnc:") !== -1) {
+                    // do not send payment
+                    firstPayment = dashboardPayment = 0;
+                    // display error
+                    var search = "ERROR:lthnvpnc:";
+                    var index = msg.indexOf(search) + search.length;
+                    showVpnError(msg.substring(index));
+                } else if (msg.indexOf("WARNING:lthnvpnc:Connected") !== -1) {
+                    //successfully connected to VPN provider
+                    updateUiForSuccessfulConnection();
+                }
             }
-            verification = 5;
+
+        } else {
+            // call thread every X seconds and update proxy status variable through thread request
+            if ( secs % verification == 0 || firstPayment == 1 ) {
+                // check if proxy is connected. if it is, this method returns true
+                callhaproxy.verifyHaproxy(Config.haproxyIp, Config.haproxyPort, obj.provider);
+            }
+
+            // validate haproxy status every second from the response returned by the thread
+            // console.log("====== " + callhaproxy.haproxyStatus + " ================= Proxy Connection Status ==================")
+            if (callhaproxy.haproxyStatus === "OK") {
+                updateUiForSuccessfulConnection();
+            // check the connection status and stop haproxy
+            }else if(callhaproxy.haproxyStatus === "CONNECTION_ERROR"){
+                callhaproxy.killHAproxy()
+                loadingTimer.stop()
+                backgroundLoader.visible = false
+                if (dialogConfirmCancel.visible)
+                    dialogConfirmCancel.visible = false
+                waitHaproxyPopup.title = "Unavailable Service";
+                waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
+                waitHaproxyPopup.open();
+                timeonlineTextLine.text = "Unavailable Service"
+                flag = 0;
+                changeStatus()
+                return
+
+                //only run when dont have payment
+            }else if(callhaproxy.haproxyStatus === "NO_PAYMENT" ||
+                callhaproxy.haproxyStatus === "READY"){
+                if(firstPayment == 1){
+                    dashboardPayment = 1;
+                    setPayment()
+                }
+                verification = 5;
+
+            }
 
         }
 
@@ -2037,7 +2115,7 @@ Rectangle {
         onTriggered:
         {
             timer()
-            if ( proxyStats != 0 ) {
+            if ( !isUsingLthnVpnc() && proxyStats != 0 ) {
                 getHaproxyStats( obj )
             }
         }
@@ -2088,31 +2166,38 @@ Rectangle {
                 myRankText.text =  appWindow.persistentSettings.myRankTextTimeLeft;
                 getColor( appWindow.persistentSettings.myRankTextTimeLeft, myRankRectangle )
 
+                // ************
+                // What is this code doing here? obj is undefined ?
+
                 var host = applicationDirectory;
                 var endpoint = ''
                 var port = ''
+                var proxyStarted = false;
 
                 if ( obj.proxy.length > 0 ) {
                     endpoint = obj.proxy[0].endpoint
                     port = obj.proxy[0].port
+
+                    var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
+
+                    console.log( "Generating certificate" );
+
+                    var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
+
+                    callhaproxy.haproxyCert( walletHaproxyPath, certArray );
+                    console.log( "Starting haproxy" );
+
+                    // try to start proxy and show error if it does not start
+                    proxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', appWindow.persistentSettings.hexId, obj.provider, obj.providerName, obj.name )
                 } else {
                     endpoint = obj.vpn[0].endpoint
                     port = obj.vpn[0].port
+                    console.log("Starting lthnvpnc using authid " + appWindow.persistentSettings.hexId + " and provider " + obj.provider + "/" + obj.idService);
+                    // TODO obtain lthnvpnc path on Linux/Mac. Windows uses relative path to binary.
+                    proxyStarted = lthnvpnc.initializeLthnvpnc( "", appWindow.persistentSettings.hexId, obj.provider, obj.idService );
                 }
 
-                var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
-
-                console.log( "Generating certificate" );
-
-                var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
-
-                callhaproxy.haproxyCert( walletHaproxyPath, certArray );
-                console.log( "Starting haproxy" );
-
-                // try to start proxy and show error if it does not start
-                var startedProxy = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', appWindow.persistentSettings.hexId, obj.provider, obj.providerName, obj.name )
-
-                if ( !startedProxy ) {
+                if ( !proxyStarted ) {
                     showProxyStartupError();
                 }
 
