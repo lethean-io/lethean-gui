@@ -244,7 +244,7 @@ Rectangle {
 
     function showVpnError(error) {
         errorPopup.title = "VPN Error";
-        errorPopup.content = "There was an error trying to start the VPN service.\n" + error;
+        errorPopup.content = "There was an error trying to start the VPN service.\n" + error + "\nIf you have already paid, restart the wallet to attempt reconnection.";
         errorPopup.open();
 
         // set this to 1 so the popup waiting for payment is not shown
