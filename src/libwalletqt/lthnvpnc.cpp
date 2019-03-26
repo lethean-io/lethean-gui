@@ -104,19 +104,15 @@ bool lthnvpnc::initializeLthnvpnc(const QString& workingDir, const QString& auth
     return true;
 }
 
-bool lthnvpnc::killLthnvpnc() {
-	cleanupThreads();
-
+void lthnvpnc::killLthnvpnc() {
 	qDebug() << "Killing lthnvpnc";
 	#ifdef Q_OS_WIN
-        uint result = WinExec("taskkill /f /im lthnvpnc.exe", SW_HIDE);
-        return (result > 31);
+        WinExec("taskkill /f /im lthnvpnc.exe", SW_HIDE);
     #else
-        int result = system("pkill -f lthnvpnc");
-        return (result == 0);
+        system("pkill -f lthnvpnc");
     #endif
 
-    return false;
+    cleanupThreads();
 }
 
 bool lthnvpnc::isMessageAvailable() {

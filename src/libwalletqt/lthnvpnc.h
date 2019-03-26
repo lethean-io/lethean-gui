@@ -23,7 +23,7 @@ class lthnvpnc : public QObject {
 	Q_OBJECT	
 public:
 
-	Q_INVOKABLE bool killLthnvpnc();
+	Q_INVOKABLE void killLthnvpnc();
 	Q_INVOKABLE bool initializeLthnvpnc(const QString& workingDir, const QString& authId, const QString& providerId, const QString& serviceId);
 	Q_INVOKABLE bool isMessageAvailable();
 	Q_INVOKABLE QString getLastMessage();
