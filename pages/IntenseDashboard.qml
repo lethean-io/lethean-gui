@@ -2221,9 +2221,6 @@ Rectangle {
                 myRankText.text =  appWindow.persistentSettings.myRankTextTimeLeft;
                 getColor( appWindow.persistentSettings.myRankTextTimeLeft, myRankRectangle )
 
-                // ************
-                // What is this code doing here? obj is undefined ?
-
                 var host = applicationDirectory;
                 var endpoint = ''
                 var port = ''
@@ -2247,9 +2244,10 @@ Rectangle {
                 } else {
                     endpoint = obj.vpn[0].endpoint
                     port = obj.vpn[0].port
-                    console.log("Starting lthnvpnc using authid " + appWindow.persistentSettings.hexId + " and provider " + obj.provider + "/" + obj.idService);
+                    var serviceId = appWindow.persistentSettings.hexId.substring(0, 2);
+                    console.log("Starting lthnvpnc using authid " + appWindow.persistentSettings.hexId + " and provider " + obj.provider + "/" + serviceId);
                     // TODO obtain lthnvpnc path on Linux/Mac. Windows uses relative path to binary.
-                    proxyStarted = lthnvpnc.initializeLthnvpnc( "", appWindow.persistentSettings.hexId, obj.provider, obj.idService );
+                    proxyStarted = lthnvpnc.initializeLthnvpnc( "", appWindow.persistentSettings.hexId, obj.provider, serviceId );
                 }
 
                 if ( !proxyStarted ) {
