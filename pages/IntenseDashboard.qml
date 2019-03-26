@@ -577,49 +577,69 @@ Rectangle {
         subButton.visible = true;
         var url = Config.url+Config.version+Config.feedback+Config.setup
         var xmlhttpPost = new XMLHttpRequest();
+
+        createJsonFeedbackLoader.visible = true;
+        loadingTimer.start();
+
         xmlhttpPost.onreadystatechange=function() {
-            if ( xmlhttpPost.readyState == 4 && xmlhttpPost.status == 200 ) {
-                var feed = JSON.parse( xmlhttpPost.responseText )
-                var host = applicationDirectory;
+            if ( xmlhttpPost.readyState == 4 ) {
 
-                var endpoint = ''
-                var port = ''
-                if ( obj.proxy.length > 0 ) {
-                    endpoint = obj.proxy[0].endpoint
-                    port = obj.proxy[0].port
+                createJsonFeedbackLoader.visible = false;
+                loadingTimer.stop();
+            
+                if ( xmlhttpPost.status == 200 ) {             
+                    var feed = JSON.parse( xmlhttpPost.responseText )
+                    var host = applicationDirectory;
+
+                    var endpoint = ''
+                    var port = ''
+                    if ( obj.proxy.length > 0 ) {
+                        endpoint = obj.proxy[0].endpoint
+                        port = obj.proxy[0].port
+                    } else {
+                        endpoint = obj.vpn[0].endpoint
+                        port = obj.vpn[0].port
+                    }
+
+                    if (callhaproxy.haproxyStatus !== "") {
+                        callhaproxy.killHAproxy();
+                    }
+
+                    console.log("intenseDashboard createJsonFeedback RESULT");
+
+                    intenseDashboardView.idService = obj.id
+                    intenseDashboardView.feedback = feed.id
+                    intenseDashboardView.providerName = obj.providerName
+                    intenseDashboardView.name = obj.name
+                    intenseDashboardView.type = obj.type
+                    intenseDashboardView.cost = parseFloat( obj.cost ) * obj.firstPrePaidMinutes
+                    intenseDashboardView.rank = rank
+                    intenseDashboardView.speed = formatBytes( obj.downloadSpeed )
+                    intenseDashboardView.firstPrePaidMinutes = obj.firstPrePaidMinutes
+                    intenseDashboardView.subsequentPrePaidMinutes = obj.subsequentPrePaidMinutes
+                    intenseDashboardView.bton = "qrc:///images/power_off.png"
+                    intenseDashboardView.flag = 1
+                    intenseDashboardView.secs = 0
+                    intenseDashboardView.obj = obj
+                    intenseDashboardView.itnsStart = parseFloat( obj.cost ) * obj.firstPrePaidMinutes
+                    intenseDashboardView.macHostFlag = 0
+                    intenseDashboardView.hexConfig = hexConfig
+                    intenseDashboardView.firstPayment = 1
+                    intenseDashboardView.callProxy = 1
+                    intenseDashboardView.showTime = false
+                    appWindow.persistentSettings.haproxyAutoRenew = proxyRenew;
+                    intenseDashboardView.addTextAndButtonAtDashboard();
+
+                    changeStatus();
                 } else {
-                    endpoint = obj.vpn[0].endpoint
-                    port = obj.vpn[0].port
+                    waitHaproxyPopup.title = "Unable to reach server";
+                    waitHaproxyPopup.content = "Failed to query server for provider information. Check your internet connection.";
+                    waitHaproxyPopup.open();
+                    timeonlineTextLine.text = "Server Unavailable"
+                    flag = 0;
+                    changeStatus()
                 }
 
-                if (callhaproxy.haproxyStatus !== "") {
-                    callhaproxy.killHAproxy();
-                }
-
-                intenseDashboardView.idService = obj.id
-                intenseDashboardView.feedback = feed.id
-                intenseDashboardView.providerName = obj.providerName
-                intenseDashboardView.name = obj.name
-                intenseDashboardView.type = obj.type
-                intenseDashboardView.cost = parseFloat( obj.cost ) * obj.firstPrePaidMinutes
-                intenseDashboardView.rank = rank
-                intenseDashboardView.speed = formatBytes( obj.downloadSpeed )
-                intenseDashboardView.firstPrePaidMinutes = obj.firstPrePaidMinutes
-                intenseDashboardView.subsequentPrePaidMinutes = obj.subsequentPrePaidMinutes
-                intenseDashboardView.bton = "qrc:///images/power_off.png"
-                intenseDashboardView.flag = 1
-                intenseDashboardView.secs = 0
-                intenseDashboardView.obj = obj
-                intenseDashboardView.itnsStart = parseFloat( obj.cost ) * obj.firstPrePaidMinutes
-                intenseDashboardView.macHostFlag = 0
-                intenseDashboardView.hexConfig = hexConfig
-                intenseDashboardView.firstPayment = 1
-                intenseDashboardView.callProxy = 1
-                intenseDashboardView.showTime = false
-                appWindow.persistentSettings.haproxyAutoRenew = proxyRenew;
-                intenseDashboardView.addTextAndButtonAtDashboard();
-
-                changeStatus();
             }
         }
 
@@ -2051,6 +2071,40 @@ Rectangle {
 
 
     }
+
+    Rectangle {
+        id: createJsonFeedbackLoader
+        visible: false;
+        anchors.centerIn: root
+        width: root.width; height: root.height;
+        color: "#000000";
+
+        Text {
+            visible: !isMobile
+            id: txtJsonFeedback
+            anchors.top: parent.top
+            anchors.horizontalCenter:  parent.horizontalCenter
+            anchors.topMargin: 140
+            text: qsTr("Querying server...<br />Requesting provider information from server.") + translationManager.emptyString
+            font.pixelSize: 18
+            textFormat: Text.RichText
+            font.bold: true
+            horizontalAlignment: Text.AlignHCenter
+            color:"#FFFFFF"
+        }
+
+        Image {
+            id: jsonFeedbackLoader
+            anchors.centerIn: parent
+            width: 100; height: 100
+            antialiasing: true
+            fillMode: Image.PreserveAspectFit
+            source: "../images/loader.png"
+            transformOrigin: Item.Center
+
+        }
+    }
+
     Rectangle {
         id: backgroundLoader
         visible: false;
@@ -2103,6 +2157,7 @@ Rectangle {
 
         onTriggered: {
             loader.rotation = loader.rotation + 3
+            jsonFeedbackLoader.rotation = jsonFeedbackLoader.rotation + 3
         }
     }
 
