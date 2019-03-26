@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --parallel
+
+override_dh_auto_clean:
+
+override_dh_auto_configure:
+
+override_dh_auto_build:
+	./build.sh
+
+override_dh_auto_install:
+	make install INSTALL_ROOT=debian/tmp/	
