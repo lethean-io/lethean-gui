@@ -771,6 +771,18 @@ Rectangle {
 
                 if (msg.indexOf("audit:action=NEED_PAYMENT") !== -1) {
                     console.log("VPN payment needed to authorize connection!");
+                    //parse payment ID
+                    var reg = /paymentid=([0-9a-fA-F]{16})/g;
+                    var result = reg.exec(msg);
+                    if (result) {
+                        var paymentId = result[result.length - 1];
+                        if (paymentId) {
+                            console.log("*** Dispatcher has instructed us to use payment ID " + paymentId);
+                            console.log("*** Original payment ID " + appWindow.persistentSettings.hexId);
+                            appWindow.persistentSettings.hexId = paymentId;
+                        }
+                    }
+
                     firstPayment = 1;
                     dashboardPayment = 1;
                     setPayment();
