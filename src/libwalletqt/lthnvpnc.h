@@ -14,7 +14,6 @@
 #include "lthnvpncLogReaderThread.h"
 
 #ifdef Q_OS_WIN
-	#include <QTimer>
     #include <windows.h>
 #endif
 
@@ -38,13 +37,12 @@ public slots:
 	void handleThreadLogReaderResult(const QString& result);
 
 private:
-	lthnvpncLogReaderThread* threadLogReader;
+	lthnvpncLogReaderThread* m_threadLogReader;
 	// Stores status messages read from the lthnvpnc log file output
 	// Most recent messages are listed last
 	std::vector<QString> m_statusMsg;
 	std::mutex m_statusMsg_mutex;
 #ifdef Q_OS_WIN
-	QTimer* timerCheckLog;
 	// Pipes used to redirect lthnvpnc output
 	HANDLE m_logFileHandle_OUT_Rd = NULL;
 	HANDLE m_logFileHandle_OUT_Wr = NULL;

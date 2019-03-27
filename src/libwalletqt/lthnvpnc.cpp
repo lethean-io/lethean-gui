@@ -78,11 +78,11 @@ bool lthnvpnc::initializeLthnvpnc(const QString& workingDir, const QString& auth
   		}
 
   		//start log monitor thread
-	    threadLogReader = new lthnvpncLogReaderThread();
-	    threadLogReader->setLogFileHandle(m_logFileHandle_OUT_Rd);
-	    connect(threadLogReader, &lthnvpncLogReaderThread::resultReady, this, &lthnvpnc::handleThreadLogReaderResult);
-	    connect(threadLogReader, &lthnvpncLogReaderThread::finished, threadLogReader, &QObject::deleteLater);
-	    threadLogReader->start();
+	    m_threadLogReader = new lthnvpncLogReaderThread();
+	    m_threadLogReader->setLogFileHandle(m_logFileHandle_OUT_Rd);
+	    connect(m_threadLogReader, &lthnvpncLogReaderThread::resultReady, this, &lthnvpnc::handleThreadLogReaderResult);
+	    connect(m_threadLogReader, &lthnvpncLogReaderThread::finished, m_threadLogReader, &QObject::deleteLater);
+	    m_threadLogReader->start();
 	#else
   		QString logPath = workingDir + "lthnvpnc.log";
         QString command = workingDir + "lthnvpnc --authid " + authId + " connect " + providerId + "/" + serviceId + " > " + logPath + " 2>&1";
@@ -94,11 +94,11 @@ bool lthnvpnc::initializeLthnvpnc(const QString& workingDir, const QString& auth
         }
 
         //start log monitor thread
-	    threadLogReader = new lthnvpncLogReaderThread();
-	    threadLogReader->setLogFile(logPath.toStdString());
-	    connect(threadLogReader, &lthnvpncLogReaderThread::resultReady, this, &lthnvpnc::handleThreadLogReaderResult);
-	    connect(threadLogReader, &lthnvpncLogReaderThread::finished, threadLogReader, &QObject::deleteLater);
-	    threadLogReader->start();
+	    m_threadLogReader = new lthnvpncLogReaderThread();
+	    m_threadLogReader->setLogFile(logPath.toStdString());
+	    connect(m_threadLogReader, &lthnvpncLogReaderThread::resultReady, this, &lthnvpnc::handleThreadLogReaderResult);
+	    connect(m_threadLogReader, &lthnvpncLogReaderThread::finished, m_threadLogReader, &QObject::deleteLater);
+	    m_threadLogReader->start();
 	#endif
 
     return true;

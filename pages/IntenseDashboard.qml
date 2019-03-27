@@ -765,7 +765,7 @@ Rectangle {
         }
 
         if (isUsingLthnVpnc()) {
-            if (lthnvpnc.isMessageAvailable()) {
+            while (lthnvpnc.isMessageAvailable()) {
                 var msg = lthnvpnc.getLastMessage();
                 console.log("== Received message from lthnvpnc: " + msg);
 
