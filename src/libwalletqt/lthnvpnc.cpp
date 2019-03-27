@@ -8,10 +8,18 @@ bool lthnvpnc::initializeLthnvpnc(const QString& workingDir, const QString& auth
 	}
 
 	//kill any running instances
-	// ** TEMPORARILY DISABLED ON WINDOWS DUE TO TIMING ISSUES **
-#ifndef Q_OS_WIN
-	killLthnvpnc();
-#endif
+	if (m_wasLthnvpncStarted) {
+		killLthnvpnc();
+
+		int ms = 1000;
+		//sleep for 1second as order of killing old lthnvpnc and starting new one is indeterminate
+		#ifdef Q_OS_WIN
+		    Sleep(uint(ms));
+		#else
+		    struct timespec ts = { ms / 1000, (ms % 1000) * 1000 * 1000 };
+		    nanosleep(&ts, NULL);
+		#endif
+	}
 
 	//launch lthnvpnc with args	
 	#ifdef Q_OS_WIN
@@ -37,7 +45,7 @@ bool lthnvpnc::initializeLthnvpnc(const QString& workingDir, const QString& auth
 		// Hide window of created process
 		DWORD CreationFlags = CREATE_NO_WINDOW;
 		// Setup ProcessInfo (OUT) and StartupInfo (IN)
-			PROCESS_INFORMATION ProcessInfo;
+		PROCESS_INFORMATION ProcessInfo;
 		STARTUPINFOA StartupInfo;		
 		ZeroMemory(&ProcessInfo, sizeof(PROCESS_INFORMATION));
 		ZeroMemory(&StartupInfo, sizeof(STARTUPINFOA));
@@ -72,6 +80,7 @@ bool lthnvpnc::initializeLthnvpnc(const QString& workingDir, const QString& auth
 	  			cleanupThreads();
 	            return false;
   		} else {
+  			m_wasLthnvpncStarted = true;
   			CloseHandle(ProcessInfo.hProcess);
   			CloseHandle(ProcessInfo.hThread);
   			CloseHandle(m_logFileHandle_OUT_Wr);
@@ -93,6 +102,7 @@ bool lthnvpnc::initializeLthnvpnc(const QString& workingDir, const QString& auth
             return false;
         }
 
+        m_wasLthnvpncStarted = true;
         //start log monitor thread
 	    m_threadLogReader = new lthnvpncLogReaderThread();
 	    m_threadLogReader->setLogFile(logPath.toStdString());
@@ -107,12 +117,186 @@ bool lthnvpnc::initializeLthnvpnc(const QString& workingDir, const QString& auth
 void lthnvpnc::killLthnvpnc() {
 	qDebug() << "Killing lthnvpnc";
 	#ifdef Q_OS_WIN
-        WinExec("taskkill /f /im lthnvpnc.exe", SW_HIDE);
+        WinExec("taskkill /f /im lthnvpnc.exe", SW_HIDE);        
+        restartLthnVpnSvc();
     #else
         system("pkill -f lthnvpnc");
     #endif
 
     cleanupThreads();
+}
+
+void lthnvpnc::restartLthnVpnSvc() const {
+	#ifdef Q_OS_WIN
+		qDebug() << "Checking Lethean VPN service status...";
+		//obtain sc manager handle
+		DWORD dwWaitTime;
+		DWORD dwBytesNeeded;
+		DWORD dwStartTickCount;
+		DWORD dwOldCheckPoint;
+		SERVICE_STATUS_PROCESS ssp;
+
+		SC_HANDLE hScManager = OpenSCManagerA(NULL, SERVICES_ACTIVE_DATABASEA, 
+			SC_MANAGER_CONNECT); // | SC_MANAGER_ENUMERATE_SERVICE | SC_MANAGER_QUERY_LOCK_STATUS | STANDARD_RIGHTS_READ);
+		if (hScManager == NULL) {
+			DWORD lastError = GetLastError();
+			qDebug() << "Failed to obtain SCM handle! " + QString::number(lastError);
+			return;
+		}
+
+		//obtain handle for our service
+		LPCSTR svcName = "OpenVPNServiceInteractive$Lethean";
+		SC_HANDLE hSvc = OpenServiceA(hScManager, svcName, SERVICE_QUERY_STATUS | SERVICE_START | SERVICE_STOP);
+		if (hSvc == NULL) {
+			DWORD lastError = GetLastError();
+			qDebug() << "Failed to obtain service handle! " + QString::number(lastError);
+			goto stop_cleanup;
+		}
+		
+		qDebug() << "Checking Lethean VPN service status";
+		//query service statu to ensure it is not already stopped
+		if ( !QueryServiceStatusEx( 
+			hSvc, 
+			SC_STATUS_PROCESS_INFO,
+			(LPBYTE)&ssp, 
+			sizeof(SERVICE_STATUS_PROCESS),
+			&dwBytesNeeded ) )
+		{
+			DWORD lastError = GetLastError();
+			qDebug() << "QueryServiceStatusEx failed " + QString::number(lastError);
+			goto stop_cleanup;
+		}
+
+		//if service is not stopped, attempt to stop it
+		if ( ssp.dwCurrentState != SERVICE_STOPPED )
+		{
+			//stop service if a current stop is not pending
+			if ( ssp.dwCurrentState != SERVICE_STOP_PENDING ) {
+				if(!ControlService( hSvc, SERVICE_CONTROL_STOP, (LPSERVICE_STATUS)&ssp )) {
+					DWORD lastError = GetLastError();
+					qDebug() << "Failed to stop service! " + QString::number(lastError);
+					goto stop_cleanup;
+				}
+				qDebug() << "Requesting stop for Lethean VPN service";
+			}
+
+			DWORD dwTimeout = 30000; // 30-second time-out
+			DWORD dwStartTime = GetTickCount();
+			//wait for service to be fully stopped
+			while ( ssp.dwCurrentState != SERVICE_STOPPED ) 
+			{
+				Sleep( ssp.dwWaitHint );
+				if ( !QueryServiceStatusEx( 
+					hSvc, 
+					SC_STATUS_PROCESS_INFO,
+					(LPBYTE)&ssp, 
+					sizeof(SERVICE_STATUS_PROCESS),
+					&dwBytesNeeded ) )
+				{
+					DWORD lastError = GetLastError();
+					qDebug() << "QueryServiceStatusEx failed " + QString::number(lastError);
+					goto stop_cleanup;
+				}
+
+				if ( ssp.dwCurrentState == SERVICE_STOPPED )
+					break;
+
+				if ( GetTickCount() - dwStartTime > dwTimeout )
+				{
+					qDebug( "Service stop wait timed out" );
+					goto stop_cleanup;
+				}
+			}
+		}
+
+		qDebug() << "Lethean VPN service stopped successfully";
+		//start service		
+		if (!StartService(hSvc, 0, NULL)) {
+			DWORD lastError = GetLastError();
+			qDebug() << "Failed to start service! " + QString::number(lastError);
+			goto stop_cleanup;
+		}
+
+		//query status until started
+		if ( !QueryServiceStatusEx( 
+			hSvc, 
+			SC_STATUS_PROCESS_INFO,
+			(LPBYTE)&ssp, 
+			sizeof(SERVICE_STATUS_PROCESS),
+			&dwBytesNeeded ) )
+		{
+			DWORD lastError = GetLastError();
+			qDebug() << "QueryServiceStatusEx failed " + QString::number(lastError);
+			goto stop_cleanup;
+		}
+
+		dwStartTickCount = GetTickCount();
+		dwOldCheckPoint = ssp.dwCheckPoint;
+
+		while(ssp.dwCurrentState == SERVICE_START_PENDING) {
+			// Do not wait longer than the wait hint. A good interval is 
+			// one-tenth the wait hint, but no less than 1 second and no 
+			// more than 10 seconds. 
+
+			dwWaitTime = ssp.dwWaitHint / 10;
+
+			if( dwWaitTime < 1000 )
+			    dwWaitTime = 1000;
+			else if ( dwWaitTime > 10000 )
+			    dwWaitTime = 10000;
+
+			Sleep( dwWaitTime );
+
+			// Check the status again. 
+
+			if (!QueryServiceStatusEx( 
+			    hSvc,             // handle to service 
+			    SC_STATUS_PROCESS_INFO, // info level
+			    (LPBYTE) &ssp,             // address of structure
+			    sizeof(SERVICE_STATUS_PROCESS), // size of structure
+			    &dwBytesNeeded ) )              // if buffer too small
+			{
+			    DWORD lastError = GetLastError();
+				qDebug() << "QueryServiceStatusEx failed " + QString::number(lastError);
+			    break; 
+			}
+
+			if ( ssp.dwCheckPoint > dwOldCheckPoint )
+			{
+			    // Continue to wait and check.
+
+			    dwStartTickCount = GetTickCount();
+			    dwOldCheckPoint = ssp.dwCheckPoint;
+			}
+			else
+			{
+			    if(GetTickCount()-dwStartTickCount > ssp.dwWaitHint)
+			    {
+			        // No progress made within the wait hint.
+			        break;
+			    }
+			}
+		}
+
+		if (ssp.dwCurrentState == SERVICE_RUNNING) 
+		{
+			qDebug() << "Lethean VPN service started successfully";
+		}
+		else 
+		{ 
+			qDebug("Lethean VPN service not started.");
+			qDebug() << "  Current State: " + QString::number(ssp.dwCurrentState); 
+			qDebug() << "  Exit Code: " + QString::number(ssp.dwWin32ExitCode); 
+			qDebug() << "  Check Point: " + QString::number(ssp.dwCheckPoint); 
+			qDebug() << "  Wait Hint: " + QString::number(ssp.dwWaitHint); 
+		} 
+
+stop_cleanup:
+	if (hScManager != NULL)
+		CloseServiceHandle(hScManager);
+	if (hSvc != NULL)
+		CloseServiceHandle(hSvc);
+	#endif
 }
 
 bool lthnvpnc::isMessageAvailable() {
@@ -165,8 +349,8 @@ void lthnvpnc::cleanupThreads() {
 		CloseHandle(m_logFileHandle_OUT_Wr);
 	}
 #endif
-	if (threadLogReader != Q_NULLPTR) {
+	if (m_threadLogReader != Q_NULLPTR) {
 		qDebug() << "Cleaning up log monitor thread";
-		threadLogReader->quit();
+		m_threadLogReader->quit();
 	}
 }

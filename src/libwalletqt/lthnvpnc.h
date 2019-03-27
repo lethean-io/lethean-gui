@@ -27,6 +27,7 @@ public:
 	Q_INVOKABLE bool isMessageAvailable();
 	Q_INVOKABLE QString getLastMessage();
 	Q_INVOKABLE void cleanupThreads();
+	Q_INVOKABLE void restartLthnVpnSvc() const;
 
     lthnvpnc() = default;
     ~lthnvpnc() {
@@ -42,6 +43,7 @@ private:
 	// Most recent messages are listed last
 	std::vector<QString> m_statusMsg;
 	std::mutex m_statusMsg_mutex;
+	bool m_wasLthnvpncStarted;
 #ifdef Q_OS_WIN
 	// Pipes used to redirect lthnvpnc output
 	HANDLE m_logFileHandle_OUT_Rd = NULL;
