@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import moneroComponents.TransactionInfo 1.0
 import QtQuick.Controls 1.4
+import QtQuick.Controls.Styles 1.4
 import QtQml 2.2
 import moneroComponents.Wallet 1.0
 import moneroComponents.WalletManager 1.0
@@ -88,10 +89,9 @@ Rectangle {
     }
 
     function setPayment(){
-
         var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
-
         var data = new Date();
+
         if (firstPayment == 1) {
             var value = parseFloat(cost)
             // set first payment or subsequentPrePaidMinutes
@@ -471,9 +471,19 @@ Rectangle {
             console.log("node type: " + type);
             if ( type == "vpn" ) {
                 shield.source = "../images/shield_vpn_on.png"
+                transferredText.visible = false;
+                transferredTextLine.visible = false;
+                paiduntilnowText.anchors.top =
+                    paidTextLine.anchors.top =
+                    transferredText.visible ? transferredText.top : timeonlineText.top;
             }
             else {
                 shield.source = "../images/shield_proxy_on.png"
+                transferredText.visible = true;
+                transferredTextLine.visible = true;
+                paiduntilnowText.anchors.top =
+                    paidTextLine.anchors.top =
+                    transferredText.visible ? transferredText.top : timeonlineText.top;
             }
             runningText.text = "Connected"
             subButtonText.text = "Disconnect"
@@ -482,6 +492,7 @@ Rectangle {
             startText.text = "Connected"
             appWindow.persistentSettings.paidTextLineTimeLeft = itnsStart.toFixed(8) + " "+Config.coinName;
             paidTextLine.text = itnsStart.toFixed(8) + " "+Config.coinName
+            switchAutoRenew.checked = appWindow.persistentSettings.haproxyAutoRenew
 
         }
         else {
@@ -1836,6 +1847,41 @@ Rectangle {
 
         Text {
               visible: !isMobile
+              id: switchTextOn
+              anchors.right: switchAutoRenew.left
+              anchors.top:  parent.top
+              anchors.topMargin: 10
+              anchors.rightMargin: 6
+              text: qsTr( "Auto renew" ) + translationManager.emptyString
+              font.pixelSize: 14
+          }
+
+        Switch {
+            id: switchAutoRenew
+            anchors.right: parent.right
+            anchors.top:  parent.top
+            anchors.topMargin: 10
+            anchors.rightMargin: 17
+            style: SwitchStyle {
+                groove: Rectangle {
+                    implicitWidth: 30
+                    implicitHeight: 15
+                    radius: 2
+                    border.width: 1
+                    border.color: switchAutoRenew.checked ? "#17a81a" : "#cccccc"
+                    color: switchAutoRenew.checked ? "#21be2b" : "white"
+                }
+            }
+
+            onClicked:{
+                switchAutoRenew.checked ?
+                          appWindow.persistentSettings.haproxyAutoRenew = true :
+                          appWindow.persistentSettings.haproxyAutoRenew = false;
+            }
+        }
+
+        Text {
+              visible: !isMobile
               id: detailsText
               anchors.horizontalCenter: parent.horizontalCenter
               anchors.top:  parent.top
@@ -1896,6 +1942,7 @@ Rectangle {
               anchors.topMargin: 27
               anchors.leftMargin: 20
               width: 180
+              text: qsTr( "Loading..." ) + translationManager.emptyString
               font.pixelSize: 14
               horizontalAlignment: Text.AlignLeft
           }
@@ -2304,7 +2351,7 @@ Rectangle {
 
             detailsText.visible = true
             timeonlineText.visible = true
-            transferredText.visible = true
+            transferredText.visible = type === "proxy" ? true : false
             paiduntilnowText.visible = true
             paidTextLine.visible = true
             providerText.visible = true
@@ -2330,6 +2377,9 @@ Rectangle {
             lastCostIntenseText.visible = true
             lastSpeedLabel.visible = true
             lastSpeedText.visible = true
+            switchTextOn.visible = true
+            switchAutoRenew.visible = true
+
         }
         else {
             howToUseText.visible = true
@@ -2366,6 +2416,8 @@ Rectangle {
             lastSpeedLabel.visible = false
             lastSpeedText.visible = false
             subConnectButton.visible = false
+            switchTextOn.visible = false
+            switchAutoRenew.visible = false
         }
     }
 }
