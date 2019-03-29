@@ -2082,7 +2082,6 @@ Rectangle {
               color: "#d9edf7"
               MouseArea {
                   anchors.fill: parent
-                  onClicked: Qt.openUrlExternally( Config.knowledgeBaseURL );
               }
               Text {
                   anchors.left: parent.left
@@ -2093,13 +2092,10 @@ Rectangle {
                   font.pixelSize: 14
                   horizontalAlignment: Text.AlignLeft
                   textFormat: Text.RichText
+                  onLinkActivated: { if (!backgroundLoader.visible) { Qt.openUrlExternally(link); } }
                   color: "#31708f"
                   height: 120
                   width: 610
-                  MouseArea {
-                      anchors.fill: parent
-                      onClicked: Qt.openUrlExternally( Config.knowledgeBaseURL );
-                  }
               }
         }
 
