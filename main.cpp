@@ -53,6 +53,7 @@
 #include "MainApp.h"
 #include "Haproxy.h"
 #include "SignatureValidation.h"
+#include "lthnvpnc.h"
 
 // IOS exclusions
 #ifndef Q_OS_IOS
@@ -87,9 +88,9 @@ int main(int argc, char *argv[])
 
     qDebug() << "app startd";
 
-    app.setApplicationName("intensecoin-core");
+    app.setApplicationName("Lethean Wallet");
     app.setOrganizationDomain("lethean.io");
-    app.setOrganizationName("intensecoin-project");
+    app.setOrganizationName("Lethean Privacy");
 
     filter *eventFilter = new filter;
     app.installEventFilter(eventFilter);
@@ -153,6 +154,8 @@ int main(int argc, char *argv[])
     Haproxy haproxy;
     engine.rootContext()->setContextProperty("callhaproxy", &haproxy);
 
+    lthnvpnc lthnvpnc;
+    engine.rootContext()->setContextProperty("lthnvpnc", &lthnvpnc);
 
     SignatureValidation signature;
     engine.rootContext()->setContextProperty("ed25519verify", &signature);

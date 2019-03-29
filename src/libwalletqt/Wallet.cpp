@@ -1,5 +1,6 @@
 #include "Wallet.h"
 #include "Haproxy.h"
+#include "lthnvpnc.h"
 #include "PendingTransaction.h"
 #include "UnsignedTransaction.h"
 #include "TransactionHistory.h"
@@ -677,6 +678,9 @@ Wallet::~Wallet()
     qDebug("~Wallet: Closing wallet");
     Haproxy haproxy;
     haproxy.killHAproxy();
+
+    lthnvpnc lthnvpnc;
+    lthnvpnc.killLthnvpnc();
 
     delete m_history;
     m_history = NULL;

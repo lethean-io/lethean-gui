@@ -66,7 +66,9 @@ HEADERS += \
     src/libwalletqt/Haproxy.h \
     src/libwalletqt/HTTPResponse.h \
     src/libwalletqt/ThreadVerifyHaproxy.h \
-    src/libwalletqt/SignatureValidation.h
+    src/libwalletqt/SignatureValidation.h \
+    src/libwalletqt/lthnvpnc.h \
+    src/libwalletqt/lthnvpncLogReaderThread.h
 
 SOURCES += main.cpp \
 filter.cpp \
@@ -94,7 +96,9 @@ filter.cpp \
     src/libwalletqt/HTTPResponse.cpp \
     src/libwalletqt/ThreadVerifyHaproxy.cpp \
     src/ed25519-donna/ed25519.c \
-    src/libwalletqt/SignatureValidation.cpp
+    src/libwalletqt/SignatureValidation.cpp \
+    src/libwalletqt/lthnvpnc.cpp \
+    src/libwalletqt/lthnvpncLogReaderThread.cpp
 
 !ios {
     HEADERS += src/daemon/DaemonManager.h
