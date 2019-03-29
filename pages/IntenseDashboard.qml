@@ -468,7 +468,8 @@ Rectangle {
 
             subButton.visible = true
             powerOn.source = "../images/power_on.png"
-            if ( type == "openvpn" ) {
+            console.log("node type: " + type);
+            if ( type == "vpn" ) {
                 shield.source = "../images/shield_vpn_on.png"
             }
             else {
@@ -908,7 +909,7 @@ Rectangle {
               anchors.leftMargin: 17
               width: 72; height: 87
               fillMode: Image.PreserveAspectFit
-              source: if ( type == "openvpn" ) {"../images/shield_vpn_on.png"}else if ( type == "proxy" ) {"../images/shield_proxy_on.png"} else {"../images/shield.png"}
+              source: if ( type == "vpn" ) {"../images/shield_vpn_on.png"}else if ( type == "proxy" ) {"../images/shield_proxy_on.png"} else {"../images/shield.png"}
           }
 
           Text {
