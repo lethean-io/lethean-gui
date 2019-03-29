@@ -2351,7 +2351,9 @@ Rectangle {
 
             detailsText.visible = true
             timeonlineText.visible = true
-            transferredText.visible = type === "proxy" ? true : false
+            transferredText.visible = 
+                transferredTextLine.visible =
+                type === "proxy" ? true : false
             paiduntilnowText.visible = true
             paidTextLine.visible = true
             providerText.visible = true
@@ -2389,7 +2391,9 @@ Rectangle {
 
             detailsText.visible = false
             timeonlineText.visible = false
-            transferredText.visible = false
+            transferredText.visible = 
+                transferredTextLine.visible =
+                false
             paiduntilnowText.visible = false
             paidTextLine.visible = false
             providerText.visible = false
