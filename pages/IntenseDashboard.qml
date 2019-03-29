@@ -471,9 +471,19 @@ Rectangle {
             console.log("node type: " + type);
             if ( type == "vpn" ) {
                 shield.source = "../images/shield_vpn_on.png"
+                transferredText.visible = false;
+                transferredTextLine.visible = false;
+                paiduntilnowText.anchors.top =
+                    paidTextLine.anchors.top =
+                    transferredText.visible ? transferredText.top : timeonlineText.top;
             }
             else {
                 shield.source = "../images/shield_proxy_on.png"
+                transferredText.visible = true;
+                transferredTextLine.visible = true;
+                paiduntilnowText.anchors.top =
+                    paidTextLine.anchors.top =
+                    transferredText.visible ? transferredText.top : timeonlineText.top;
             }
             runningText.text = "Connected"
             subButtonText.text = "Disconnect"
@@ -1932,6 +1942,7 @@ Rectangle {
               anchors.topMargin: 27
               anchors.leftMargin: 20
               width: 180
+              text: qsTr( "Loading..." ) + translationManager.emptyString
               font.pixelSize: 14
               horizontalAlignment: Text.AlignLeft
           }
@@ -2340,7 +2351,7 @@ Rectangle {
 
             detailsText.visible = true
             timeonlineText.visible = true
-            transferredText.visible = true
+            transferredText.visible = type === "proxy" ? true : false
             paiduntilnowText.visible = true
             paidTextLine.visible = true
             providerText.visible = true
