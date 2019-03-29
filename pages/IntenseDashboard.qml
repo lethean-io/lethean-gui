@@ -793,7 +793,6 @@ Rectangle {
                         }
                     }
 
-                    firstPayment = 1;
                     dashboardPayment = 1;
                     setPayment();
                     verification = 5;
