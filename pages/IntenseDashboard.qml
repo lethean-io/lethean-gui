@@ -1716,6 +1716,9 @@ Rectangle {
               pressedColor: "#A7B8C0"
 
               onClicked:{
+                if (backgroundLoader.visible)
+                    return;
+
                   flag = 0
                   changeStatus()
                   closeProxyClient();
