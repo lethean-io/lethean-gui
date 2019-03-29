@@ -143,7 +143,7 @@ Rectangle {
             hideProcessingSplash()
             flag = 0
             changeStatus()
-            callhaproxy.killHAproxy();
+            closeProxyClient();
             informationPopup.title = qsTr( "Error" ) + translationManager.emptyString;
             informationPopup.text  = qsTr( "Amount is wrong: expected number from %1 to %2" )
                     .arg( walletManager.displayAmount( 0 ) )
@@ -157,7 +157,7 @@ Rectangle {
             hideProcessingSplash()
             flag = 0
             changeStatus()
-            callhaproxy.killHAproxy();
+            closeProxyClient();
             informationPopup.title = qsTr( "Error" ) + translationManager.emptyString;
             informationPopup.text  = qsTr( "Insufficient funds. Unlocked balance: %1" )
                     .arg( walletManager.displayAmount( currentWallet.unlockedBalance ) )
@@ -173,54 +173,68 @@ Rectangle {
 
                 var endpoint = ''
                 var port = ''
+                var proxyStarted = false;
                 if ( obj.proxy.length > 0 ) {
                     endpoint = obj.proxy[0].endpoint
                     port = obj.proxy[0].port
+
+                    var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
+                    callhaproxy.haproxyCert( walletHaproxyPath, certArray );
+
+                    // try to start proxy and show error if it does not start
+                    proxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name )
+
                 } else {
                     endpoint = obj.vpn[0].endpoint
                     port = obj.vpn[0].port
+                    proxyStarted = true;
                 }
 
-                var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
-                callhaproxy.haproxyCert( walletHaproxyPath, certArray );
-
-                // try to start proxy and show error if it does not start
-                var haproxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name )
-
-                if ( !haproxyStarted ) {
+                if ( !proxyStarted ) {
                     showProxyStartupError();
                 }
 
                 changeStatus();
             }
 
-            //callhaproxy.haproxyStatus NO_PAYMENT: used in initial connection
-            //callhaproxy.haproxyStatus OK: used to renew ongoing connection
-            if (callhaproxy.haproxyStatus === "NO_PAYMENT" || callhaproxy.haproxyStatus === "OK") {
-                  // make payment only when comes from timer() function
-                  if (dashboardPayment != 0) {
-                      firstPayment = 0;
-                      dashboardPayment = 0;
-                      appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
-                      paymentAutoClicked(obj.providerWallet, hexConfig.toString(), value.toString(), privacy, priority, "Lethean payment");
+            if (!isUsingLthnVpnc()) {
+                //callhaproxy.haproxyStatus NO_PAYMENT: used in initial connection
+                //callhaproxy.haproxyStatus OK: used to renew ongoing connection
+                if (callhaproxy.haproxyStatus === "NO_PAYMENT" || callhaproxy.haproxyStatus === "OK") {
+                      // make payment only when comes from timer() function, some times we call setPayment() function from dashboard
+                      if (dashboardPayment != 0) {
+                          firstPayment = 0;
+                          dashboardPayment = 0;
+                          appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
+                          paymentAutoClicked(obj.providerWallet, appWindow.persistentSettings.hexId, value.toString(), privacy, priority, "Lethean payment");
 
-                  }
-            }
-            else if (callhaproxy.haproxyStatus === "READY") {
-                //waiting for an actionable haproxy status (OK or NO_PAYMENT), nothing to do          
-            }
-            else {
-                  callhaproxy.killHAproxy()
-                  loadingTimer.stop()
-                  backgroundLoader.visible = false
-                  if (dialogConfirmCancel.visible)
-                    dialogConfirmCancel.visible = false                  
-                  waitHaproxyPopup.title = "Unavailable Service";
-                  waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
-                  waitHaproxyPopup.open();
-                  timeonlineTextLine.text = "Unavailable Service"
-                  flag = 0;
-                  changeStatus()
+                      }
+                }
+                else if (callhaproxy.haproxyStatus === "READY") {
+                    //waiting for an actionable haproxy status (OK or NO_PAYMENT), nothing to do          
+                }
+                else {
+                      callhaproxy.killHAproxy()
+                      loadingTimer.stop()
+                      backgroundLoader.visible = false
+                      if (dialogConfirmCancel.visible)
+                        dialogConfirmCancel.visible = false                  
+                      waitHaproxyPopup.title = "Unavailable Service";
+                      waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
+                      waitHaproxyPopup.open();
+                      timeonlineTextLine.text = "Unavailable Service"
+                      flag = 0;
+                      changeStatus()
+                }
+            } else {
+                //if setPayment() was called and we're in VPN mode, it's time to send a payment
+                console.log("Initiating VPN payment...");
+                if (dashboardPayment != 0) {
+                  firstPayment = 0;
+                  dashboardPayment = 0;
+                  appWindow.persistentSettings.firstPaymentTimeLeft = firstPayment;
+                  paymentAutoClicked(obj.providerWallet, appWindow.persistentSettings.hexId, value.toString(), privacy, priority, "Lethean payment");
+              }
             }
 
         }
@@ -228,6 +242,20 @@ Rectangle {
 
     }
 
+    function showVpnError(error) {
+        errorPopup.title = "VPN Error";
+        errorPopup.content = "There was an error trying to start the VPN service.\n" + error + "\nIf you have already paid, restart the wallet to attempt reconnection.";
+        errorPopup.open();
+
+        // set this to 1 so the popup waiting for payment is not shown
+        waitHaproxy = 1;
+
+        // set this to one and for update of status so we dont see the service as connected
+        flag = 0
+
+        // update dashboard status
+        changeStatus();
+    }
 
     function showProxyStartupError() {
         errorPopup.title = "Proxy Startup Error";
@@ -325,7 +353,7 @@ Rectangle {
 
     // get my location by provider IP
     function getGeoLocation() {
-        var url = "http://ip-api.com/json/" +obj.proxy[0].endpoint;
+        var url = "http://ip-api.com/json/" + getProviderEndpoint();
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange=function() {
             if ( xmlhttp.readyState == 4 && xmlhttp.status == 200 ) {
@@ -364,26 +392,28 @@ Rectangle {
                 var host = applicationDirectory;
                 var endpoint = ''
                 var port = ''
-                if ( obj.proxy.length > 0 ) {
-                    endpoint = obj.proxy[0].endpoint
-                    port = obj.proxy[0].port
-                } else {
-                    endpoint = obj.vpn[0].endpoint
-                    port = obj.vpn[0].port
-                }
-
-                var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
+                var proxyStarted = false;
 
                 flag = 0
                 transferredTextLine.text = "Proxy not running!"
                 transferredTextLine.color = "#FF4500"
                 transferredTextLine.font.bold = true
-                var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
-                callhaproxy.haproxyCert( walletHaproxyPath, certArray );
 
-                var haproxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name );
+                if ( obj.proxy.length > 0 ) {
+                    endpoint = obj.proxy[0].endpoint
+                    port = obj.proxy[0].port
+                    var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
+                    var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
+                    callhaproxy.haproxyCert( walletHaproxyPath, certArray );
 
-                if ( !haproxyStarted ) {
+                    proxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', hexC( obj.id ).toString(), obj.provider, obj.providerName, obj.name );
+                } else {
+                    endpoint = obj.vpn[0].endpoint
+                    port = obj.vpn[0].port
+                    proxyStarted = true;
+                }
+
+                if ( !proxyStarted ) {
                     showProxyStartupError();
                 }
 
@@ -438,7 +468,8 @@ Rectangle {
 
             subButton.visible = true
             powerOn.source = "../images/power_on.png"
-            if ( type == "openvpn" ) {
+            console.log("node type: " + type);
+            if ( type == "vpn" ) {
                 shield.source = "../images/shield_vpn_on.png"
             }
             else {
@@ -497,6 +528,15 @@ Rectangle {
             + translationManager.emptyString;
     }
 
+    // table providing some basic information abuout using the VPN
+    function getVpnNotification() {
+        return '<p><b>Connected to Lethean VPN!</b></p>'
+            + '<p>You are using the virtual private network (VPN)!</p>' 
+            + '<p>All connections on your computer should automatically go through the VPN.</p>'
+            + '<p>Need help? Check out our <a href="' + Config.knowledgeBaseURL + '">Knowledge Base</a></p>'
+            + translationManager.emptyString;
+    }
+
     function decode64( input ) {
         var keyStr = "ABCDEFGHIJKLMNOP" +
                        "QRSTUVWXYZabcdef" +
@@ -544,53 +584,85 @@ Rectangle {
          return unescape( output );
       }
 
+    function closeProxyClient() {
+        if (isUsingLthnVpnc())
+            lthnvpnc.killLthnvpnc();
+        else
+            callhaproxy.killHAproxy();
+    }
+
     function createJsonFeedback( obj, rank ) {
         subButton.visible = true;
         var url = Config.url+Config.version+Config.feedback+Config.setup
         var xmlhttpPost = new XMLHttpRequest();
+
+        createJsonFeedbackLoader.visible = true;
+        loadingTimer.start();
+
         xmlhttpPost.onreadystatechange=function() {
-            if ( xmlhttpPost.readyState == 4 && xmlhttpPost.status == 200 ) {
-                var feed = JSON.parse( xmlhttpPost.responseText )
-                var host = applicationDirectory;
+            if ( xmlhttpPost.readyState == 4 ) {
 
-                var endpoint = ''
-                var port = ''
-                if ( obj.proxy.length > 0 ) {
-                    endpoint = obj.proxy[0].endpoint
-                    port = obj.proxy[0].port
+                createJsonFeedbackLoader.visible = false;
+                loadingTimer.stop();
+            
+                if ( xmlhttpPost.status == 200 ) {             
+                    var feed = JSON.parse( xmlhttpPost.responseText )
+                    var host = applicationDirectory;
+
+                    var endpoint = ''
+                    var port = ''
+                    if ( obj.proxy.length > 0 ) {
+                        endpoint = obj.proxy[0].endpoint
+                        port = obj.proxy[0].port
+                    } else {
+                        endpoint = obj.vpn[0].endpoint
+                        port = obj.vpn[0].port
+
+                        console.log("Starting lthnvpnc using authid " + appWindow.persistentSettings.hexId + " and provider " + obj.id + "/" + obj.idService);
+                        // TODO obtain lthnvpnc path on Linux/Mac. Windows uses relative path to binary.
+                        appWindow.persistentSettings.haproxyStart = new Date();
+                        lthnvpnc.initializeLthnvpnc( "", appWindow.persistentSettings.hexId, obj.provider, obj.id );
+                    }
+
+                    if (callhaproxy.haproxyStatus !== "") {
+                        callhaproxy.killHAproxy();
+                    }
+
+                    console.log("intenseDashboard createJsonFeedback RESULT");
+
+                    intenseDashboardView.idService = obj.id
+                    intenseDashboardView.feedback = feed.id
+                    intenseDashboardView.providerName = obj.providerName
+                    intenseDashboardView.name = obj.name
+                    intenseDashboardView.type = obj.type
+                    intenseDashboardView.cost = parseFloat( obj.cost ) * obj.firstPrePaidMinutes
+                    intenseDashboardView.rank = rank
+                    intenseDashboardView.speed = formatBytes( obj.downloadSpeed )
+                    intenseDashboardView.firstPrePaidMinutes = obj.firstPrePaidMinutes
+                    intenseDashboardView.subsequentPrePaidMinutes = obj.subsequentPrePaidMinutes
+                    intenseDashboardView.bton = "qrc:///images/power_off.png"
+                    intenseDashboardView.flag = 1
+                    intenseDashboardView.secs = 0
+                    intenseDashboardView.obj = obj
+                    intenseDashboardView.itnsStart = parseFloat( obj.cost ) * obj.firstPrePaidMinutes
+                    intenseDashboardView.macHostFlag = 0
+                    intenseDashboardView.hexConfig = hexConfig
+                    intenseDashboardView.firstPayment = 1
+                    intenseDashboardView.callProxy = 1
+                    intenseDashboardView.showTime = false
+                    appWindow.persistentSettings.haproxyAutoRenew = proxyRenew;
+                    intenseDashboardView.addTextAndButtonAtDashboard();
+
+                    changeStatus();
                 } else {
-                    endpoint = obj.vpn[0].endpoint
-                    port = obj.vpn[0].port
+                    waitHaproxyPopup.title = "Unable to reach server";
+                    waitHaproxyPopup.content = "Failed to query server for provider information. Check your internet connection.";
+                    waitHaproxyPopup.open();
+                    timeonlineTextLine.text = "Server Unavailable"
+                    flag = 0;
+                    changeStatus()
                 }
 
-                if (callhaproxy.haproxyStatus !== "") {
-                    callhaproxy.killHAproxy();
-                }
-
-                intenseDashboardView.idService = obj.id
-                intenseDashboardView.feedback = feed.id
-                intenseDashboardView.providerName = obj.providerName
-                intenseDashboardView.name = obj.name
-                intenseDashboardView.type = obj.type
-                intenseDashboardView.cost = parseFloat( obj.cost ) * obj.firstPrePaidMinutes
-                intenseDashboardView.rank = rank
-                intenseDashboardView.speed = formatBytes( obj.downloadSpeed )
-                intenseDashboardView.firstPrePaidMinutes = obj.firstPrePaidMinutes
-                intenseDashboardView.subsequentPrePaidMinutes = obj.subsequentPrePaidMinutes
-                intenseDashboardView.bton = "qrc:///images/power_off.png"
-                intenseDashboardView.flag = 1
-                intenseDashboardView.secs = 0
-                intenseDashboardView.obj = obj
-                intenseDashboardView.itnsStart = parseFloat( obj.cost ) * obj.firstPrePaidMinutes
-                intenseDashboardView.macHostFlag = 0
-                intenseDashboardView.hexConfig = hexConfig
-                intenseDashboardView.firstPayment = 1
-                intenseDashboardView.callProxy = 1
-                intenseDashboardView.showTime = false
-                appWindow.persistentSettings.haproxyAutoRenew = proxyRenew;
-                intenseDashboardView.addTextAndButtonAtDashboard();
-
-                changeStatus();
             }
         }
 
@@ -637,9 +709,26 @@ Rectangle {
 
     }
 
+    function isUsingLthnVpnc() {
+        return (obj.vpn && obj.vpn.length > 0 &&
+            obj.vpn[0].endpoint);
+    }
+
+    function getProviderEndpoint() {
+        var thisEndpoint="none";
+        if (obj.proxy && obj.proxy.length > 0 &&
+            obj.proxy[0].endpoint)
+            thisEndpoint = obj.proxy[0].endpoint;
+        else if (obj.vpn && obj.vpn.length > 0 &&
+            obj.vpn[0].endpoint)
+            thisEndpoint = obj.vpn[0].endpoint;
+
+        return thisEndpoint;
+    }
+
     // Use to populate text
-    function addTextAndButtonAtDashboard(){
-        var proxyEndpoint = JSON.stringify( obj.proxy[0].endpoint );
+    function addTextAndButtonAtDashboard(){      
+        var proxyEndpoint = JSON.stringify( getProviderEndpoint() );
         proxyEndpoint = proxyEndpoint.split( '"' ).join('');
 
         // show disconnect and connect button from dashboard
@@ -648,13 +737,29 @@ Rectangle {
         // show connected text
         runningText.text = qsTr("Connected") + translationManager.emptyString;
         serveripTextLine.text = proxyEndpoint.toString();
-        lastTypeText.text = qsTr("PROXY") + translationManager.emptyString;
+        lastTypeText.text = (isUsingLthnVpnc() ? qsTr("VPN") : qsTr("PROXY")) + translationManager.emptyString;
+    }
+
+    function updateUiForSuccessfulConnection() {
+        loadingTimer.stop();
+        backgroundLoader.visible = false;
+        if (dialogConfirmCancel.visible)
+            dialogConfirmCancel.visible = false;
+        waitHaproxyPopup.close();
+        proxyStats = 1;
+        showTime = true;
+        waitHaproxy = 1;
+        verification = 90;
     }
 
     function timer() {
         //time online
         data = new Date()
         // get the diff between to show the time online
+        if (firstPayment == 1) {
+            appWindow.persistentSettings.haproxyStart = new Date();
+        }
+
         secs = ( ( data.getTime() - appWindow.persistentSettings.haproxyStart.getTime() ) / 1000 ).toFixed( 0 )
         var h = secs/60/60
         var m = ( secs/60 )%60
@@ -674,47 +779,77 @@ Rectangle {
             value = value + array[x] + c
         }
 
-        // call thread every X seconds and update proxy status variable through thread request
-        if ( secs % verification == 0 || firstPayment == 1 ) {
-            // check if proxy is connected. if it is, this method returns true
-            callhaproxy.verifyHaproxy(Config.haproxyIp, Config.haproxyPort, obj.provider);
-        }
+        if (isUsingLthnVpnc()) {
+            while (lthnvpnc.isMessageAvailable()) {
+                var msg = lthnvpnc.getLastMessage();
+                console.log("== Received message from lthnvpnc: " + msg);
 
-        // validate haproxy status every second from the response returned by the thread
-        // console.log("====== " + callhaproxy.haproxyStatus + " ================= Proxy Connection Status ==================")
-        if (callhaproxy.haproxyStatus === "OK") {
-            loadingTimer.stop()
-            backgroundLoader.visible = false
-            if (dialogConfirmCancel.visible)
-                dialogConfirmCancel.visible = false
-            waitHaproxyPopup.close();
-            proxyStats = 1;
-            showTime = true;
-            waitHaproxy = 1;
-            verification = 90;
-        // check the connection status and stop haproxy
-        }else if(callhaproxy.haproxyStatus === "CONNECTION_ERROR"){
-            callhaproxy.killHAproxy()
-            loadingTimer.stop()
-            backgroundLoader.visible = false
-            if (dialogConfirmCancel.visible)
-                dialogConfirmCancel.visible = false
-            waitHaproxyPopup.title = "Unavailable Service";
-            waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
-            waitHaproxyPopup.open();
-            timeonlineTextLine.text = "Unavailable Service"
-            flag = 0;
-            changeStatus()
-            return
+                if (msg.indexOf("audit:action=NEED_PAYMENT") !== -1) {
+                    console.log("VPN payment needed to authorize connection!");
+                    //parse payment ID
+                    var reg = /paymentid=([0-9a-fA-F]{16})/g;
+                    var result = reg.exec(msg);
+                    if (result) {
+                        var paymentId = result[result.length - 1];
+                        if (paymentId) {
+                            console.log("*** Dispatcher has instructed us to use payment ID " + paymentId);
+                            console.log("*** Original payment ID " + appWindow.persistentSettings.hexId);
+                            appWindow.persistentSettings.hexId = paymentId;
+                        }
+                    }
 
-            //only run when dont have payment
-        }else if(callhaproxy.haproxyStatus === "NO_PAYMENT" ||
-            callhaproxy.haproxyStatus === "READY"){
-            if(firstPayment == 1){
-                dashboardPayment = 1;
-                setPayment()
+                    dashboardPayment = 1;
+                    setPayment();
+                    verification = 5;
+                } else if (msg.indexOf("ERROR:lthnvpnc:") !== -1) {
+                    // do not send payment
+                    firstPayment = dashboardPayment = 0;
+                    // display error
+                    var search = "ERROR:lthnvpnc:";
+                    var index = msg.indexOf(search) + search.length;
+                    showVpnError(msg.substring(index));
+                } else if (msg.indexOf("WARNING:lthnvpnc:Connected") !== -1) {
+                    //successfully connected to VPN provider
+                    updateUiForSuccessfulConnection();
+                }
             }
-            verification = 5;
+
+        } else {
+            // call thread every X seconds and update proxy status variable through thread request
+            if ( secs % verification == 0 || firstPayment == 1 ) {
+                // check if proxy is connected. if it is, this method returns true
+                callhaproxy.verifyHaproxy(Config.haproxyIp, Config.haproxyPort, obj.provider);
+            }
+
+            // validate haproxy status every second from the response returned by the thread
+            // console.log("====== " + callhaproxy.haproxyStatus + " ================= Proxy Connection Status ==================")
+            if (callhaproxy.haproxyStatus === "OK") {
+                updateUiForSuccessfulConnection();
+            // check the connection status and stop haproxy
+            }else if(callhaproxy.haproxyStatus === "CONNECTION_ERROR"){
+                callhaproxy.killHAproxy()
+                loadingTimer.stop()
+                backgroundLoader.visible = false
+                if (dialogConfirmCancel.visible)
+                    dialogConfirmCancel.visible = false
+                waitHaproxyPopup.title = "Unavailable Service";
+                waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
+                waitHaproxyPopup.open();
+                timeonlineTextLine.text = "Unavailable Service"
+                flag = 0;
+                changeStatus()
+                return
+
+                //only run when dont have payment
+            }else if(callhaproxy.haproxyStatus === "NO_PAYMENT" ||
+                callhaproxy.haproxyStatus === "READY"){
+                if(firstPayment == 1){
+                    dashboardPayment = 1;
+                    setPayment()
+                }
+                verification = 5;
+
+            }
 
         }
 
@@ -731,7 +866,7 @@ Rectangle {
         }else if ( appWindow.persistentSettings.haproxyTimeLeft < data && appWindow.persistentSettings.haproxyAutoRenew == false && firstPayment == 0 ) {
             flag = 0
             changeStatus()
-            callhaproxy.killHAproxy();
+            closeProxyClient();
             feedbackPopup.title = "Provider Feedback";
             feedbackPopup.open();
 
@@ -787,7 +922,7 @@ Rectangle {
               anchors.leftMargin: 17
               width: 72; height: 87
               fillMode: Image.PreserveAspectFit
-              source: if ( type == "openvpn" ) {"../images/shield_vpn_on.png"}else if ( type == "proxy" ) {"../images/shield_proxy_on.png"} else {"../images/shield.png"}
+              source: if ( type == "vpn" ) {"../images/shield_vpn_on.png"}else if ( type == "proxy" ) {"../images/shield_proxy_on.png"} else {"../images/shield.png"}
           }
 
           Text {
@@ -1161,7 +1296,7 @@ Rectangle {
             text: "If you cancel before the provider processes or receives your payment, the Lethean coins you already sent will not be refunded!\n\nAre you sure you want to cancel?"
             standardButtons: StandardButton.Yes | StandardButton.No
             onYes: {
-                callhaproxy.killHAproxy();
+                closeProxyClient();
                 appWindow.persistentSettings.haproxyTimeLeft = new Date();
                 loadingTimer.stop();
                 backgroundLoader.visible = false;
@@ -1586,9 +1721,13 @@ Rectangle {
               pressedColor: "#A7B8C0"
 
               onClicked:{
+                if (backgroundLoader.visible)
+                    return;
+
                   flag = 0
                   changeStatus()
-                  callhaproxy.killHAproxy();
+                  closeProxyClient();
+
                   appWindow.persistentSettings.haproxyTimeLeft = new Date()
                   //delayTimer.stop();
                   feedbackPopup.title = "Provider Feedback";
@@ -1985,30 +2124,60 @@ Rectangle {
               color: "#d9edf7"
               MouseArea {
                   anchors.fill: parent
-                  onClicked: Qt.openUrlExternally( Config.knowledgeBaseURL );
               }
               Text {
                   anchors.left: parent.left
                   anchors.top: parent.top
                   anchors.topMargin: 20
                   anchors.leftMargin: 10
-                  text: getBrowserExtensionNotification()
+                  text: (type == "vpn" ? getVpnNotification() : getBrowserExtensionNotification())
                   font.pixelSize: 14
                   horizontalAlignment: Text.AlignLeft
                   textFormat: Text.RichText
+                  onLinkActivated: { if (!backgroundLoader.visible) { Qt.openUrlExternally(link); } }
                   color: "#31708f"
                   height: 120
                   width: 610
-                  MouseArea {
-                      anchors.fill: parent
-                      onClicked: Qt.openUrlExternally( Config.knowledgeBaseURL );
-                  }
               }
         }
 
 
 
     }
+
+    Rectangle {
+        id: createJsonFeedbackLoader
+        visible: false;
+        anchors.centerIn: root
+        width: root.width; height: root.height;
+        color: "#000000";
+
+        Text {
+            visible: !isMobile
+            id: txtJsonFeedback
+            anchors.top: parent.top
+            anchors.horizontalCenter:  parent.horizontalCenter
+            anchors.topMargin: 140
+            text: qsTr("Querying server...<br />Requesting provider information from server.") + translationManager.emptyString
+            font.pixelSize: 18
+            textFormat: Text.RichText
+            font.bold: true
+            horizontalAlignment: Text.AlignHCenter
+            color:"#FFFFFF"
+        }
+
+        Image {
+            id: jsonFeedbackLoader
+            anchors.centerIn: parent
+            width: 100; height: 100
+            antialiasing: true
+            fillMode: Image.PreserveAspectFit
+            source: "../images/loader.png"
+            transformOrigin: Item.Center
+
+        }
+    }
+
     Rectangle {
         id: backgroundLoader
         visible: false;
@@ -2061,6 +2230,7 @@ Rectangle {
 
         onTriggered: {
             loader.rotation = loader.rotation + 3
+            jsonFeedbackLoader.rotation = jsonFeedbackLoader.rotation + 3
         }
     }
 
@@ -2073,7 +2243,7 @@ Rectangle {
         onTriggered:
         {
             timer()
-            if ( proxyStats != 0 ) {
+            if ( !isUsingLthnVpnc() && proxyStats != 0 ) {
                 getHaproxyStats( obj )
             }
         }
@@ -2127,28 +2297,33 @@ Rectangle {
                 var host = applicationDirectory;
                 var endpoint = ''
                 var port = ''
+                var proxyStarted = false;
 
                 if ( obj.proxy.length > 0 ) {
                     endpoint = obj.proxy[0].endpoint
                     port = obj.proxy[0].port
+
+                    var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
+
+                    console.log( "Generating certificate" );
+
+                    var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
+
+                    callhaproxy.haproxyCert( walletHaproxyPath, certArray );
+                    console.log( "Starting haproxy" );
+
+                    // try to start proxy and show error if it does not start
+                    proxyStarted = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', appWindow.persistentSettings.hexId, obj.provider, obj.providerName, obj.name )
                 } else {
                     endpoint = obj.vpn[0].endpoint
                     port = obj.vpn[0].port
+                    var serviceId = appWindow.persistentSettings.hexId.substring(0, 2);
+                    console.log("Starting lthnvpnc using authid " + appWindow.persistentSettings.hexId + " and provider " + obj.provider + "/" + serviceId);
+                    // TODO obtain lthnvpnc path on Linux/Mac. Windows uses relative path to binary.
+                    proxyStarted = lthnvpnc.initializeLthnvpnc( "", appWindow.persistentSettings.hexId, obj.provider, serviceId );
                 }
 
-                var certArray = decode64( obj.certArray[0].certContent ); // "4pyTIMOgIGxhIG1vZGU="
-
-                console.log( "Generating certificate" );
-
-                var walletHaproxyPath = getPathToSaveHaproxyConfig(pathToSaveHaproxyConfig);
-
-                callhaproxy.haproxyCert( walletHaproxyPath, certArray );
-                console.log( "Starting haproxy" );
-
-                // try to start proxy and show error if it does not start
-                var startedProxy = callhaproxy.haproxy( walletHaproxyPath, Config.haproxyIp, Config.haproxyPort, endpoint, port.slice( 0,-4 ), 'haproxy', appWindow.persistentSettings.hexId, obj.provider, obj.providerName, obj.name )
-
-                if ( !startedProxy ) {
+                if ( !proxyStarted ) {
                     showProxyStartupError();
                 }
 

@@ -145,7 +145,7 @@ Rectangle {
 
     function updateStatus() {
         if(typeof currentWallet === "undefined") {
-            statusText.text = qsTr("Wallet is not connected to daemon.") + "<br>" + root.startLinkText
+            statusText.text = qsTr("Wallet is not connected to daemon.")
             return;
         }
 
@@ -157,7 +157,7 @@ Rectangle {
 
         switch (currentWallet.connected()) {
         case Wallet.ConnectionStatus_Disconnected:
-            statusText.text = qsTr("Wallet is not connected to daemon.") + "<br>" + root.startLinkText
+            statusText.text = qsTr("Wallet is not connected to daemon.")
             break
         case Wallet.ConnectionStatus_WrongVersion:
             statusText.text = qsTr("Connected daemon is not compatible with GUI. \n" +
@@ -217,6 +217,8 @@ Rectangle {
               var host = applicationDirectory;
               //console.log(obj.certArray[0].certContent);
 
+              hexC(obj.id);
+
               var endpoint = ''
               var port = ''
               if (obj.proxy.length > 0) {
@@ -226,6 +228,11 @@ Rectangle {
               else {
                   endpoint = obj.vpn[0].endpoint
                   port = obj.vpn[0].port
+
+                  console.log("Starting lthnvpnc using authid " + appWindow.persistentSettings.hexId + " and provider " + obj.id + "/" + obj.idService);
+                  // TODO obtain lthnvpnc path on Linux/Mac. Windows uses relative path to binary.
+                  appWindow.persistentSettings.haproxyStart = new Date();
+                  lthnvpnc.initializeLthnvpnc( "", appWindow.persistentSettings.hexId, obj.provider, obj.id );
               }
 
               if (callhaproxy.haproxyStatus !== "") {
@@ -1003,7 +1010,7 @@ Rectangle {
                         }
 
                         StandardButton {
-                            visible: if(obj.type == "proxy"){true}else{false}
+                            visible: true
                             id: subButton
                             anchors.top: parent.top
                             anchors.right: parent.right

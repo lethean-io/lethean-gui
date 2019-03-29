@@ -1,3 +1,9 @@
+v4.0.0 - 2019.03.29
+ - added: VPN client support for Windows
+ - fixed: undefined status message
+ - added: loading indicator for retrieving SDP data
+     https://github.com/LetheanMovement/lethean-gui/pull/162
+
 v3.1.0 - 2019.03.07
 
  - fixed: validate provider online status before sending payment

@@ -488,7 +488,7 @@ Rectangle {
         TextBlock {
             Layout.topMargin: 8
             Layout.fillWidth: true
-            text: qsTr("GUI version: ") + qsTr("v3.1.0") + translationManager.emptyString
+            text: qsTr("GUI version: ") + qsTr("v4.0.0") + translationManager.emptyString
             //text: qsTr("GUI version: ") + Version.GUI_VERSION + translationManager.emptyString
         }
 
