@@ -527,6 +527,15 @@ Rectangle {
             + translationManager.emptyString;
     }
 
+    // table providing some basic information abuout using the VPN
+    function getVpnNotification() {
+        return '<p><b>Connected to Lethean VPN!</b></p>'
+            + '<p>You are using the virtual private network (VPN)!</p>' 
+            + '<p>All connections on your computer should automatically go through the VPN.</p>'
+            + '<p>Need help? Check out our <a href="' + Config.knowledgeBaseURL + '">Knowledge Base</a></p>'
+            + translationManager.emptyString;
+    }
+
     function decode64( input ) {
         var keyStr = "ABCDEFGHIJKLMNOP" +
                        "QRSTUVWXYZabcdef" +
@@ -2080,7 +2089,7 @@ Rectangle {
                   anchors.top: parent.top
                   anchors.topMargin: 20
                   anchors.leftMargin: 10
-                  text: getBrowserExtensionNotification()
+                  text: (type == "vpn" ? getVpnNotification() : getBrowserExtensionNotification())
                   font.pixelSize: 14
                   horizontalAlignment: Text.AlignLeft
                   textFormat: Text.RichText
