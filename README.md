@@ -1,15 +1,13 @@
-[![Build Status](https://travis-ci.org/valiant1x/intensecoinwallet.svg?branch=master)](https://travis-ci.org/valiant1x/intensecoinwallet)
-
 # Lethean GUI
 
 Copyright (c) 2014-2017, The Monero Project
-Portions Copyright (c) 2018, The Lethean developers
+Portions Copyright (c) 2018-2019, The Lethean developers
 
 ## Development Resources
 
-- Web: [intensecoin.com](https://intensecoin.com/)
-- GitHub: [https://github.com/valiant1x/intensecoin](https://github.com/valiant1x/intensecoin)
-- Discord: [Intense on Discord](https://discord.gg/8Sxz8Yu)
+- Web: [lethean.io](https://lethean.io/)
+- GitHub: [https://github.com/LetheanMovement/lethean](https://github.com/LetheanMovement/lethean)
+- Discord: [Lethean on Discord](https://discord.gg/6ARhyAc)
 
 ## Introduction
 
@@ -61,7 +59,7 @@ No packages are available at the moment. If you would liek to create a pull requ
 
 	`sudo emerge app-arch/xz-utils app-doc/doxygen dev-cpp/gtest dev-libs/boost dev-libs/expat dev-libs/openssl dev-util/cmake media-gfx/graphviz net-dns/unbound net-libs/ldns net-libs/miniupnpc sys-libs/libunwind`
 
-2. Grab an up-to-date copy of the intensecoinwallet repository
+2. Grab an up-to-date copy of the lethean-gui repository
 
 	`git clone https://github.com/LetheanMovement/lethean-gui`
 
@@ -78,7 +76,10 @@ No packages are available at the moment. If you would liek to create a pull requ
   - For Ubuntu 16.04+ x64
 
     `sudo apt-get install qtbase5-dev qt5-default qtdeclarative5-dev qml-module-qtquick-controls qml-module-qtquick-xmllistmodel qttools5-dev-tools qml-module-qtquick-dialogs qml-module-qt-labs-settings libqt5qml-graphicaleffects`
-
+    
+  - For Ubuntu 17.10+ x64
+  `sudo apt-get install qtbase5-dev qt5-default qtdeclarative5-dev qml-module-qtquick-controls qml-module-qtquick-xmllistmodel qttools5-dev-tools qml-module-qtquick-dialogs qml-module-qt-labs-settings qml-module-qtgraphicaleffects`
+  
   - For Linux Mint 18 "Sarah" - Cinnamon x64
 
     `sudo apt install qml-module-qt-labs-settings qml-module-qtgraphicaleffects`
@@ -115,7 +116,7 @@ The executable can be found in the build/release/bin folder.
 
 1. Install Xcode from AppStore
 2. Install [homebrew](http://brew.sh/)
-3. Install [intensecoinwallet](https://github.com/valiant1x/intensecoinwallet) dependencies:
+3. Install [lethean-gui](https://github.com/LetheanMovement/lethean-gui) dependencies:
 
   `brew install boost --c++11`
 
@@ -137,13 +138,13 @@ The executable can be found in the build/release/bin folder.
 
     This is the directory where Qt 5.x is installed on **your** system
 
-6. Grab an up-to-date copy of the intensecoinwallet repository
+6. Grab an up-to-date copy of the lethean-gui repository
 
-  `git clone https://github.com/valiant1x/intensecoinwallet.git`
+  `git clone https://github.com/LetheanMovement/lethean-gui.git`
 
 7. Go into the repository
 
-  `cd intensecoinwallet`
+  `cd lethean-gui`
 
 8. Start the build
 
@@ -168,7 +169,7 @@ More info: http://stackoverflow.com/a/35098040/1683164
 
 1. Install [msys2](http://msys2.github.io/), follow the instructions on that page on how to update packages to the latest versions
 
-2. Install Lethean dependencies as described in [Lethean documentation](https://github.com/valiant1x/intensecoin) into msys2 environment
+2. Install Lethean dependencies as described in [Lethean documentation](https://github.com/LetheanMovement/lethean) into msys2 environment
    **As we only build application for x86, install only dependencies for x86 architecture (i686 in package name)**
    ```
    pacman -S mingw-w64-i686-toolchain make mingw-w64-i686-cmake mingw-w64-i686-boost
@@ -207,12 +208,12 @@ More info: http://stackoverflow.com/a/35098040/1683164
 7. Clone repository
     ```
     cd
-    git clone https://github.com/valiant1x/intensecoinwallet.git
+    git clone https://github.com/LetheanMovement/lethean-gui.git
     ```
 
 8. Build the GUI
     ```
-    cd intensecoinwallet
+    cd lethean-gui
     export PATH=$(ls -rd /c/Qt/5.[6,7,8]/mingw53_32/bin | head -1):$PATH
     ./build.sh
     cd build
