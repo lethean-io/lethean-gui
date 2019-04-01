@@ -38,7 +38,7 @@ public slots:
 	void handleThreadLogReaderResult(const QString& result);
 
 private:
-	lthnvpncLogReaderThread* m_threadLogReader;
+	lthnvpncLogReaderThread* m_threadLogReader = NULL;
 	// Stores status messages read from the lthnvpnc log file output
 	// Most recent messages are listed last
 	std::vector<QString> m_statusMsg;
