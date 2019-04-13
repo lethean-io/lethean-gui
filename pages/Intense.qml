@@ -13,6 +13,7 @@ Rectangle {
     property var model
     property variant arrChecked
     property var hexConfig
+    property int numTimesRetriedSdp
     property bool autoLoadMode
     property bool backgroundColor: false
     property bool unlockedBalance: true
@@ -522,6 +523,7 @@ Rectangle {
             loading.visible = false;
 
             if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                numTimesRetriedSdp = 0;
                 var arr = JSON.parse(xmlhttp.responseText)
 
                 // validate if SDP version matches wallet
@@ -599,13 +601,23 @@ Rectangle {
                 //console.log("SDP services retrieval failed");
                 //console.log(xmlhttp);
 
+
                 getJsonFail.visible = true;
                 getJsonFail.text = "There was an error trying to retrieve available services.<br>";
-                getJsonFail.text += "Please click the 'Filter' button to retry.<br><br>";
+
+                if (numTimesRetriedSdp >= 30) {
+                  getJsonFail.text += "You may be offline (" + numTimesRetriedSdp + " failures). Retrying in 30 seconds.<br><br>";
+                  timerGetSdpData.interval = 30000;
+                } else {
+                  getJsonFail.text += "Retrying in a moment...<br><br>";
+                  timerGetSdpData.interval = 1000;
+                }
+
                 getJsonFail.text += "<b>Error details</b><br>";
                 getJsonFail.text += "Code: " + xmlhttp.status + "<br>";
                 getJsonFail.text += "Message: " + xmlhttp.responseText;
 
+                timerGetSdpData.start();
             }
         }
 
@@ -720,7 +732,7 @@ Rectangle {
               dataModel: typeTransaction
               z: 100
               onCurrentIndexChanged: {
-                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+                  querySdpForProviderInfo()
               }
           }
 
@@ -745,7 +757,7 @@ Rectangle {
               anchors.topMargin: 5
               width: 176
               onTextChanged: {
-                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+                  querySdpForProviderInfo()
               }
           }
 
@@ -770,7 +782,7 @@ Rectangle {
               anchors.topMargin: 5
               width: 176
               onTextChanged: {
-                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+                  querySdpForProviderInfo()
               }
 
           }
@@ -796,7 +808,7 @@ Rectangle {
               dataModel: typeSpeed
               z: 100
               onCurrentIndexChanged: {
-                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+                  querySdpForProviderInfo()
               }
           }
 
@@ -813,7 +825,7 @@ Rectangle {
               checkedIcon: "../images/star.png"
               uncheckedIcon: "../images/unstar.png"
               onClicked: {
-                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+                  querySdpForProviderInfo()
               }
           }
 
@@ -833,7 +845,7 @@ Rectangle {
               pressedColor: "#A7B8C0"
               onClicked:  {
                   //console.log("Getting SDP Services after clicking on button");
-                  getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+                  querySdpForProviderInfo()
               }
           }
           */
@@ -1081,7 +1093,7 @@ Rectangle {
                 Component.onCompleted: {
                     //console.log("Getting SDP Services after List initialized");
                     autoLoadMode = true;
-                    getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+                    querySdpForProviderInfo()
 
                 }
 
@@ -1112,6 +1124,16 @@ Rectangle {
         root.enabled = false
     }
 
+    Timer {
+      id: timerGetSdpData
+      interval: 1000
+      repeat: false
+      onTriggered: {
+        numTimesRetriedSdp++;
+        querySdpForProviderInfo();
+      }
+    }
+
 
     // create timer to validate whether or not we have unlocked balance
     Timer {
@@ -1122,19 +1144,21 @@ Rectangle {
         onTriggered:
         {
             if(unlockedBalance == true && appWindow.currentWallet.unlockedBalance < 1){
-                getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+                querySdpForProviderInfo()
             }else if(appWindow.currentWallet.unlockedBalance > 1){
-                getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+                querySdpForProviderInfo()
             }
         }
     }
 
-
+    function querySdpForProviderInfo() {
+      getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked);
+    }
 
     function onPageCompleted() {
         proxyRenew = true;
         updateStatus();
-        getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
+        querySdpForProviderInfo()
 
     }
 }
