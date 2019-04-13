@@ -31,10 +31,10 @@ Description: cryptocoin GUI for Lethean network - wallet and client
  by obscuring sender, recipient and amount of every transaction made
  as well as making the mining process more egalitarian.
  .
- This package provides the daemon letheand for Full Lethean client,
- and command-line tools to interact with the daemon.
- .
- Beware that full global transaction history (blockchain) is stored locally,
- which may require very large amounts of disk space.
+ This package provides the Lethean Qt-based GUI wallet.
+ It includes both cryptocurrency and VPN management tools.
+ If you plan to use the GUI, this is the only package you should
+ install. For the proxy version, please also install the related
+ browser extension from its store.
  .
 
