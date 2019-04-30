@@ -22,7 +22,6 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, lethean-daemon,
  qml-module-qt-labs-settings,
  qml-module-qt-labs-folderlistmodel,
  qml-module-qtgraphicaleffects
-
 Description: cryptocoin GUI for Lethean network - wallet and client
  Full Lethean client is a full-node wallet for the Lethean network.
  .
