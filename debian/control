@@ -7,19 +7,22 @@ Build-Depends:
  qtbase5-dev,
  qt5-default,
  qtdeclarative5-dev,
- qml-module-qtquick-controls,
- qml-module-qtquick-xmllistmodel,
  qttools5-dev-tools,
- qml-module-qtquick-dialogs,
- qml-module-qt-labs-settings,
- qml-module-qtgraphicaleffects,
  libunwind-dev
 Standards-Version: 5
 Homepage: https://lethean.io/
 
 Package: lethean-gui
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, lethean-daemon
+Depends: ${shlibs:Depends}, ${misc:Depends}, lethean-daemon,
+ qml-module-qtquick-controls,
+ qml-module-qtquick-xmllistmodel,
+ qml-module-qtquick-window2,
+ qml-module-qtquick-dialogs,
+ qml-module-qt-labs-settings,
+ qml-module-qt-labs-folderlistmodel,
+ qml-module-qtgraphicaleffects
+
 Description: cryptocoin GUI for Lethean network - wallet and client
  Full Lethean client is a full-node wallet for the Lethean network.
  .
