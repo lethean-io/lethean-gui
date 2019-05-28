@@ -94,7 +94,7 @@ bool lthnvpnc::initializeLthnvpnc(const QString& workingDir, const QString& auth
 	    m_threadLogReader->start();
 	#else
   		QString logPath = workingDir + "lthnvpnc.log";
-        QString command = workingDir + "lthnvpnc --authid " + authId + " connect " + providerId + "/" + serviceId + " > " + logPath + " 2>&1";
+        QString command = workingDir + "lthnvpnc --authid " + authId + " connect " + providerId + "/" + serviceId + " > " + logPath + " 2>&1 &";
         qDebug() << "Launching lthnvpnc: " + command;
         int result = system(qPrintable(command));
         if (result != 0) {
