@@ -32,6 +32,8 @@ import QtQuick.Controls 1.1
 import QtQuick.Controls.Styles 1.1
 import QtQuick.Dialogs 1.2
 import Qt.labs.settings 1.0
+import QtWebEngine 1.1
+import QtWebChannel 1.0
 
 import moneroComponents.Wallet 1.0
 import moneroComponents.PendingTransaction 1.0
@@ -204,7 +206,10 @@ ApplicationWindow {
                 restoreHeight = persistentSettings.restore_height
             }
 
-            connectWallet(wizard.settings['wallet'])
+            currentWallet = wizard.settings['wallet']
+            appWindow.hide()
+            worldMapVPNSelectionDialog.show()
+            //connectWallet(wizard.settings['wallet'])
 
             isNewWallet = true
             // We don't need the wizard wallet any more - delete to avoid conflict with daemon adress change
@@ -218,11 +223,9 @@ ApplicationWindow {
             walletManager.openWalletAsync(wallet_path, appWindow.password,
                                               persistentSettings.testnet);
         }
-
     }
+
     function closeWallet() {
-
-
         // Disconnect all listeners
         if (typeof currentWallet !== "undefined" && currentWallet !== null) {
             currentWallet.refreshed.disconnect(onWalletRefresh)
@@ -345,8 +348,10 @@ ApplicationWindow {
             return;
         }
 
+        currentWallet = wallet
+        worldMapVPNSelectionDialog.show()
         // wallet opened successfully, subscribing for wallet updates
-        connectWallet(wallet)
+        //connectWallet(wallet)
     }
 
 
@@ -950,9 +955,11 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
+        appWindow.hide()
+
         x = (Screen.width - width) / 2
         y = (Screen.height - maxWindowHeight) / 2
-        //
+
         walletManager.walletOpened.connect(onWalletOpened);
         walletManager.walletClosed.connect(onWalletClosed);
         walletManager.checkUpdatesComplete.connect(onWalletCheckUpdatesComplete);
@@ -981,10 +988,12 @@ ApplicationWindow {
         } else console.log("qrScannerEnabled disabled");
 
         if(!walletsFound()) {
+            appWindow.show()
             rootItem.state = "wizard"
         } else {
+            appWindow.hide()
             rootItem.state = "normal"
-                initialize(persistentSettings);
+            initialize(persistentSettings);
         }
 
         checkUpdates();
@@ -1124,6 +1133,46 @@ ApplicationWindow {
 
     }
 
+    Window {
+        id: worldMapVPNSelectionDialog
+        width: appWindow.width
+        height: appWindow.height
+        x: appWindow.x
+        y: appWindow.y
+        modality: Qt.ApplicationModal
+
+        WebEngineView {
+            //anchors.fill: parent
+            width: appWindow.width
+            height: appWindow.height
+            url: "qrc:/ez-vpn-web/dashboard.html"
+            webChannel: vpnSelectionChannel
+        }
+    }
+
+    QtObject {
+        id: vpnSelectionBackend
+        WebChannel.id: "vpnSelectionBackend"
+        function getVPNSelection(text) {
+            console.log(text);
+            connectWallet(currentWallet)
+            worldMapVPNSelectionDialog.close()
+            appWindow.show()
+
+            //TODO: Here goes the code
+            informationPopup.title = qsTr("Data from Javascript") + translationManager.emptyString
+            informationPopup.text  = qsTr(text) + translationManager.emptyString
+            informationPopup.icon = StandardIcon.Information
+            informationPopup.onCloseCallback = null
+            informationPopup.open()
+        }
+    }
+
+    WebChannel {
+        id: vpnSelectionChannel
+        registeredObjects: [vpnSelectionBackend]
+    }
+
     PasswordDialog {
         id: passwordDialog
 
@@ -1133,6 +1182,7 @@ ApplicationWindow {
         onRejected: {
             //appWindow.enableUI(false)
             rootItem.state = "wizard"
+            appWindow.show()
         }
 
     }
@@ -1539,6 +1589,7 @@ ApplicationWindow {
     function onWalletCheckUpdatesComplete(update) {
         if (update === "")
             return
+
         print("Update found: " + update)
         var parts = update.split("|")
         if (parts.length == 4) {
