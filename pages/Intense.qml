@@ -731,7 +731,7 @@ Rectangle {
               anchors.top:  parent.top
               anchors.leftMargin: 17
               anchors.topMargin: 17
-              width: 176
+              width: 136
               text: qsTr("Max Price") + translationManager.emptyString
               fontSize: 14
           }
@@ -743,7 +743,7 @@ Rectangle {
               anchors.top: maxPriceText.bottom
               anchors.leftMargin: 17
               anchors.topMargin: 5
-              width: 176
+              width: 136
               onTextChanged: {
                   getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
               }
@@ -756,7 +756,7 @@ Rectangle {
               anchors.top: parent.top
               anchors.leftMargin: 17
               anchors.topMargin: 17
-              width: 176
+              width: 136
               text: qsTr("Min Speed") + translationManager.emptyString
               fontSize: 14
           }
@@ -768,7 +768,7 @@ Rectangle {
               anchors.top: minSpeedText.bottom
               anchors.leftMargin: 17
               anchors.topMargin: 5
-              width: 176
+              width: 136
               onTextChanged: {
                   getJson(minSpeedLine.text, typeSpeed.get(speedDrop.currentIndex).value, parseFloat(maxPriceLine.text), typeTransaction.get(typeDrop.currentIndex).value, favoriteFilter.checked)
               }
@@ -800,13 +800,30 @@ Rectangle {
               }
           }
 
-
+          StandardButton {
+              visible: !isMobile
+              id: mapButton
+              anchors.top: parent.top
+              anchors.left: speedDrop.right
+              anchors.leftMargin: 17
+              anchors.topMargin: 40
+              width: 60
+              text: qsTr("Map") + translationManager.emptyString
+              shadowReleasedColor: "#A7B8C0"
+              shadowPressedColor: "#666e71"
+              releasedColor: "#6C8896"
+              pressedColor: "#A7B8C0"
+              onClicked:  {
+                  appWindow.hide()
+                  worldMapVPNSelectionDialog.show()
+              }
+          }
 
           CheckBox {
               visible: !isMobile
               id: favoriteFilter
               text: qsTr("Favorite") + translationManager.emptyString
-              anchors.left: speedDrop.right
+              anchors.left: mapButton.right
               anchors.top: parent.top
               anchors.leftMargin: 17
               anchors.topMargin: 46
