@@ -363,6 +363,8 @@ ApplicationWindow {
         console.log(">>> wallet updated")
         middlePanel.unlockedBalanceText = leftPanel.unlockedBalanceText =  walletManager.displayAmount(currentWallet.unlockedBalance);
         middlePanel.balanceText = leftPanel.balanceText = walletManager.displayAmount(currentWallet.balance);
+        vpnSelectionBackend.updateMapBalance(leftPanel.balanceText, leftPanel.unlockedBalanceText);
+        //balanceTextUpdated(currentWallet.balance, currentWallet.unlockedBalance);
         // Update history if new block found since last update
         if(foundNewBlock) {
             foundNewBlock = false;
@@ -1141,6 +1143,12 @@ ApplicationWindow {
         y: appWindow.y
         modality: Qt.ApplicationModal
 
+        onVisibleChanged: {
+            if (!this.visible) {
+                appWindow.show()
+            }
+        }
+
         WebEngineView {
             //anchors.fill: parent
             width: appWindow.width
@@ -1152,7 +1160,10 @@ ApplicationWindow {
 
     QtObject {
         id: vpnSelectionBackend
-        WebChannel.id: "vpnSelectionBackend"
+        WebChannel.id: "vpnSelectionBackend"        
+
+        signal balanceTextUpdated(string balanceText, string unlockedBalanceText)
+
         function getVPNSelection(text) {
             console.log(text);
             connectWallet(currentWallet)
@@ -1165,6 +1176,10 @@ ApplicationWindow {
             informationPopup.icon = StandardIcon.Information
             informationPopup.onCloseCallback = null
             informationPopup.open()
+        }
+
+        function updateMapBalance(balanceText, unlockedBalanceText) {
+            balanceTextUpdated(balanceText, unlockedBalanceText);
         }
     }
 

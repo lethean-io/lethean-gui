@@ -27,6 +27,7 @@
   <div class="container-fluid mt-5">
     <div class="row">
       <nav class="col-sm-3 bg-light sidebar px-3">
+        <div class="text balance">N/A</div>
         <div class="btn-group btn-group-sm mt-1" role="group" aria-label="Basic example">
           <button type="button" class="btn btn-outline-primary" v-bind:class="{ active: is_free==null }" v-on:click="is_free=null">All</button>
           <button type="button" class="btn btn-outline-primary" v-bind:class="{ active: is_free==true }" v-on:click="is_free=true">Free</button>
@@ -76,6 +77,12 @@
 <script src="./js/qwebchannel.js"></script>
 
 <script>
+  var vpnSelectionBackend;
+  $(document).ready(function() {
+    new QWebChannel(qt.webChannelTransport, function(channel) {
+      vpnSelectionBackend = channel.objects.vpnSelectionBackend;
+    });
+  });
   //const is = require('electron-is');
   // You can also require other files to run in this process
   //  require('./renderer.js')
@@ -139,15 +146,17 @@
           console.log('Code: ', code);
 //          console.log(vm.vpnMarkers[code]);
           console.log(vm.vpnMarkers[code].provider);
-          new QWebChannel(qt.webChannelTransport, function(channel) {
-            var vpnSelectionBackend = channel.objects.vpnSelectionBackend;
 
-            var data = {};
-            data["provider_name"] = vm.vpnMarkers[code].name;
-            data["country_name"] = vm.vpnMarkers[code].country_name;
-            vpnSelectionBackend.getVPNSelection(JSON.stringify(data), function(callback) {
-              var result = callback;
-            });
+          var data = {};
+          data["provider_name"] = vm.vpnMarkers[code].name;
+          data["country_name"] = vm.vpnMarkers[code].country_name;
+          vpnSelectionBackend.getVPNSelection(JSON.stringify(data), function(callback) {
+            var result = callback;
+          });
+          vpnSelectionBackend.balanceTextUpdated.connect(function(balanceText, unlockedBalanceText) {
+            console.log("fdasfdasfadsfasdfdas");
+            console.log(balanceText);
+            $(".text.balance").text(balanceText);
           });
           //backgroundProcess(vm.vpnMarkers[code].provider)
         }
