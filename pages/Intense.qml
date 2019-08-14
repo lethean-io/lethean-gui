@@ -271,6 +271,12 @@ Rectangle {
               intenseDashboardView.changeStatus();
               intenseDashboardView.addTextAndButtonAtDashboard();
 
+              //report status to reach if applicable
+              if (obj.proxy.length > 0)
+                intenseDashboardView.reportActivityToReach('initp');
+              else
+                intenseDashboardView.reportActivityToReach('initv');                  
+
               middlePanel.state = "VPN Dashboard"
               leftPanel.selectItem("VPN Dashboard")
           }

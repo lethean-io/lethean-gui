@@ -30,6 +30,8 @@ Rectangle {
     property string bton
     property string rank
     property bool proxyRenew: true
+    property bool reportedWalletLoad: false
+    property var reportedConnectedIds: []
 
     // set if the connection come from Dashboard or provider List
     property int dashboardPayment: 0
@@ -530,10 +532,50 @@ Rectangle {
             + translationManager.emptyString;
     }
 
+    function reportActivityToReach(activity) {
+        if (!appWindow.persistentSettings.optInForReachCollection ||
+            !activity || !appWindow.currentWallet.address)
+            return;
+
+        var url = Config.reachUrl + '/user/activity/' + activity + '/' + appWindow.currentWallet.address;
+        var xmlHttp = new XMLHttpRequest();
+
+        xmlHttp.open("GET", url, true);
+        xmlHttp.send();
+    }
+
+    function getReachStatusText() {
+        if (appWindow.persistentSettings.optInForReachCollection)
+            return getReachProgramIsActiveText();
+        else
+            return getReachProgramAdvertText();
+    }
+
+    function getReachProgramIsActiveText() {
+        return '<p><b>Use the VPN to receive free coins!</b></p>'
+            + '<p>You are enrolled in the Reach program and will receive coins every month you use the VPN!</p>'
+            + '<p>Being part of the program will record analytics information about your proxy/VPN usage. <a href="#discontinue" style="color:#e1f7e2">Opt out</a></p>'
+            + translationManager.emptyString;
+    }
+
+    function getReachProgramAdvertText() {
+        return '<p><b>Get free coins to use the VPN</b></p>'
+            + '<p>Join the Lethean Reach program to receive free coins for using the VPN!</p>'
+            + '<p>Joining the program will record analytics information about your proxy/VPN usage. <a href="' + Config.reachUrl + '/user/wallet/' + appWindow.currentWallet.address + '" style="color:#e1f7e2">Join Now</a></p>'
+            + translationManager.emptyString;
+    }
+
     // create a table to show the user browser extension notification
     function getBrowserExtensionNotification() {
         return '<p><b>Browser Extension</b></p>'
             + '<p>Enable and connect the Browser Extension in your browser to start using the Proxy!</p>'
+            + '<p>More information can be found on our <a href="' + Config.knowledgeBaseURL + '">Knowledge Base</a></p>'
+            + translationManager.emptyString;
+    }
+
+    function getPreConnectedNotification() {
+        return '<p><b>Get Connected</b></p>'
+            + '<p>Connect to a VPN for system wide protection, or use our extension in<br>Chrome/Brave/Firefox with a proxy!</p>'
             + '<p>More information can be found on our <a href="' + Config.knowledgeBaseURL + '">Knowledge Base</a></p>'
             + translationManager.emptyString;
     }
@@ -760,6 +802,25 @@ Rectangle {
         showTime = true;
         waitHaproxy = 1;
         verification = 90;
+
+        //report connected status to reach if applicable
+        if (!arrayContains(reportedConnectedIds, appWindow.persistentSettings.hexId)) {
+            reportedConnectedIds.push(appWindow.persistentSettings.hexId);
+            if (isUsingLthnVpnc())
+                reportActivityToReach('connv');
+            else
+                reportActivityToReach('connp');
+        }
+    }
+
+    function arrayContains(a, obj) {
+        var i = a.length;
+        while (i--) {
+           if (a[i] === obj) {
+               return true;
+           }
+        }
+        return false;
     }
 
     function timer() {
@@ -2125,10 +2186,52 @@ Rectangle {
 
         Rectangle {
               visible: !isMobile
-              id: browserExtensionInfo
+              id: reachProgramInfo
               anchors.left: parent.left
               anchors.top:  serveripText.top
               anchors.topMargin: 40
+              anchors.leftMargin: 20
+              width: childrenRect.width
+              height: childrenRect.height
+              color: "#078C6B"
+              MouseArea {
+                  anchors.fill: parent
+              }
+              Text {
+                  id: reachProgramInfoText
+                  anchors.left: parent.left
+                  anchors.top: parent.top
+                  anchors.topMargin: 20
+                  anchors.leftMargin: 10
+                  text: { getReachStatusText(); }
+                  font.pixelSize: 14
+                  horizontalAlignment: Text.AlignLeft
+                  textFormat: Text.RichText
+                  onLinkActivated: { 
+                    if (!backgroundLoader.visible) { 
+                        //if external link to the reach website, opt user in and open the url; otherwise, opt-out
+                        if (link.match(/reach/)) {
+                            appWindow.persistentSettings.optInForReachCollection = true; 
+                            Qt.openUrlExternally(link);
+                            reachProgramInfoText.text = getReachStatusText();
+                        } else {
+                            appWindow.persistentSettings.optInForReachCollection = false;
+                            reachProgramInfoText.text = getReachStatusText();
+                        } 
+                    } 
+                  }
+                  color: "#fff"
+                  height: 105
+                  width: 610
+              }
+        }
+
+        Rectangle {
+              visible: !isMobile
+              id: browserExtensionInfo
+              anchors.left: parent.left
+              anchors.top:  reachProgramInfo.bottom
+              anchors.topMargin: 20
               anchors.leftMargin: 20
               width: childrenRect.width
               height: childrenRect.height
@@ -2141,13 +2244,19 @@ Rectangle {
                   anchors.top: parent.top
                   anchors.topMargin: 20
                   anchors.leftMargin: 10
-                  text: (type == "vpn" ? getVpnNotification() : getBrowserExtensionNotification())
+                  text: { 
+                    if (flag == 0) { 
+                        getPreConnectedNotification(); 
+                    } else { 
+                        (type == "vpn" ? getVpnNotification() : getBrowserExtensionNotification()) 
+                    } 
+                  }
                   font.pixelSize: 14
                   horizontalAlignment: Text.AlignLeft
                   textFormat: Text.RichText
                   onLinkActivated: { if (!backgroundLoader.visible) { Qt.openUrlExternally(link); } }
                   color: "#31708f"
-                  height: 120
+                  height: 105
                   width: 610
               }
         }
@@ -2265,6 +2374,11 @@ Rectangle {
     function onPageCompleted() {
         proxyRenew = true;
         radioRenew.checked = true;
+
+        if (!reportedWalletLoad) {
+            reportedWalletLoad = true;
+            reportActivityToReach('initwallet');
+        }
 
         var data = new Date();
 
