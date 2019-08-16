@@ -1,0 +1,42 @@
+Source: lethean-gui
+Section: utils
+Priority: optional
+Maintainer: Lukas Macura <lukas@lethean.io>
+Build-Depends:
+ debhelper,
+ qtbase5-dev,
+ qt5-default,
+ qtdeclarative5-dev,
+ qttools5-dev-tools,
+ libunwind-dev
+Standards-Version: 5
+Homepage: https://lethean.io/
+
+Package: lethean-gui
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, lethean-daemon,
+ qml-module-qtquick-controls,
+ qml-module-qtquick-xmllistmodel,
+ qml-module-qtquick-window2,
+ qml-module-qtquick-dialogs,
+ qml-module-qt-labs-settings,
+ qml-module-qt-labs-folderlistmodel,
+ qml-module-qtgraphicaleffects
+Description: cryptocoin GUI for Lethean network - wallet and client
+ Full Lethean client is a full-node wallet for the Lethean network.
+ .
+ Lethean (LTHN) is an open-source cryptocurrency
+ that provides blockchain backed, distributed VPN services.
+ Lethean uses a public ledger to record transactions
+ while new units are created through a process called mining.
+ Lethean aims to improve on existing cryptocurrency design
+ by obscuring sender, recipient and amount of every transaction made
+ as well as making the mining process more egalitarian.
+ .
+ This package provides the Lethean Qt-based GUI wallet.
+ It includes both cryptocurrency and VPN management tools.
+ If you plan to use the GUI, this is the only package you should
+ install. For the proxy version, please also install the related
+ browser extension from its store.
+ .
+

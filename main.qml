@@ -1049,6 +1049,7 @@ ApplicationWindow {
         property var haproxyStart
         property var haproxyStartValueOf
         property bool haproxyAutoRenew
+        property bool optInForReachCollection
     }
 
     // Information dialog
