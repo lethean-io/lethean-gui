@@ -213,14 +213,14 @@ Rectangle {
                       }
                 }
                 else if (callhaproxy.haproxyStatus === "READY") {
-                    //waiting for an actionable haproxy status (OK or NO_PAYMENT), nothing to do          
+                    //waiting for an actionable haproxy status (OK or NO_PAYMENT), nothing to do
                 }
                 else {
                       callhaproxy.killHAproxy()
                       loadingTimer.stop()
                       backgroundLoader.visible = false
                       if (dialogConfirmCancel.visible)
-                        dialogConfirmCancel.visible = false                  
+                        dialogConfirmCancel.visible = false
                       waitHaproxyPopup.title = "Unavailable Service";
                       waitHaproxyPopup.content = "The proxy may not work or the service is Unavailable.";
                       waitHaproxyPopup.open();
@@ -583,7 +583,7 @@ Rectangle {
     // table providing some basic information abuout using the VPN
     function getVpnNotification() {
         return '<p><b>Connected to Lethean VPN!</b></p>'
-            + '<p>You are using the virtual private network (VPN)!</p>' 
+            + '<p>You are using the virtual private network (VPN)!</p>'
             + '<p>All connections on your computer should automatically go through the VPN.</p>'
             + '<p>Need help? Check out our <a href="' + Config.knowledgeBaseURL + '">Knowledge Base</a></p>'
             + translationManager.emptyString;
@@ -656,8 +656,8 @@ Rectangle {
 
                 createJsonFeedbackLoader.visible = false;
                 loadingTimer.stop();
-            
-                if ( xmlhttpPost.status == 200 ) {             
+
+                if ( xmlhttpPost.status == 200 ) {
                     var feed = JSON.parse( xmlhttpPost.responseText )
                     var host = applicationDirectory;
 
@@ -779,7 +779,7 @@ Rectangle {
     }
 
     // Use to populate text
-    function addTextAndButtonAtDashboard(){      
+    function addTextAndButtonAtDashboard(){
         var proxyEndpoint = JSON.stringify( getProviderEndpoint() );
         proxyEndpoint = proxyEndpoint.split( '"' ).join('');
 
@@ -1403,7 +1403,7 @@ Rectangle {
                     id: nameFeedback
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top:  providerFeedback.top
-                    anchors.topMargin: 37  
+                    anchors.topMargin: 37
                     text: qsTr( name ) + translationManager.emptyString
                     font.pixelSize: 16
                     font.bold: true
@@ -2207,21 +2207,22 @@ Rectangle {
                   font.pixelSize: 14
                   horizontalAlignment: Text.AlignLeft
                   textFormat: Text.RichText
-                  onLinkActivated: { 
-                    if (!backgroundLoader.visible) { 
+                  wrapMode: Text.WordWrap
+                  onLinkActivated: {
+                    if (!backgroundLoader.visible) {
                         //if external link to the reach website, opt user in and open the url; otherwise, opt-out
                         if (link.match(/reach/)) {
-                            appWindow.persistentSettings.optInForReachCollection = true; 
+                            appWindow.persistentSettings.optInForReachCollection = true;
                             Qt.openUrlExternally(link);
                             reachProgramInfoText.text = getReachStatusText();
                         } else {
                             appWindow.persistentSettings.optInForReachCollection = false;
                             reachProgramInfoText.text = getReachStatusText();
-                        } 
-                    } 
+                        }
+                    }
                   }
                   color: "#fff"
-                  height: 105
+                  height: 115
                   width: 610
               }
         }
@@ -2244,19 +2245,19 @@ Rectangle {
                   anchors.top: parent.top
                   anchors.topMargin: 20
                   anchors.leftMargin: 10
-                  text: { 
-                    if (flag == 0) { 
-                        getPreConnectedNotification(); 
-                    } else { 
-                        (type == "vpn" ? getVpnNotification() : getBrowserExtensionNotification()) 
-                    } 
+                  text: {
+                    if (flag == 0) {
+                        getPreConnectedNotification();
+                    } else {
+                        (type == "vpn" ? getVpnNotification() : getBrowserExtensionNotification())
+                    }
                   }
                   font.pixelSize: 14
                   horizontalAlignment: Text.AlignLeft
                   textFormat: Text.RichText
                   onLinkActivated: { if (!backgroundLoader.visible) { Qt.openUrlExternally(link); } }
                   color: "#31708f"
-                  height: 105
+                  height: 115
                   width: 610
               }
         }
@@ -2465,7 +2466,7 @@ Rectangle {
 
             detailsText.visible = true
             timeonlineText.visible = true
-            transferredText.visible = 
+            transferredText.visible =
                 transferredTextLine.visible =
                 type === "proxy" ? true : false
             paiduntilnowText.visible = true
@@ -2505,7 +2506,7 @@ Rectangle {
 
             detailsText.visible = false
             timeonlineText.visible = false
-            transferredText.visible = 
+            transferredText.visible =
                 transferredTextLine.visible =
                 false
             paiduntilnowText.visible = false
