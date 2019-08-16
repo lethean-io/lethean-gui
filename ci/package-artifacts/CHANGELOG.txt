@@ -2,6 +2,10 @@ v4.0.1 - 2019.08.06
 - fix for using lthnvpnc and connect in vpn mode on linux/mac
 - introduce debian packaging (dpkg)
 - fix some SDP connection issues
+- support mac 10.14
+    https://github.com/LetheanMovement/lethean-gui/pull/183
+- add support for Reach program
+    https://github.com/LetheanMovement/lethean-gui/pull/184
 
 v4.0.0 - 2019.03.29
  - added: VPN client support for Windows
