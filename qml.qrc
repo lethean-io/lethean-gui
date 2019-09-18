@@ -149,6 +149,7 @@
         <file>components/IntenseHeader.qml</file>
         <file>images/star.png</file>
         <file>images/unstar.png</file>
+        <file>images/mapMarker.png</file>
         <file>pages/IntenseDashboard.qml</file>
         <file>images/shield_vpn_on.png</file>
         <file>images/shield_proxy_on.png</file>

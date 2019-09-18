@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-QT += qml quick widgets
+QT += qml quick widgets location positioning
 
 WALLET_ROOT=$$PWD/lethean
 

@@ -2,6 +2,8 @@ import QtQuick 2.0
 import moneroComponents.TransactionInfo 1.0
 import QtQuick.Controls 1.4
 import QtQml 2.2
+import QtLocation 5.6
+import QtPositioning 5.6
 import moneroComponents.Wallet 1.0
 import moneroComponents.WalletManager 1.0
 import moneroComponents.PendingTransaction 1.0
@@ -18,6 +20,9 @@ Rectangle {
     property bool backgroundColor: false
     property bool unlockedBalance: true
     property bool proxyRenew: true
+    property var nodeCoordinates: []
+    property int numTimesRetriedMap: 0
+    property var sdpProviders
 
     function buildTxDetailsString(data, rank) {
         //console.log(data.subsequentVerificationsNeeded + "-------------------- ttt")
@@ -593,6 +598,7 @@ Rectangle {
 
 
                 var providers = arr.providers
+                root.sdpProviders = providers
                 for (var i = 0; i < providers.length; i++) {
                     getSignature(providers, providers[i], i, speed, speedType, price, tp, favorite)
                 }
@@ -749,7 +755,7 @@ Rectangle {
               anchors.top:  parent.top
               anchors.leftMargin: 17
               anchors.topMargin: 17
-              width: 176
+              width: 136
               text: qsTr("Max Price") + translationManager.emptyString
               fontSize: 14
           }
@@ -761,7 +767,7 @@ Rectangle {
               anchors.top: maxPriceText.bottom
               anchors.leftMargin: 17
               anchors.topMargin: 5
-              width: 176
+              width: 136
               onTextChanged: {
                   querySdpForProviderInfo()
               }
@@ -774,7 +780,7 @@ Rectangle {
               anchors.top: parent.top
               anchors.leftMargin: 17
               anchors.topMargin: 17
-              width: 176
+              width: 136
               text: qsTr("Min Speed") + translationManager.emptyString
               fontSize: 14
           }
@@ -786,7 +792,7 @@ Rectangle {
               anchors.top: minSpeedText.bottom
               anchors.leftMargin: 17
               anchors.topMargin: 5
-              width: 176
+              width: 136
               onTextChanged: {
                   querySdpForProviderInfo()
               }
@@ -818,13 +824,36 @@ Rectangle {
               }
           }
 
-
+          StandardButton {
+              visible: !isMobile
+              id: mapListToggleButton
+              anchors.top: parent.top
+              anchors.left: speedDrop.right
+              anchors.leftMargin: 17
+              anchors.topMargin: 40
+              width: 60
+              text: qsTr("Map") + translationManager.emptyString
+              shadowReleasedColor: "#A7B8C0"
+              shadowPressedColor: "#666e71"
+              releasedColor: "#6C8896"
+              pressedColor: "#A7B8C0"
+              onClicked:  {
+                if (mapListToggleButton.text === "Map") {
+                    map.visible = true;
+                    mapListToggleButton.text = "List";
+                  //change view to map
+                  } else {
+                    map.visible = false;
+                    mapListToggleButton.text = "Map";
+                  }
+              }
+          }
 
           CheckBox {
               visible: !isMobile
               id: favoriteFilter
               text: qsTr("Favorite") + translationManager.emptyString
-              anchors.left: speedDrop.right
+              anchors.left: mapListToggleButton.right
               anchors.top: parent.top
               anchors.leftMargin: 17
               anchors.topMargin: 46
@@ -1105,6 +1134,53 @@ Rectangle {
 
 
             }
+
+            Map {
+                visible: false
+                id: map
+                anchors.fill: parent
+                plugin: mapPlugin
+                activeMapType: supportedMapTypes[supportedMapTypes.length - 1]
+                maximumZoomLevel: 10
+                zoomLevel: 1
+
+                Component.onCompleted: {
+                  if (nodeCoordinates.length == 0)
+                    queryNodesApi();
+                }
+            }
+
+            Plugin {
+                id: mapPlugin
+                name: "osm"
+                PluginParameter { 
+                    name: "osm.useragent"
+                    value: "Lethean VPN 4.0.1 via Qt"
+                }
+                //use 'blank' tile set
+                PluginParameter {
+                    name: "osm.mapping.custom.host"
+                    value: "https://tiles.wmflabs.org/osm-no-labels/"
+                }
+            }
+
+            Rectangle {
+              id: rectStatusText
+              x: root.width/2 - width/2
+              y: root.height/3 - height/3
+              height:mapStatusText.paintedHeight + 50
+              width:mapStatusText.paintedWidth + 40
+              visible: mapStatusText.text != ""
+              opacity: 0.9
+
+              Text {
+                  id: mapStatusText
+                  anchors.fill:parent
+                  horizontalAlignment: Text.AlignHCenter
+                  verticalAlignment: Text.AlignVCenter
+                  textFormat: Text.RichText
+              }
+          }
     }
 
     Rectangle {
@@ -1155,6 +1231,205 @@ Rectangle {
                 querySdpForProviderInfo()
             }
         }
+    }
+
+    StandardDialog {
+        id: connectPopup
+        property var obj
+        cancelVisible: true
+        okVisible: true
+        width:400
+        height: 380
+        onAccepted:{
+            //console.log('connectPopup accepted. looking for ' + obj.provider + ' / ' + obj.id);
+            if (typeof(root.sdpProviders) != 'undefined') {
+              for (var i = 0; i < root.sdpProviders.length; i++) {
+                if (root.sdpProviders[i].id == obj.id &&
+                  root.sdpProviders[i].provider == obj.provider) {
+                  var rank = 0;
+                  if (root.sdpProviders[i].mStability && root.sdpProviders[i].mSpeed) {
+                    var rank = (root.sdpProviders[i].mStability + root.sdpProviders[i].mSpeed)/2
+                    rank = parseFloat(rank).toFixed(1)
+                  }
+                  createJsonFeedback(root.sdpProviders[i], rank);
+                }
+              }
+            }
+
+            
+        }
+
+        GroupBox {
+            anchors.top: parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.topMargin: 215
+            height: 70
+            ExclusiveGroup { id: tabPositionGroup }
+            flat: true
+            Column {
+                anchors.top: parent.top
+                anchors.topMargin: 20
+                RadioButton {
+                    id: radioRenew
+                    text: "Auto Renew Connection"
+                    checked: true
+                    exclusiveGroup: tabPositionGroup
+                    onClicked: {
+                        proxyRenew = true;
+                    }
+                }
+                RadioButton {
+                    id: radioClose
+                    text: "Close after time expired"
+                    exclusiveGroup: tabPositionGroup
+                    onClicked: {
+                        proxyRenew = false;
+                    }
+                }
+            }
+
+        }
+    }
+
+    Timer {
+      id: timerGetMapData
+      interval: 1000
+      repeat: false
+      onTriggered: {
+        numTimesRetriedMap++;
+        queryNodesApi();
+      }
+    }
+
+    function showConnectionPopup(obj) {        
+        connectPopup.obj = obj;
+        connectPopup.title = "Connection Confirmation";
+        connectPopup.content = buildTxConnectionString(obj);
+        connectPopup.open();
+    }
+
+
+    function generateQmlSnippetForProvider(objectId, providerId, providerSvcId, providerName, providerSvcName, type, cost, firstPrePaidMinutes, lat, lng) {
+
+        var thisNodeCoords = [ lat, lng ];
+        for(var i = 0; i < nodeCoordinates.length; i++) {
+            if (nodeCoordinates[i][0] == thisNodeCoords[0] &&
+                nodeCoordinates[i][1] == thisNodeCoords[1]) {
+                //add some node spacing
+                lat += Math.floor((Math.random() * 4) + 2);
+                lng += Math.floor((Math.random() * 4) + 2);
+                var thisNodeCoords = [ lat, lng ];
+            }
+        }
+
+        nodeCoordinates.push(thisNodeCoords);
+
+        var qml = "import QtQuick 2.0
+            import QtLocation 5.6
+            import QtPositioning 5.6
+
+            MapQuickItem {
+                id: " + objectId + "
+                coordinate: QtPositioning.coordinate({LAT}, {LNG})
+                anchorPoint.x: 13
+                anchorPoint.y: 41
+
+
+                sourceItem: //Rectangle {
+                    //width: 27
+                    //height: 41
+
+                    Image {
+                        opacity: 1.0
+                        width: 27
+                        height: 41
+                        //anchors.fill: parent
+                        property var providerObject: {
+                            \"provider\": \"{PROVIDERID}\",
+                            \"id\": \"{PROVIDERSVCID}\",
+                            \"providerName\": \"{PROVIDERNAME}\",
+                            \"name\": \"{PROVIDERSVCNAME}\",
+                            \"type\": \"{TYPE}\",
+                            \"cost\": \"{COST}\",
+                            \"firstPrePaidMinutes\": \"{FIRSTPREPAIDMINUTES}\",
+                        }
+                        source: \"../images/mapMarker.png\"
+                        MouseArea {
+                            enabled: true
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                showConnectionPopup(parent.providerObject);
+                            }
+                            onDoubleClicked: {
+                                showConnectionPopup(parent.providerObject);
+                            }
+                        }
+                    }
+                //}
+            }"
+        qml = qml.replace('{LAT}', lat);
+        qml = qml.replace('{LNG}', lng);
+        qml = qml.replace('{PROVIDERID}', providerId);
+        qml = qml.replace('{PROVIDERSVCID}', providerSvcId);
+        qml = qml.replace('{PROVIDERNAME}', providerName);
+        qml = qml.replace('{PROVIDERSVCNAME}', providerSvcName);        
+        qml = qml.replace('{TYPE}', type);
+        qml = qml.replace('{COST}', cost);
+        qml = qml.replace('{FIRSTPREPAIDMINUTES}', firstPrePaidMinutes);
+        return qml;
+    }
+
+    function queryNodesApi() {
+        var url = "https://nodes.lethean.io/api/v1/nodes/"
+        var xmlHttp = new XMLHttpRequest();
+
+        xmlHttp.onreadystatechange = function() {
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                numTimesRetriedMap = 0;
+                mapStatusText.text = ""
+                var arr = JSON.parse(xmlHttp.responseText)
+                for(var i = 0; i < arr.length; i++) {
+                    var provider = arr[i];
+
+                    var providerId = provider.provider;
+                    var providerName = provider.providerName;
+                    var providerSvcId = provider.id;
+                    var providerSvcName = provider.name;
+                    var type = provider.type; //vpn or proxy
+                    var cost = provider.cost;
+                    var lat = provider.proxy[0].lat;
+                    var lng = provider.proxy[0].lng;
+                    var firstPrePaidMinutes = provider.firstPrePaidMinutes;
+                    console.log('Creating new map item for provider ' + providerName + ' at ' + lat + ',' + lng);
+                    var newObject = Qt.createQmlObject( generateQmlSnippetForProvider('providerItem' + i, providerId, providerSvcId, providerName, providerSvcId, providerSvcName, type, cost, firstPrePaidMinutes, lat, lng), root, 'providerItem' + i );
+                    map.addMapItem(newObject);
+                }                
+            }
+            else if(xmlHttp.readyState == 4 && xmlHttp.status != 200) { 
+                // sdp services retrieval failed, notify user and try again later
+                mapStatusText.text = "There was an error trying to retrieve proxy/VPN providers.<br>";
+
+                if (numTimesRetriedSdp >= 30) {
+                  mapStatusText.text += "You may be offline (" + numTimesRetriedSdp + " failures). Retrying in 30 seconds.<br><br>";
+                  timerGetMapData.interval = 30000;
+                } else {
+                  mapStatusText.text += "Retrying in a moment...<br><br>";
+                  timerGetMapData.interval = 1000;
+                }
+
+                mapStatusText.text += "<b>Error details</b><br>";
+                mapStatusText.text += "Code: " + xmlHttp.status + "<br>";
+                mapStatusText.text += "Message: " + xmlHttp.responseText;
+
+                timerGetMapData.start();
+            }
+        }
+
+        mapStatusText.text = "Loading";
+        xmlHttp.open("GET", url, true);
+        xmlHttp.setRequestHeader("Access-Control-Allow-Origin","*");
+        xmlHttp.send();
     }
 
     function querySdpForProviderInfo() {
