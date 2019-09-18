@@ -1821,7 +1821,7 @@ Rectangle {
               Image {
                   id: powerOn
                   anchors.left: parent.left
-                  anchors.top:  startText.top
+                  anchors.top:  parent.top
                   anchors.verticalCenter: parent.verticalCenter
                   anchors.leftMargin: 10
                   width: 25; height: 25
