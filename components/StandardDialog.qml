@@ -64,6 +64,8 @@ Window {
     }
 
     function open() {
+        root.x = Screen.width / 2 - root.width / 2;
+        root.y = Screen.height / 2 - root.height / 2
         show()
     }
 
