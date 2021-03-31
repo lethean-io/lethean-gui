@@ -37,7 +37,7 @@ docker-build-develop:
 
 linux-x86_64:
   # Official docker image.
-  image: ubuntu:16:04
+  image: ubuntu:16.04
   stage: build
   interruptible: true
   before_script:
@@ -47,7 +47,7 @@ linux-x86_64:
   only:
     - develop
   artifacts:
-    name: freebsd-x86_64
+    name: linux-x86_64
     paths:
       - build/release/bin
     expire_in: 1 week
