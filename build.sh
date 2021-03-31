@@ -1,6 +1,7 @@
 #!/bin/bash
 
 BUILD_TYPE=$1
+set MAKEFLAGS=-j1
 source ./utils.sh
 platform=$(get_platform)
 # default build type

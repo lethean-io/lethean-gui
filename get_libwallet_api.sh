@@ -113,7 +113,7 @@ fi
 
 
 echo "cleaning up existing monero build dir, libs and includes"
-#rm -fr $MONERO_DIR/build
+rm -fr $MONERO_DIR/build
 rm -fr $MONERO_DIR/lib
 rm -fr $MONERO_DIR/include
 rm -fr $MONERO_DIR/bin
@@ -201,12 +201,12 @@ fi
 
 # set CPU core count
 # thanks to SO: http://stackoverflow.com/a/20283965/4118915
-if test -z "$CPU_CORE_COUNT"; then
-  CPU_CORE_COUNT=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)
-fi
+#if test -z "$CPU_CORE_COUNT"; then
+  CPU_CORE_COUNT=1
+#fi
 
 # Build libwallet_merged
-pushd $MONERO_DIR/build/release/src/wallet
+pushd $MONERO_DIR/build/release/src/wallet || exit
 eval $make_exec version -C ../..
 eval $make_exec  -j$CPU_CORE_COUNT
 eval $make_exec  install -j$CPU_CORE_COUNT
@@ -216,7 +216,7 @@ popd
 # win32 need to build daemon manually with msys2 toolchain
 #if [ "$platform" != "mingw32" ] && [ "$ANDROID" != true ]; then
 if [ "$ANDROID" != true ]; then
-    pushd $MONERO_DIR/build/release/src/daemon
+    pushd $MONERO_DIR/build/release/src/daemon || exit
     eval make  -j$CPU_CORE_COUNT
     eval make install -j$CPU_CORE_COUNT
     popd
@@ -230,11 +230,11 @@ eval make -C $MONERO_DIR/build/release/external/easylogging++ all install
 
 # Install libunwind
 echo "Installing libunbound..."
-pushd $MONERO_DIR/build/release/external/unbound
+pushd $MONERO_DIR/build/release/external/unbound || exit
 # no need to make, it was already built as dependency for libwallet
 # make -j$CPU_CORE_COUNT
 $make_exec install -j$CPU_CORE_COUNT
-popd
+popd || exit
 
 
 popd

@@ -35,15 +35,38 @@ See [LICENSE](LICENSE).
 
 If you want to help out, see [CONTRIBUTING](CONTRIBUTING.md) for a set of guidelines.
 
-## Installing Lethean Core from a Package
+## Installing on Linux from repository
 
-No packages are available at the moment. If you would liek to create a pull request, packaging for your favorite distribution would be a welcome contribution!
+If you want to run the Lethean wallet GUI on a supported distribution, you can use the official repository.
+Add to your apt sources as follows (you need to be have superuser previleges):
+```
+echo 'deb [trusted=yes] http://download.lethean.io/repo/DISTRIBUTION/ ./' >/etc/apt/sources.list.d/lethean.list
+```
+currently supported *DISTRIBUTION* values:
 
+	Ubuntu: xenial, bionic
+	
+	Debian: stretch, buster
+
+Then run:
+```
+apt-get update
+apt-get install lethean-gui
+```
+This won't install any command line wallet tool. You can add the wallet cli by running the following command:
+```
+apt-get install lethean-wallet-cli
+```
+If you are running services on the lethean network, like in the case of an exchange, you may need the wallet rpc client as well:
+```
+apt-get install lethean-wallet-rpc
+```
+The lethean-wallet-vpn-rpc package is only needed if you want to run an exit node (i.e. provide vpn services through the lethean network and earn coins). In this case, it's easier to start by installing the lethean-vpn package instead, and follow the related guide on https://github.com/ronnylov/lethean-vpn/wiki/Full-Lethean-exit-node-install-guide
 ## Compiling Lethean Core from Source
 
 ### On Linux:
 
-(Tested on Ubuntu 16.04 x86, 16.10 x64, Gentoo x64 and Linux Mint 18 "Sarah" - Cinnamon x64)
+(Tested on Ubuntu 16.04 x86, 16.10 x64, 18.04 x64, Gentoo x64 and Linux Mint 18 "Sarah" - Cinnamon x64)
 
 1. Install Lethean dependencies
 
@@ -79,6 +102,12 @@ No packages are available at the moment. If you would liek to create a pull requ
     
   - For Ubuntu 17.10+ x64
   `sudo apt-get install qtbase5-dev qt5-default qtdeclarative5-dev qml-module-qtquick-controls qml-module-qtquick-xmllistmodel qttools5-dev-tools qml-module-qtquick-dialogs qml-module-qt-labs-settings qml-module-qtgraphicaleffects`
+  
+  - For Ubuntu 18.04+ x64
+  `sudo apt-get install qtbase5-dev qt5-default qtdeclarative5-dev qml-module-qtquick-controls qml-module-qtquick-xmllistmodel qttools5-dev-tools qml-module-qtquick-dialogs qml-module-qt-labs-settings qml-module-qtgraphicaleffects qml-module-qt-labs-folderlistmodel`
+  
+  - For Debian 9+
+  `sudo apt-get install qml-module-qtquick-controls qml-module-qtquick-xmllistmodel qml-module-qtquick-window2 qml-module-qtquick-dialogs qml-module-qt-labs-settings qml-module-qt-labs-folderlistmodel qml-module-qtgraphicaleffects`
   
   - For Linux Mint 18 "Sarah" - Cinnamon x64
 
