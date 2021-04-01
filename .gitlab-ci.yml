@@ -33,7 +33,7 @@ docker-build-develop:
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE:develop
   only:
-    - develop
+    - master
 
 linux-x86_64:
   # Official docker image.
@@ -45,7 +45,9 @@ linux-x86_64:
     - apt-get upgrade
     - apt-get install -y build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev qtbase5-dev qt5-default qtdeclarative5-dev qml-module-qtquick-controls qml-module-qtquick-xmllistmodel qttools5-dev-tools qml-module-qtquick-dialogs qml-module-qt-labs-settings libqt5qml-graphicaleffects
   script:
-    - ./build.sh
+    - build.sh release-static
+    - cd build && make deploy && cd ..
+    - cp letheand artifacts
   only:
     - develop
   artifacts:
