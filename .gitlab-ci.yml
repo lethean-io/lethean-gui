@@ -9,7 +9,7 @@ linux-x86_64:
   script:
     - ./build.sh release-static
   only:
-    - release-4.*
+    - release-4..0.1
   artifacts:
     name: linux-x86_64
     paths:
