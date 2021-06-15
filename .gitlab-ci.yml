@@ -33,21 +33,18 @@ docker-build-develop:
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE:develop
   only:
-    - master
+    - develop
 
 linux-x86_64:
-  # Official docker image.
   image: ubuntu:16.04
   stage: build
   interruptible: true
   before_script:
     - apt-get update
     - apt-get upgrade
-    - apt-get install -y build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev qtbase5-dev qt5-default qtdeclarative5-dev qml-module-qtquick-controls qml-module-qtquick-xmllistmodel qttools5-dev-tools qml-module-qtquick-dialogs qml-module-qt-labs-settings libqt5qml-graphicaleffects
+    - apt-get install -y build-essential git cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev qtbase5-dev qt5-default qtdeclarative5-dev qml-module-qtquick-controls qml-module-qtquick-xmllistmodel qttools5-dev-tools qml-module-qtquick-dialogs qml-module-qt-labs-settings libqt5qml-graphicaleffects
   script:
     - ./build.sh release-static
-    - cd build && make deploy && cd ..
-    - cp letheand artifacts
   only:
     - develop
   artifacts:
@@ -56,5 +53,19 @@ linux-x86_64:
       - build/release/bin
     expire_in: 1 week
 
-
+#windows:
+#  stage: build
+#  interruptible: true
+#  before_script:
+#    - choco install -y pacman git
+#    - refreshenv
+#    - pacman -S mingw-w64-i686-toolchain make mingw-w64-i686-cmake mingw-w64-i686-boost
+#  script:
+#    - ci\run.sh
+#  only:
+#    - develop-next
+#  tags:
+#    - shared-windows
+#    - windows
+#    - windows-1809
 
