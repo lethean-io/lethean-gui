@@ -5,6 +5,11 @@ build:
   image: lthn/build:lthn-wallet-linux
   stage: build
   interruptible: true
+  services:
+    - name: docker:dind
+      command: [ "--experimental" ]
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
     - bash ci/run.sh
   artifacts:
