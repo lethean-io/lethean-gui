@@ -1,0 +1,1 @@
+https://github.com/rCryptoCore/round-flag-icons/tree/master/flags
