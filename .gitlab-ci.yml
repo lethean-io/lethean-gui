@@ -8,11 +8,12 @@ build:
   script:
     - bash ci/run.sh
   artifacts:
-    name: linux-x86_64
+    expose_as: 'Linux'
+    name: lethean-wallet-linux-x86_64
     paths:
       - /home/lthn/wallet/build/release/bin/
 
-#windows:
+
 #  stage: build
 #  interruptible: true
 #  before_script:
