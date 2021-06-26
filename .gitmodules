@@ -1,6 +1,6 @@
 [submodule "lethean"]
 	path = lethean
-	url = https://github.com/lethean-io/lethean
+	url = https://gitlab.com/lthn.io/projects/chain/wallet.git
 [submodule "src/ed25519-donna"]
 	path = src/ed25519-donna
 	url = https://github.com/floodyberry/ed25519-donna.git
