@@ -1,59 +1,19 @@
-stages:
-  - build
+include:
+  - template: Auto-DevOps.gitlab-ci.yml
 
-docker-build-master:
-  # Official docker image.
-  image: docker:19.03.12
+build:
+  image: lthn/build:lthn-wallet-linux
   stage: build
   interruptible: true
-  services:
-    - docker:19.03.12-dind
-  before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
-    - docker pull $CI_REGISTRY_IMAGE:latest || true
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE:latest
-  only:
-    - master
-
-docker-build-develop:
-  # Official docker image.
-  image: docker:19.03.12
-  stage: build
-  interruptible: true
-  services:
-    - docker:19.03.12-dind
-  before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-  script:
-    - docker pull $CI_REGISTRY_IMAGE:develop || true
-    - docker build --cache-from $CI_REGISTRY_IMAGE:develop --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:develop .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE:develop
-  only:
-    - develop
-
-linux-x86_64:
-  image: ubuntu:16.04
-  stage: build
-  interruptible: true
-  before_script:
-    - apt-get update
-    - apt-get upgrade
-    - apt-get install -y build-essential git cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev qtbase5-dev qt5-default qtdeclarative5-dev qml-module-qtquick-controls qml-module-qtquick-xmllistmodel qttools5-dev-tools qml-module-qtquick-dialogs qml-module-qt-labs-settings libqt5qml-graphicaleffects
-  script:
-    - ./build.sh release-static
-  only:
-    - develop
+    - bash ci/run.sh
   artifacts:
-    name: linux-x86_64
+    expose_as: 'Linux'
+    name: lethean-wallet-linux-x86_64
     paths:
-      - build/release/bin
-    expire_in: 1 week
+      - /home/lthn/wallet/build/release/bin/
 
-#windows:
+
 #  stage: build
 #  interruptible: true
 #  before_script:
