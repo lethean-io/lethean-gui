@@ -9,7 +9,6 @@ Linux:
     - bash ci/run.sh
     - mv /builds/lthn.io/projects/chain/wallet/lethean-gui-* ./
   artifacts:
-    expose_as: 'Linux'
     name: lethean-wallet-linux-x86_64
     paths:
       - lethean-gui-*
