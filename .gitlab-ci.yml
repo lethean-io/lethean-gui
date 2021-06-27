@@ -7,7 +7,7 @@ Linux:
   interruptible: true
   script:
     - bash ci/run.sh
-    - mv /builds/lthn.io/projects/chain/wallet/lethean-gui-* ./
+    - mv /builds/lthn.io/projects/chain/wallet/build/release/bin/lethean-gui-* ./
   artifacts:
     name: lethean-wallet-linux-x86_64
     paths:
