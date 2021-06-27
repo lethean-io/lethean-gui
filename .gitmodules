@@ -2,3 +2,6 @@
 	path = src/ed25519-donna
 	url = https://github.com/floodyberry/ed25519-donna.git
 
+[submodule "lethean"]
+	path = lethean
+	url = https://gitlab.com/lthn.io/projects/chain/lethean.git
