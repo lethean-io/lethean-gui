@@ -1,7 +1,7 @@
-include:
-  - template: Auto-DevOps.gitlab-ci.yml
+stages:
+  - build
 
-build:
+Linux:
   image: lthn/build:lthn-wallet-linux
   stage: build
   interruptible: true
