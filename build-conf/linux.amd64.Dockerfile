@@ -1,5 +1,5 @@
 # Uses a pre configured ubuntu:16.04 image
-FROM lthn/build:release-3.1.0 as builder
+FROM lthn/build:lthn-wallet-linux as builder
 
 RUN apt-get update && apt-get install -y qtbase5-dev qt5-default qtdeclarative5-dev qml-module-qtquick-controls \
     qml-module-qtquick-xmllistmodel qttools5-dev-tools qml-module-qtquick-dialogs qml-module-qt-labs-settings \
@@ -12,7 +12,7 @@ COPY . .
 ARG RELEASE_TYPE=release-static
 
 # if you want to clear build, purge the runner cache/prune the builder
-RUN rm -rf build/ && ./build.sh ${RELEASE_TYPE} && cd build && make deploy
+RUN rm -rf build/ && ./src/build.sh ${RELEASE_TYPE} && cd build && make deploy
 
 ARG BUILD_VERSION="4.0.2"
 ARG RELEASE_NAME="lethean-gui-linux-64bit-$BUILD_VERSION"
