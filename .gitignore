@@ -1,1 +1,17 @@
 .idea
+gui/*.user
+gui/*.user.*
+gui/translations/*.qm
+gui/build
+gui/intense-build
+gui/*.o
+gui/*.log
+gui/version.js
+gui/debug
+gui/qrc_qml.cpp
+gui/moc*
+gui/release
+gui/Makefile
+gui/lethean
+gui/intense
+gui/.qmake.stash
