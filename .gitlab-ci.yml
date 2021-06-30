@@ -10,7 +10,6 @@ Linux:
     - mv /builds/lthn.io/projects/chain/wallet/build/release/bin/lethean-gui-* ./
   artifacts:
     name: lethean-wallet-linux-x86_64
-    expose_as: 'Linux'
     paths:
       - lethean-gui-*
 
