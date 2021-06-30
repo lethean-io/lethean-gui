@@ -1,6 +1,6 @@
 [submodule "gui/lethean"]
 	path = gui/lethean
-	url = https://gitlab.com/lthn.io/projects/chain/lethean
+	url = https://gitlab.com/lthn.io/projects/chain/lethean.git
 [submodule "gui/src/ed25519-donna"]
 	path = gui/src/ed25519-donna
 	url = https://github.com/floodyberry/ed25519-donna.git
