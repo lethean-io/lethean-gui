@@ -1,18 +1,22 @@
 stages:
   - build
 
-Linux:
-  image: lthn/build:lthn-wallet-linux
+linux-x86_64:
   stage: build
   interruptible: true
+  before_script:
+    - apk add bash
   script:
-    - bash ci/run.sh
-    - mv /builds/lthn.io/projects/chain/wallet/build/release/bin/lethean-gui-* ./
+    - ./build.sh release-static
+  only:
+    - release-4..0.1
   artifacts:
-    name: lethean-wallet-linux-x86_64
+    name: linux-x86_64
     paths:
-      - lethean-gui-*
+      - /lethean-gui-linux-64bit-4.0.2.tar.bz2
 
+
+#windows:
 #  stage: build
 #  interruptible: true
 #  before_script:

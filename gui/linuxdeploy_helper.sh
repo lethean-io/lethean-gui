@@ -31,7 +31,7 @@ if [ -z "$QTXML_DIR" ]; then
 fi
 
 # Copy dependencies
-EXCLUDE='libstdc++|libgcc_s.so|libc.so|libpthread|libdl.so|libm.so|libGL.so|libGLX.so|libGLdispatch.so|libEGL.so|libdrm.so|libresolv.so'
+EXCLUDE='libstdc++|libgcc_s.so|libpthread|libdl.so|libm.so|libGL.so|libGLX.so|libGLdispatch.so|libEGL.so|libdrm.so|libresolv.so'
 INCLUDE='libunbound'
 cp -rv $QT_DIR/qml $TARGET || exit
 cp -rv $QT_DIR/plugins $TARGET || exit
@@ -39,7 +39,7 @@ mkdir -p $TARGET/libs || exit
 ldd $TARGET/$GUI_EXEC | grep "=> /" | awk '{print $3}' | grep $INCLUDE | xargs -I '{}' cp -v '{}' $TARGET/libs || exit
 ldd $TARGET/$GUI_EXEC | grep "=> /" | awk '{print $3}' | grep -Ev $EXCLUDE | xargs -I '{}' cp -v '{}' $TARGET/libs || exit
 #ldd $TARGET/plugins/platforms/libqxcb.so| grep "=> /" | awk '{print $3}' | grep -Ev $EXCLUDE | xargs -I '{}' cp -v '{}' $TARGET/libs || exit
-ldd `find $TARGET/plugins $TARGET/qml -name \*.so`| grep "=> /" | awk '{print $3}' | grep -Ev $EXCLUDE | xargs -I '{}' cp -v '{}' $TARGET/libs || exit
+ldd $(find "$TARGET"/plugins "$TARGET"/qml -name \*.so)| grep "=> /" | awk '{print $3}' | grep -Ev $EXCLUDE | xargs -I '{}' cp -v '{}' $TARGET/libs || exit
 cp -v $QTXML_DIR/libQt5XmlPatterns.so.5 $TARGET/libs || exit
 
 # Create start script

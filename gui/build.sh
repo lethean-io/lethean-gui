@@ -96,5 +96,6 @@ if [ "$ANDROID" != true ]; then
 cp ../$MONERO_DIR/bin/$MONEROD_EXEC $BIN_PATH
 fi
 
-# make deploy
+make deploy
+
 popd
