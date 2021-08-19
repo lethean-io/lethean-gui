@@ -6,6 +6,7 @@ Linux:
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
+    - git submodule update --init --force --recursive
     - docker build --no-cache -o artifacts --build-arg THREADS=10 -t $CI_REGISTRY_IMAGE:linux .
   artifacts:
     paths:
