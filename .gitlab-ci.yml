@@ -1,6 +1,8 @@
 Linux:
   stage: build
   interruptible: true
+  tags:
+    - fast-compile
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
