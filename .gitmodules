@@ -2,7 +2,6 @@
 	path = lethean
 	url = https://gitlab.com/lthn.io/projects/chain/lethean
 	branch = next
-	ignore = all
 [submodule "external/quirc"]
 	path = external/quirc
 	url = https://github.com/dlbeer/quirc/
