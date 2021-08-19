@@ -72,4 +72,4 @@ build-linux:
 	docker build -o artifacts --build-arg THREADS=20 -t lthn/wallet:linux .
 
 build-windows:
-	docker build -o build --build-arg THREADS=20 -f .build/docker/windows.Dockerfile --cache-from lthn/wallet:windows -t lthn/wallet:windows .
+	docker build -o artifacts --build-arg THREADS=20 -f .build/docker/windows.Dockerfile --cache-from lthn/wallet:windows -t lthn/wallet:windows .

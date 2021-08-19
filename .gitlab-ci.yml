@@ -15,3 +15,21 @@ Linux:
   artifacts:
     paths:
       - artifacts
+
+Windows:
+  stage: build
+  image: docker
+  interruptible: true
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+  services:
+    - name: docker:dind
+      command: [ "--experimental" ]
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - docker build --squash -o artifacts -f .build/docker/windows.Dockerfile --cache-from $CI_REGISTRY_IMAGE:windows -t $CI_REGISTRY_IMAGE:windows .
+    - docker push $CI_REGISTRY_IMAGE:windows
+  artifacts:
+    paths:
+      - artifacts
