@@ -12,7 +12,7 @@ add_library(openpgp
 
 target_include_directories(openpgp
   PUBLIC
-    ${CMAKE_SOURCE_DIR}/monero/contrib/epee/include
+    ${CMAKE_SOURCE_DIR}/lethean/chain/contrib/epee/include
     ${GCRYPT_INCLUDE_DIR})
 
 target_link_libraries(openpgp
