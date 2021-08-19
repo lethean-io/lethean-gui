@@ -1,0 +1,16 @@
+Docker Image:
+  stage: build
+  image: docker
+  interruptible: true
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+  tags:
+    - fast-compile
+  services:
+    - name: docker:dind
+      command: [ "--experimental" ]
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - docker build --squash --build-arg THREADS=10 --cache-from $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE .
+    - docker push $CI_REGISTRY_IMAGE
