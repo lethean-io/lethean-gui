@@ -7,7 +7,6 @@ version.js
 moc_*
 *.o
 *.mak
-*.build
 *.xcodeproj
 lethean-wallet-gui_plugin_import.cpp
 lethean-wallet-gui_qml_plugin_import.cpp
