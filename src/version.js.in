@@ -1,0 +1,1 @@
+var GUI_VERSION = "@VERSION_TAG_GUI@";
