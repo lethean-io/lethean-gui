@@ -4,6 +4,8 @@ Linux:
   interruptible: true
   variables:
     DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_BUILDKIT: 1
   services:
     - name: docker:dind
       command: [ "--experimental" ]
@@ -22,6 +24,8 @@ Windows:
   interruptible: true
   variables:
     DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_BUILDKIT: 1
   services:
     - name: docker:dind
       command: [ "--experimental" ]
@@ -33,3 +37,14 @@ Windows:
   artifacts:
     paths:
       - artifacts
+
+Macos:
+  stage: build
+  tags:
+    - macos
+  script:
+    - git submodule update --init --force --recursive
+    - make release-static -j10
+  artifacts:
+    paths:
+      - build/release/bin
