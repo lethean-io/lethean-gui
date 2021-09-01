@@ -1,11 +1,8 @@
-FROM lthn/build:lthn-wallet-windows as build
-ARG THREADS=20
-COPY . /lethean-gui
+FROM lthn/build:wallet-windows as build
+ENV THREADS=1
+ARG BRANCH=next
+WORKDIR /wallet-gui
 
-WORKDIR /lethean-gui
+RUN  git clone --branch ${BRANCH} --recursive --depth 1 https://gitlab.com/lthn.io/projects/chain/wallet-gui.git
 
-RUN  git submodule update --init --force --recursive
-RUN set -x && make depends root=/depends target=x86_64-w64-mingw32 tag=win-x64 -j${THREADS}
-
-FROM scratch AS export-stage
-COPY --from=build /lethean-gui/build/x86_64-w64-mingw32/release/bin /
+CMD cd /wallet-gui && make depends root=/depends target=x86_64-w64-mingw32 tag=win-x64 -j${THREADS}

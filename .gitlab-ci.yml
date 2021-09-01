@@ -9,44 +9,15 @@ build:
   parallel:
     matrix:
       - TAG: linux
+      - TAG: windows
   services:
     - name: docker:dind
       command: [ "--experimental" ]
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
-    - docker run -v $(pwd):/build lthn/build:wallet-$TAG
+    - docker build -t lthn/wallet:$TAG -f .build/docker/$TAG.Dockerfile .
+    - docker run -v $(pwd):/build lthn/wallet:$TAG
   artifacts:
     paths:
-      - artifacts
-
-Windows:
-  stage: build
-  image: docker
-  interruptible: true
-  variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_DRIVER: overlay2
-    DOCKER_BUILDKIT: 1
-  services:
-    - name: docker:dind
-      command: [ "--experimental" ]
-  before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-  script:
-    - docker build --squash -o artifacts -f .build/docker/windows.Dockerfile --cache-from $CI_REGISTRY_IMAGE:windows -t $CI_REGISTRY_IMAGE:windows .
-    - docker push $CI_REGISTRY_IMAGE:windows
-  artifacts:
-    paths:
-      - artifacts
-
-Macos:
-  stage: build
-  tags:
-    - macos
-  script:
-    - git submodule update --init --force --recursive
-    - make release-static -j10
-  artifacts:
-    paths:
-      - build/release/bin
+      - build
