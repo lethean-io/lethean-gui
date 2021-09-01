@@ -1,12 +1,9 @@
-FROM lthn/build:lthn-wallet-linux as build
-ARG THREADS=1
-RUN apt-get install -y libc6-dev
-COPY . /lethean-gui
+FROM lthn/build:wallet-linux
+ENV THREADS=1
+ARG BRANCH=next
 
-WORKDIR /lethean-gui
+WORKDIR /wallet-gui
 
-RUN git submodule update --init --force --recursive
-RUN make release-static -j${THREADS}
+RUN git clone --branch ${BRANCH} --recursive --depth 1 https://gitlab.com/lthn.io/projects/chain/wallet-gui.git
 
-FROM scratch AS export-stage
-COPY --from=build /lethean-gui/build/release/bin /
+CMD cd /wallet-gui && make release-static -j$THREADS
