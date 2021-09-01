@@ -9,7 +9,6 @@ build:
   parallel:
     matrix:
       - TAG: linux
-      - TAG: windows
   services:
     - name: docker:dind
       command: [ "--experimental" ]
@@ -17,7 +16,7 @@ build:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
     - docker build -t lthn/wallet:$TAG -f .build/docker/$TAG.Dockerfile .
-    - docker run -v $(pwd):/build lthn/wallet:$TAG
+    - docker run -v $(pwd):/build -w /wallet-gui lthn/wallet:$TAG
   artifacts:
     paths:
       - build

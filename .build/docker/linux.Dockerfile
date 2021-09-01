@@ -4,6 +4,6 @@ ARG BRANCH=next
 
 WORKDIR /wallet-gui
 
-RUN git clone --branch ${BRANCH} --recursive --depth 1 https://gitlab.com/lthn.io/projects/chain/wallet-gui.git
+RUN git clone --branch ${BRANCH} --recursive --depth 1 https://gitlab.com/lthn.io/projects/chain/wallet-gui.git .
 
-CMD cd /wallet-gui && make release-static -j$THREADS
+CMD make release-static -j$THREADS
