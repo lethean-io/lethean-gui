@@ -94,7 +94,7 @@ Rectangle {
         end: Qt.point(height, width)
     }
 
-    // card with monero logo
+    // card with lethean logo
     Column {
         visible: true
         z: 2
@@ -230,7 +230,7 @@ Rectangle {
                         if (persistentSettings.fiatPriceEnabled && persistentSettings.fiatPriceToggle) {
                             return appWindow.fiatApiCurrencySymbol();
                         } else {
-                            return "XMR"
+                            return "LTHN"
                         }
                     }
                     color: MoneroComponents.Style.blackTheme ? "white" : "black"

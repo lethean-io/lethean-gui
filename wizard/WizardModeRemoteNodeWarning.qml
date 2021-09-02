@@ -69,7 +69,7 @@ Rectangle {
                 Layout.fillWidth: true
 
                 MoneroComponents.TextPlain {
-                    text: qsTr("This mode is ideal for managing small amounts of Monero. You have access to basic features for making and managing transactions. It will automatically connect to the Monero network so you can start using Monero immediately.") + translationManager.emptyString
+                    text: qsTr("This mode is ideal for managing small amounts of Lethean. You have access to basic features for making and managing transactions. It will automatically connect to the Lethean network so you can start using Lethean immediately.") + translationManager.emptyString
                     themeTransitionBlackColor: MoneroComponents.Style._b_lightGreyFontColor
                     themeTransitionWhiteColor: MoneroComponents.Style._w_lightGreyFontColor
                     wrapMode: Text.Wrap

@@ -15,7 +15,7 @@ uninstall support. It helps lowering the "barrier to entry"
 somewhat, especially for less technically experienced users of
 Monero.
 
-As the setup script in file [Monero.iss](Monero.iss) has to list many
+As the setup script in file [Monero.iss](Lethean.iss) has to list many
 files and directories of the GUI wallet package to install by name,
 this version of the script only works with exactly the GUI wallet
 for Monero release *Oxygen Orion* that you find on

@@ -149,7 +149,7 @@ ColumnLayout {
             }
 
             Text {
-                text: qsTr("Additionally, you may specify a bootstrap node to use Monero immediately.") + translationManager.emptyString
+                text: qsTr("Additionally, you may specify a bootstrap node to use Lethean immediately.") + translationManager.emptyString
                 Layout.topMargin: 4
                 Layout.fillWidth: true
 
