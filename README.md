@@ -5,8 +5,8 @@ Portions Copyright (c) 2018-2019, The Lethean developers
 
 ## Development Resources
 
-- Web: [lethean.io](https://lethean.io/)
-- GitHub: [https://github.com/LetheanMovement/lethean](https://github.com/LetheanMovement/lethean)
+- Web: [www.lt.hn](https://www.lt.hn)
+- GitHub: [https://github.com/letheanVPN/blockchain](https://github.com/letheanVPN/blockchain)
 - Discord: [Lethean on Discord](https://discord.gg/6ARhyAc)
 
 ## Introduction
@@ -84,7 +84,7 @@ The lethean-wallet-vpn-rpc package is only needed if you want to run an exit nod
 
 2. Grab an up-to-date copy of the lethean-gui repository
 
-	`git clone https://github.com/LetheanMovement/lethean-gui`
+	`git clone https://github.com/letheanVPN/lethean-gui`
 
 3. Go into the repository
 
@@ -145,7 +145,7 @@ The executable can be found in the build/release/bin folder.
 
 1. Install Xcode from AppStore
 2. Install [homebrew](http://brew.sh/)
-3. Install [lethean-gui](https://github.com/LetheanMovement/lethean-gui) dependencies:
+3. Install [lethean-gui](https://github.com/letheanVPN/lethean-gui) dependencies:
 
   `brew install boost --c++11`
 
@@ -169,7 +169,7 @@ The executable can be found in the build/release/bin folder.
 
 6. Grab an up-to-date copy of the lethean-gui repository
 
-  `git clone https://github.com/LetheanMovement/lethean-gui.git`
+  `git clone https://github.com/letheanVPN/lethean-gui.git`
 
 7. Go into the repository
 
@@ -198,7 +198,7 @@ More info: http://stackoverflow.com/a/35098040/1683164
 
 1. Install [msys2](http://msys2.github.io/), follow the instructions on that page on how to update packages to the latest versions
 
-2. Install Lethean dependencies as described in [Lethean documentation](https://github.com/LetheanMovement/lethean) into msys2 environment
+2. Install Lethean dependencies as described in [Lethean documentation](https://github.com/letheanVPN/blockchain) into msys2 environment
    **As we only build application for x86, install only dependencies for x86 architecture (i686 in package name)**
    ```
    pacman -S mingw-w64-i686-toolchain make mingw-w64-i686-cmake mingw-w64-i686-boost
@@ -237,7 +237,7 @@ More info: http://stackoverflow.com/a/35098040/1683164
 7. Clone repository
     ```
     cd
-    git clone https://github.com/LetheanMovement/lethean-gui.git
+    git clone https://github.com/letheanVPN/lethean-gui.git
     ```
 
 8. Build the GUI
