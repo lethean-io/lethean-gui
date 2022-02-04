@@ -74,7 +74,7 @@ jobs:
 
 
   macos-bundle:
-    runs-on: mac
+    runs-on: macOS-latest
     steps:
       - uses: actions/checkout@v1
         with:
