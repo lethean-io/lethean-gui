@@ -27,6 +27,7 @@ jobs:
           submodules: recursive
       - name: install dependencies
         run: HOMEBREW_NO_AUTO_UPDATE=1 brew install hidapi git openssl zmq libpgm libsodium miniupnpc ldns expat libunwind-headers protobuf qt5 pkg-config
+      - run: brew install --build-from-source ./ci/utils/homebrew/boost@169.rb
       - run: git clone --depth=1 --branch=v4.0.4 https://github.com/letheanVPN/blockchain.git lethean
       - name: build
         run: ./build.sh
