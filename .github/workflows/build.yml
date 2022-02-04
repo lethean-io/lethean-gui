@@ -29,9 +29,7 @@ jobs:
         run: HOMEBREW_NO_AUTO_UPDATE=1 brew install boost hidapi git openssl zmq libpgm libsodium miniupnpc ldns expat libunwind-headers protobuf qt5 pkg-config
       - run: git clone --depth=1 --branch=v4.0.4 https://github.com/letheanVPN/blockchain.git lethean
       - name: build
-        run: DEV_MODE=ON make release -j3
-      - name: test qml
-        run: build/release/bin/lethean-wallet-gui.app/Contents/MacOS/lethean-wallet-gui --test-qml
+        run: ./build.sh
 
   build-ubuntu:
     runs-on: ubuntu-latest
@@ -54,9 +52,7 @@ jobs:
         run: sudo apt -y install qtbase5-dev qt5-default qtdeclarative5-dev qml-module-qtqml-models2 qml-module-qtquick-controls qml-module-qtquick-controls2 qml-module-qtquick-dialogs qml-module-qtquick-xmllistmodel qml-module-qt-labs-settings qml-module-qt-labs-platform qml-module-qt-labs-folderlistmodel qttools5-dev-tools qml-module-qtquick-templates2 libqt5svg5-dev libgcrypt20-dev xvfb
       - run: git clone --depth=1 --branch=v4.0.4 https://github.com/letheanVPN/blockchain.git lethean
       - name: build
-        run: DEV_MODE=ON make release -j3
-      - name: test qml
-        run: xvfb-run -a build/release/bin/lethean-wallet-gui --test-qml
+        run: ./build.sh
 
   build-windows:
     runs-on: windows-latest
@@ -73,9 +69,8 @@ jobs:
           install: mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb mingw-w64-x86_64-unbound git mingw-w64-x86_64-qt5 mingw-w64-x86_64-libgcrypt
       - run: git clone --depth=1 --branch=v4.0.4 https://github.com/letheanVPN/blockchain.git lethean
       - name: build
-        run: DEV_MODE=ON make release-win64 -j2
-      - name: test qml
-        run: build/release/bin/lethean-wallet-gui --test-qml
+        run: ./build.sh
+
 
   macos-bundle:
     runs-on: macOS-latest
@@ -92,12 +87,7 @@ jobs:
         working-directory: ../
       - run: git clone --depth=1 --branch=v4.0.4 https://github.com/letheanVPN/blockchain.git lethean
       - name: build
-        run: CMAKE_PREFIX_PATH=/Users/runner/work/lethean-gui/5.15.2/clang_64 make release -j3
-      - name: deploy
-        run: make deploy
-        working-directory: build/release
-      - name: test qml
-        run: build/release/bin/lethean-wallet-gui.app/Contents/MacOS/lethean-wallet-gui --test-qml
+        run: ./build.sh
       - name: create .tar
         run: tar -cf lethean-wallet-gui.tar lethean-wallet-gui.app
         working-directory: build/release/bin
@@ -106,74 +96,6 @@ jobs:
           name: ${{ github.job }}
           path: build/release/bin/lethean-wallet-gui.tar
 
-  docker-linux-static:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v1
-        with:
-          submodules: recursive
-      - uses: satackey/action-docker-layer-caching@v0.0.10
-        if: "!startsWith(github.ref, 'refs/tags/v')"
-        continue-on-error: true
-        with:
-          key: docker-linux-static-{hash}
-          restore-keys: |
-            docker-linux-static-
-      - name: install dependencies
-        run: sudo apt -y install xvfb libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xkb1 libxkbcommon-x11-0
-      - name: prepare build environment
-        run: docker build --tag lethean:build-env-linux --build-arg THREADS=3 --file Dockerfile.linux .
-      - name: build
-        run: docker run --rm -v /home/runner/work/letheanVPN/lethean-gui:/lethean-gui -w /lethean-gui lethean:build-env-linux sh -c 'make release-static -j3'
-      - name: sha256sum
-        run: shasum -a256 /home/runner/work/letheanVPN/lethean-gui/build/release/bin/lethean-wallet-gui
-      - name: test qml
-        run: xvfb-run -a /home/runner/work/letheanVPN/lethean-gui/build/release/bin/lethean-wallet-gui --test-qml
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ github.job }}
-          path: |
-            /home/runner/work/letheanVPN/lethean-gui/build/release/bin/lethean-wallet-gui
-            /home/runner/work/letheanVPN/lethean-gui/build/release/bin/letheand
-  docker-windows-static:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v1
-        with:
-          submodules: recursive
-      - uses: satackey/action-docker-layer-caching@v0.0.10
-        if: "!startsWith(github.ref, 'refs/tags/v')"
-        continue-on-error: true
-        with:
-          key: docker-windows-static-{hash}
-          restore-keys: |
-            docker-windows-static-
-      - name: prepare build environment
-        run: docker build --tag lethean:build-env-windows --build-arg THREADS=3 --file Dockerfile.windows .
-      - name: build
-        run: docker run --rm -v /home/runner/work/letheanVPN/lethean-gui:/lethean-gui -w /lethean-gui lethean:build-env-windows sh -c 'make depends root=/depends target=x86_64-w64-mingw32 tag=win-x64 -j3'
-      - name: sha256sum
-        run: shasum -a256 /home/runner/work/letheanVPN/lethean-gui/build/x86_64-w64-mingw32/release/bin/lethean-wallet-gui.exe
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ github.job }}
-          path: |
-            /home/runner/work/letheanVPN/lethean-gui/build/x86_64-w64-mingw32/release/bin/lethean-wallet-gui.exe
-            /home/runner/work/letheanVPN/lethean-gui/build/x86_64-w64-mingw32/release/bin/letheand.exe
-  docker-android:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v1
-        with:
-          submodules: recursive
-      - name: prepare build environment
-        run: docker build --tag lethean:build-env-android --build-arg THREADS=3 --file Dockerfile.android .
-      - name: build
-        run: docker run --rm -v /home/runner/work/letheanVPN/lethean-gui:/lethean-gui -e THREADS=3 lethean:build-env-android
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ github.job }}
-          path: /home/runner/work/letheanVPN/lethean-gui/build/Android/release/android-build/lethean-gui.apk
 
   source-archive:
     runs-on: ubuntu-20.04
