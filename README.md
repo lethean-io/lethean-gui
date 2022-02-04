@@ -20,9 +20,9 @@
 
 	`sudo emerge app-arch/xz-utils app-doc/doxygen dev-cpp/gtest dev-libs/boost dev-libs/expat dev-libs/openssl dev-util/cmake media-gfx/graphviz net-dns/unbound net-libs/ldns net-libs/miniupnpc sys-libs/libunwind`
 
-2. Grab an up-to-date copy of the lethean-gui repository
+2. Close a copy of the blockchain code
 
-	`git clone https://github.com/letheanVPN/lethean-gui`
+	`git clone --depth=1 --branch=v4.0.4 https://github.com/letheanVPN/blockchain.git lethean`
 
 3. Go into the repository
 

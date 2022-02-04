@@ -1,6 +1,22 @@
-name: ci/gh-actions/gui
+name: gui
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - 'main'
+      - 'dev'
+      - 'v*'
+    tags:
+      - 'v*'
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches:
+      - 'main'
+      - 'dev'
+      - 'v*'
+    paths-ignore:
+      - '**.md'
 
 jobs:
   build-macos:
@@ -10,7 +26,8 @@ jobs:
         with:
           submodules: recursive
       - name: install dependencies
-        run: HOMEBREW_NO_AUTO_UPDATE=1 brew install boost hidapi openssl zmq libpgm libsodium miniupnpc ldns expat libunwind-headers protobuf qt5 pkg-config
+        run: HOMEBREW_NO_AUTO_UPDATE=1 brew install boost hidapi git openssl zmq libpgm libsodium miniupnpc ldns expat libunwind-headers protobuf qt5 pkg-config
+      - run: git clone --depth=1 --branch=v4.0.4 https://github.com/letheanVPN/blockchain.git lethean
       - name: build
         run: DEV_MODE=ON make release -j3
       - name: test qml
@@ -35,6 +52,7 @@ jobs:
         run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev libprotobuf-dev protobuf-compiler
       - name: install lethean gui dependencies
         run: sudo apt -y install qtbase5-dev qt5-default qtdeclarative5-dev qml-module-qtqml-models2 qml-module-qtquick-controls qml-module-qtquick-controls2 qml-module-qtquick-dialogs qml-module-qtquick-xmllistmodel qml-module-qt-labs-settings qml-module-qt-labs-platform qml-module-qt-labs-folderlistmodel qttools5-dev-tools qml-module-qtquick-templates2 libqt5svg5-dev libgcrypt20-dev xvfb
+      - run: git clone --depth=1 --branch=v4.0.4 https://github.com/letheanVPN/blockchain.git lethean
       - name: build
         run: DEV_MODE=ON make release -j3
       - name: test qml
@@ -53,6 +71,7 @@ jobs:
         with:
           update: true
           install: mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb mingw-w64-x86_64-unbound git mingw-w64-x86_64-qt5 mingw-w64-x86_64-libgcrypt
+      - run: git clone --depth=1 --branch=v4.0.4 https://github.com/letheanVPN/blockchain.git lethean
       - name: build
         run: DEV_MODE=ON make release-win64 -j2
       - name: test qml
@@ -71,6 +90,7 @@ jobs:
       - name: download qt
         run: python3 lethean-gui/.github/qt_helper.py mac_x64 desktop 5.15.2 clang_64 c384008156fe63cc183bade0316828c598ff3e5074397c0c9ccc588d6cdc5aca
         working-directory: ../
+      - run: git clone --depth=1 --branch=v4.0.4 https://github.com/letheanVPN/blockchain.git lethean
       - name: build
         run: CMAKE_PREFIX_PATH=/Users/runner/work/lethean-gui/5.15.2/clang_64 make release -j3
       - name: deploy
