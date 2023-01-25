@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -26,34 +26,63 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "QrCode.hpp"
+#pragma once
 
-#include "QRCodeImageProvider.h"
+#include <vector>
 
-QImage QRCodeImageProvider::genQrImage(const QString &id, QSize *size)
+#include <span.h>
+
+#include "serialization.h"
+
+namespace openpgp
 {
-    using namespace qrcodegen;
 
-    QrCode qrcode = QrCode::encodeText(id.toStdString().c_str(), QrCode::Ecc::MEDIUM);
-    unsigned int black = 0;
-    unsigned int white = 1;
-    unsigned int borderSize = 4;
-    unsigned int imageSize = qrcode.getSize() + (2 * borderSize);
-    QImage img = QImage(imageSize, imageSize, QImage::Format_Mono);
-
-    for (unsigned int y = 0; y < imageSize; ++y)
-        for (unsigned int x = 0; x < imageSize; ++x)
-            if ((x < borderSize) || (x >= imageSize - borderSize) || (y < borderSize) || (y >= imageSize - borderSize))
-                img.setPixel(x, y, white);
-            else
-                img.setPixel(x, y, qrcode.getModule(x - borderSize, y - borderSize) ? black : white);
-    if (size)
-        *size = QSize(imageSize, imageSize);
-
-    return img;
-}
-
-QImage QRCodeImageProvider::requestImage(const QString &id, QSize *size, const QSize &/* requestedSize */)
+class packet_stream
 {
-    return genQrImage(id, size);
-}
+public:
+  packet_stream(const epee::span<const uint8_t> buffer)
+    : packet_stream(deserializer<epee::span<const uint8_t>>(buffer))
+  {
+  }
+
+  template <
+    typename byte_container,
+    typename = typename std::enable_if<(sizeof(typename byte_container::value_type) == 1)>::type>
+  packet_stream(deserializer<byte_container> buffer)
+  {
+    while (!buffer.empty())
+    {
+      packet_tag tag = buffer.read_packet_tag();
+      packets.push_back({std::move(tag), buffer.read(tag.length)});
+    }
+  }
+
+  const std::vector<uint8_t> *find_first(packet_tag::type type) const
+  {
+    for (const auto &packet : packets)
+    {
+      if (packet.first.packet_type == type)
+      {
+        return &packet.second;
+      }
+    }
+    return nullptr;
+  }
+
+  template <typename Callback>
+  void for_each(packet_tag::type type, Callback &callback) const
+  {
+    for (const auto &packet : packets)
+    {
+      if (packet.first.packet_type == type)
+      {
+        callback(packet.second);
+      }
+    }
+  }
+
+private:
+  std::vector<std::pair<packet_tag, std::vector<uint8_t>>> packets;
+};
+
+} // namespace openpgp

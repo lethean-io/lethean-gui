@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -26,34 +26,53 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "QrCode.hpp"
+#pragma once
 
-#include "QRCodeImageProvider.h"
+#include <algorithm>
+#include <stdexcept>
 
-QImage QRCodeImageProvider::genQrImage(const QString &id, QSize *size)
+#include <gcrypt.h>
+
+namespace openpgp
 {
-    using namespace qrcodegen;
 
-    QrCode qrcode = QrCode::encodeText(id.toStdString().c_str(), QrCode::Ecc::MEDIUM);
-    unsigned int black = 0;
-    unsigned int white = 1;
-    unsigned int borderSize = 4;
-    unsigned int imageSize = qrcode.getSize() + (2 * borderSize);
-    QImage img = QImage(imageSize, imageSize, QImage::Format_Mono);
-
-    for (unsigned int y = 0; y < imageSize; ++y)
-        for (unsigned int x = 0; x < imageSize; ++x)
-            if ((x < borderSize) || (x >= imageSize - borderSize) || (y < borderSize) || (y >= imageSize - borderSize))
-                img.setPixel(x, y, white);
-            else
-                img.setPixel(x, y, qrcode.getModule(x - borderSize, y - borderSize) ? black : white);
-    if (size)
-        *size = QSize(imageSize, imageSize);
-
-    return img;
-}
-
-QImage QRCodeImageProvider::requestImage(const QString &id, QSize *size, const QSize &/* requestedSize */)
+class s_expression
 {
-    return genQrImage(id, size);
-}
+public:
+  s_expression(const s_expression &) = delete;
+  s_expression &operator=(const s_expression &) = delete;
+
+  template <typename... Args>
+  s_expression(Args... args)
+  {
+    if (gcry_sexp_build(&data, nullptr, args...) != GPG_ERR_NO_ERROR)
+    {
+      throw std::runtime_error("failed to build S-expression");
+    }
+  }
+
+  s_expression(s_expression &&other)
+  {
+    std::swap(data, other.data);
+  }
+
+  s_expression(gcry_sexp_t data)
+    : data(data)
+  {
+  }
+
+  ~s_expression()
+  {
+    gcry_sexp_release(data);
+  }
+
+  const gcry_sexp_t &get() const
+  {
+    return data;
+  }
+
+private:
+  gcry_sexp_t data = nullptr;
+};
+
+} // namespace openpgp

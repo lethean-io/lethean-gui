@@ -26,34 +26,30 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "QrCode.hpp"
+#ifndef FILTER_H
+#define FILTER_H
 
-#include "QRCodeImageProvider.h"
+#include <QObject>
 
-QImage QRCodeImageProvider::genQrImage(const QString &id, QSize *size)
+class filter : public QObject
 {
-    using namespace qrcodegen;
+    Q_OBJECT
+private:
+    bool m_tabPressed;
+    bool m_backtabPressed;
+public:
+    explicit filter(QObject *parent = 0);
 
-    QrCode qrcode = QrCode::encodeText(id.toStdString().c_str(), QrCode::Ecc::MEDIUM);
-    unsigned int black = 0;
-    unsigned int white = 1;
-    unsigned int borderSize = 4;
-    unsigned int imageSize = qrcode.getSize() + (2 * borderSize);
-    QImage img = QImage(imageSize, imageSize, QImage::Format_Mono);
+protected:
+    bool eventFilter(QObject *obj, QEvent *ev);
 
-    for (unsigned int y = 0; y < imageSize; ++y)
-        for (unsigned int x = 0; x < imageSize; ++x)
-            if ((x < borderSize) || (x >= imageSize - borderSize) || (y < borderSize) || (y >= imageSize - borderSize))
-                img.setPixel(x, y, white);
-            else
-                img.setPixel(x, y, qrcode.getModule(x - borderSize, y - borderSize) ? black : white);
-    if (size)
-        *size = QSize(imageSize, imageSize);
+signals:
+    void sequencePressed(const QVariant &o, const QVariant &seq);
+    void sequenceReleased(const QVariant &o, const QVariant &seq);
+    void mousePressed(const QVariant &o, const QVariant &x, const QVariant &y);
+    void mouseReleased(const QVariant &o, const QVariant &x, const QVariant &y);
+    void userActivity();
+    void uriHandler(const QUrl &url);
+};
 
-    return img;
-}
-
-QImage QRCodeImageProvider::requestImage(const QString &id, QSize *size, const QSize &/* requestedSize */)
-{
-    return genQrImage(id, size);
-}
+#endif // FILTER_H

@@ -134,9 +134,9 @@ ColumnLayout {
                 fontSize: 16
                 checkedIcon: "../images/checkedVioletIcon.png"
                 uncheckedIcon: "../images/uncheckedIcon.png"
-                checked: persistentSettings.daemon_address === 'sync.lethean.io:48782';
+                checked: persistentSettings.daemon_address === 'seed.lethean.io:48782';
                 onClicked: {
-                    persistentSettings.daemon_address = useRemoteDaemon.checked ? 'sync.lethean.io:48782' : 'localhost:48782';
+                    persistentSettings.daemon_address = useRemoteDaemon.checked ? 'seed.lethean.io:48782' : 'localhost:48782';
                     console.log("daemon address set to ", persistentSettings.daemon_address)
                 }
             }

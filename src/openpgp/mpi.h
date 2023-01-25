@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -26,34 +26,53 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "QrCode.hpp"
+#pragma once
 
-#include "QRCodeImageProvider.h"
+#include <gcrypt.h>
 
-QImage QRCodeImageProvider::genQrImage(const QString &id, QSize *size)
+namespace openpgp
 {
-    using namespace qrcodegen;
 
-    QrCode qrcode = QrCode::encodeText(id.toStdString().c_str(), QrCode::Ecc::MEDIUM);
-    unsigned int black = 0;
-    unsigned int white = 1;
-    unsigned int borderSize = 4;
-    unsigned int imageSize = qrcode.getSize() + (2 * borderSize);
-    QImage img = QImage(imageSize, imageSize, QImage::Format_Mono);
-
-    for (unsigned int y = 0; y < imageSize; ++y)
-        for (unsigned int x = 0; x < imageSize; ++x)
-            if ((x < borderSize) || (x >= imageSize - borderSize) || (y < borderSize) || (y >= imageSize - borderSize))
-                img.setPixel(x, y, white);
-            else
-                img.setPixel(x, y, qrcode.getModule(x - borderSize, y - borderSize) ? black : white);
-    if (size)
-        *size = QSize(imageSize, imageSize);
-
-    return img;
-}
-
-QImage QRCodeImageProvider::requestImage(const QString &id, QSize *size, const QSize &/* requestedSize */)
+class mpi
 {
-    return genQrImage(id, size);
-}
+public:
+  mpi(const mpi &) = delete;
+  mpi &operator=(const mpi &) = delete;
+
+  mpi(mpi &&other)
+    : data(other.data)
+  {
+    other.data = nullptr;
+  }
+
+  template <
+    typename byte_container,
+    typename = typename std::enable_if<(sizeof(typename byte_container::value_type) == 1)>::type>
+  mpi(const byte_container &buffer, gcry_mpi_format format = GCRYMPI_FMT_USG)
+    : mpi(&buffer[0], buffer.size(), format)
+  {
+  }
+
+  mpi(const void *buffer, size_t size, gcry_mpi_format format = GCRYMPI_FMT_USG)
+  {
+    if (gcry_mpi_scan(&data, format, buffer, size, nullptr) != GPG_ERR_NO_ERROR)
+    {
+      throw std::runtime_error("failed to read mpi from buffer");
+    }
+  }
+
+  ~mpi()
+  {
+    gcry_mpi_release(data);
+  }
+
+  const gcry_mpi_t &get() const
+  {
+    return data;
+  }
+
+private:
+  gcry_mpi_t data;
+};
+
+} // namespace openpgp

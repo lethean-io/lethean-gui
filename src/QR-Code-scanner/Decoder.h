@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -26,34 +26,24 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "QrCode.hpp"
+#include <QImage>
 
-#include "QRCodeImageProvider.h"
+struct quirc;
 
-QImage QRCodeImageProvider::genQrImage(const QString &id, QSize *size)
+class QrDecoder
 {
-    using namespace qrcodegen;
+public:
+    QrDecoder(const QrDecoder &) = delete;
+    QrDecoder &operator=(const QrDecoder &) = delete;
 
-    QrCode qrcode = QrCode::encodeText(id.toStdString().c_str(), QrCode::Ecc::MEDIUM);
-    unsigned int black = 0;
-    unsigned int white = 1;
-    unsigned int borderSize = 4;
-    unsigned int imageSize = qrcode.getSize() + (2 * borderSize);
-    QImage img = QImage(imageSize, imageSize, QImage::Format_Mono);
+    QrDecoder();
+    ~QrDecoder();
 
-    for (unsigned int y = 0; y < imageSize; ++y)
-        for (unsigned int x = 0; x < imageSize; ++x)
-            if ((x < borderSize) || (x >= imageSize - borderSize) || (y < borderSize) || (y >= imageSize - borderSize))
-                img.setPixel(x, y, white);
-            else
-                img.setPixel(x, y, qrcode.getModule(x - borderSize, y - borderSize) ? black : white);
-    if (size)
-        *size = QSize(imageSize, imageSize);
+    std::vector<std::string> decode(const QImage &image);
 
-    return img;
-}
+private:
+    std::vector<std::string> decodeGrayscale8(const QImage &image);
 
-QImage QRCodeImageProvider::requestImage(const QString &id, QSize *size, const QSize &/* requestedSize */)
-{
-    return genQrImage(id, size);
-}
+private:
+    quirc *m_qr;
+};

@@ -4,3 +4,6 @@
 [submodule "src/ed25519-donna"]
 	path = src/ed25519-donna
 	url = https://github.com/floodyberry/ed25519-donna.git
+[submodule "external/quirc"]
+	path = external/quirc
+	url = https://github.com/dlbeer/quirc/

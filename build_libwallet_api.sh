@@ -21,7 +21,7 @@ pushd $MONERO_DIR/build/release
 platform=$(get_platform)
 
 pushd $MONERO_DIR/build/release/src/wallet
-make -j$CPU_CORE_COUNT
+make -j$CPU_CORE_COUNT release-static-linux-x86_64-local-boost
 make install -j$CPU_CORE_COUNT
 popd
 
